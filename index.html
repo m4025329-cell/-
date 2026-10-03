@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Мерч-Империя</title>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Раскладка: липкая шапка с показателями, под ней одна «сцена» (событие, планирование, итоги).
+   Тема: мятная бумага и тёмные чернила, толстые контуры и жёсткие тени, монета-жёлтый как единственный акцент. */
+:root{
+  --ground:#E2F3EA; --surface:#FFFFFF; --surface-2:#F1F9F5; --ink:#10202E; --muted:#475D6D;
+  --line:#10202E; --shadow:#10202E; --coin:#FFC83D; --coin-ink:#10202E; --coin-deep:#F2A900;
+  --gain-bg:#C8F0DC; --gain-fg:#07663F; --loss-bg:#FFD9DA; --loss-fg:#B3202A;
+  --info-bg:#DCE3FF; --info-fg:#2B3FC2; --grid:#C5DBCF; --track:#CFE5D9;
+  --font-display:'Unbounded','Arial Black',system-ui,sans-serif;
+  --font-body:'Onest',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --r:14px; --bw:2.5px; --off:4px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0A1520; --surface:#13273A; --surface-2:#1A3348; --ink:#E9F5EF; --muted:#9DB5C6;
+    --line:#5D88AB; --shadow:#030A10; --coin:#FFC83D; --coin-ink:#10202E; --coin-deep:#F2A900;
+    --gain-bg:#12402F; --gain-fg:#6CE7AB; --loss-bg:#4A1D26; --loss-fg:#FF9A9E;
+    --info-bg:#1F2A66; --info-fg:#A9B8FF; --grid:#26435A; --track:#244158; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0A1520; --surface:#13273A; --surface-2:#1A3348; --ink:#E9F5EF; --muted:#9DB5C6;
+  --line:#5D88AB; --shadow:#030A10; --coin:#FFC83D; --coin-ink:#10202E; --coin-deep:#F2A900;
+  --gain-bg:#12402F; --gain-fg:#6CE7AB; --loss-bg:#4A1D26; --loss-fg:#FF9A9E;
+  --info-bg:#1F2A66; --info-fg:#A9B8FF; --grid:#26435A; --track:#244158; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);font:16px/1.5 var(--font-body);
+  background-image:radial-gradient(var(--grid) 1.2px,transparent 1.2px);background-size:22px 22px}
+button,input,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--font-display);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:3px solid var(--info-fg);outline-offset:2px}
+
+.wrap{max-width:1040px;margin-inline:auto;padding-inline:16px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:1.05rem;letter-spacing:-.02em;white-space:nowrap}
+.logo-coin{width:34px;height:34px;border-radius:50%;background:var(--coin);border:var(--bw) solid var(--line);box-shadow:2px 2px 0 var(--shadow);display:grid;place-items:center;color:var(--coin-ink);font-size:.95rem}
+.tools{display:flex;gap:8px}
+.iconbtn{width:42px;height:42px;display:grid;place-items:center;background:var(--surface);border:var(--bw) solid var(--line);border-radius:12px;box-shadow:2px 2px 0 var(--shadow);cursor:pointer;color:var(--ink);padding:0}
+.iconbtn:hover{background:var(--coin);color:var(--coin-ink)}
+.iconbtn:active{transform:translate(2px,2px);box-shadow:none}
+.iconbtn svg{width:20px;height:20px}
+
+/* ШАПКА С ПОКАЗАТЕЛЯМИ */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;padding-block:8px;background:linear-gradient(var(--ground) 80%,transparent)}
+.hud-card{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);box-shadow:var(--off) var(--off) 0 var(--shadow);padding:12px 14px;display:grid;gap:10px}
+.hud-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.hud-month{font-family:var(--font-display);font-weight:700;font-size:1rem}
+.hud-sub{font-size:.8rem;color:var(--muted)}
+.pips{display:flex;gap:3px;flex-wrap:nowrap}
+.pip{width:12px;height:12px;border-radius:3px;background:var(--track);border:1.5px solid var(--line)}
+.pip.done{background:var(--ink)}
+.pip.now{background:var(--coin)}
+.pip.gap{margin-left:7px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stat{min-width:0}
+.stat b{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat span{display:block;font-family:var(--font-display);font-weight:700;font-size:1.02rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat.neg span{color:var(--loss-fg)}
+.goalbar{height:14px;background:var(--track);border:2px solid var(--line);border-radius:99px;overflow:hidden}
+.goalbar i{display:block;height:100%;background:repeating-linear-gradient(135deg,var(--coin) 0 8px,var(--coin-deep) 8px 16px);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.goalrow{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);gap:8px}
+
+/* ОБЩИЕ ЭЛЕМЕНТЫ */
+.stage{padding-block:12px 40px;display:grid;gap:16px;min-width:0}
+.card{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);box-shadow:var(--off) var(--off) 0 var(--shadow);padding:18px;min-width:0}
+.card.flat{box-shadow:none;background:var(--surface-2)}
+.card h2{font-size:1.25rem}
+.card h3{font-size:1rem}
+.eyebrow{font-size:.74rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:10px 20px;background:var(--surface);color:var(--ink);border:var(--bw) solid var(--line);border-radius:12px;box-shadow:3px 3px 0 var(--shadow);font-weight:700;cursor:pointer;text-align:center;transition:transform .08s,box-shadow .08s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--shadow)}
+.btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--shadow)}
+.btn.primary{background:var(--coin);color:var(--coin-ink);font-family:var(--font-display);font-size:.95rem;font-weight:700}
+.btn.small{min-height:38px;padding:6px 12px;font-size:.85rem;box-shadow:2px 2px 0 var(--shadow)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--shadow)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:99px;font-size:.82rem;font-weight:600;border:2px solid var(--line);background:var(--surface-2)}
+.chip.gain{background:var(--gain-bg);color:var(--gain-fg)}
+.chip.loss{background:var(--loss-bg);color:var(--loss-fg)}
+.chip.info{background:var(--info-bg);color:var(--info-fg)}
+.chip.coin{background:var(--coin);color:var(--coin-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.gain-t{color:var(--gain-fg)} .loss-t{color:var(--loss-fg)}
+.ico{width:1em;height:1em;flex:none}
+
+/* ЗАСТАВКА */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:24px;align-items:center}
+.hero h1{font-size:clamp(2rem,6.4vw,3.6rem);font-weight:800}
+.hero h1 em{font-style:normal;background:var(--coin);color:var(--coin-ink);padding:0 .15em;border-radius:8px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hero p.lead{font-size:1.1rem;color:var(--muted);max-width:46ch;margin-top:14px}
+.hero-art{display:grid;place-items:center}
+.hero-art svg{width:100%;max-width:380px;height:auto}
+.field{display:grid;gap:6px;margin-top:20px}
+.field label{font-weight:700;font-size:.9rem}
+.field input{min-height:50px;padding:10px 14px;background:var(--surface);border:var(--bw) solid var(--line);border-radius:12px;box-shadow:inset 3px 3px 0 var(--grid)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.howto{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.howto .card{padding:14px}
+.step-n{width:30px;height:30px;border-radius:50%;background:var(--coin);color:var(--coin-ink);border:2px solid var(--line);display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:.85rem;margin-bottom:8px}
+.lessons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lessons .card{padding:14px}
+.lessons ul{margin:6px 0 0;padding-left:1.1em;color:var(--muted);font-size:.9rem}
+
+/* СОБЫТИЕ */
+.event{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
+.badge-ico{width:84px;height:84px;border-radius:50%;background:var(--coin);color:var(--coin-ink);border:var(--bw) solid var(--line);box-shadow:var(--off) var(--off) 0 var(--shadow);display:grid;place-items:center}
+.badge-ico svg{width:44px;height:44px}
+.event h2{font-size:clamp(1.3rem,3.6vw,1.9rem);margin:6px 0 10px}
+.event .text{font-size:1.04rem;max-width:62ch}
+.choices{display:grid;gap:12px;margin-top:6px}
+.choice{display:grid;gap:2px;text-align:left;padding:14px 16px;background:var(--surface);border:var(--bw) solid var(--line);border-radius:12px;box-shadow:3px 3px 0 var(--shadow);cursor:pointer;width:100%}
+.choice:hover{background:var(--surface-2);transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--shadow)}
+.choice:active{transform:translate(3px,3px);box-shadow:none}
+.choice b{font-size:1.02rem}
+.choice span{color:var(--muted);font-size:.9rem}
+.choice.picked{background:var(--coin);color:var(--coin-ink)}
+.choice.picked span{color:var(--coin-ink)}
+.choice.dim{opacity:.5;pointer-events:none}
+.lesson{border:var(--bw) dashed var(--line);border-radius:12px;padding:14px 16px;background:var(--info-bg);color:var(--ink)}
+.lesson b{color:var(--info-fg)}
+
+/* ПЛАНИРОВАНИЕ */
+.tabs{display:flex;gap:6px;padding:6px;background:var(--surface);border:var(--bw) solid var(--line);border-radius:14px;box-shadow:var(--off) var(--off) 0 var(--shadow);width:100%}
+.tab{flex:1;min-height:44px;padding:8px 10px;border:0;border-radius:9px;background:transparent;font-weight:700;cursor:pointer;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--ground)}
+.plan{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px;align-items:start}
+.col{display:grid;gap:16px;min-width:0}
+.ctl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ctl-val{font-family:var(--font-display);font-weight:800;font-size:1.6rem}
+.ctl-note{font-size:.88rem;color:var(--muted);margin-top:6px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:8px 0 2px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:14px;background:var(--track);border:2px solid var(--line);border-radius:99px}
+input[type=range]::-moz-range-track{height:10px;background:var(--track);border:2px solid var(--line);border-radius:99px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;margin-top:-10px;border-radius:50%;background:var(--coin);border:var(--bw) solid var(--line);box-shadow:2px 2px 0 var(--shadow)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--coin);border:var(--bw) solid var(--line);box-shadow:2px 2px 0 var(--shadow)}
+.scale{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}
+.adgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.ad{padding:10px 12px;text-align:left;background:var(--surface);border:var(--bw) solid var(--line);border-radius:12px;cursor:pointer;display:grid;gap:2px}
+.ad[aria-pressed="true"]{background:var(--coin);color:var(--coin-ink);box-shadow:3px 3px 0 var(--shadow)}
+.ad b{font-size:.95rem} .ad span{font-size:.8rem;color:var(--muted)} .ad[aria-pressed="true"] span{color:var(--coin-ink)}
+.fc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.fc div{background:var(--surface-2);border:2px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.fc b{display:block;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.fc span{font-family:var(--font-display);font-weight:700;font-size:.98rem;display:block;overflow-wrap:anywhere}
+.callout{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--info-bg);font-size:.92rem}
+.callout.warn{background:var(--loss-bg)}
+.callout.ok{background:var(--gain-bg)}
+.callout svg{width:20px;height:20px;flex:none;margin-top:2px}
+.curve{width:100%;height:auto;display:block}
+.curve text{font-family:var(--font-body);font-size:10.5px;fill:var(--muted)}
+.actionbar{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:15;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);box-shadow:var(--off) var(--off) 0 var(--shadow);padding:10px 14px}
+.actionbar .sum{display:grid;font-size:.85rem;color:var(--muted)}
+.actionbar .sum b{font-family:var(--font-display);font-size:1.05rem;color:var(--ink)}
+
+/* РАЗВИТИЕ И ФИНАНСЫ */
+.ups{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.up{display:grid;gap:10px;align-content:space-between}
+.up h3{font-size:1.02rem}
+.up.owned{background:var(--gain-bg)}
+.up.locked{opacity:.6}
+.fin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.bal{width:100%;border-collapse:collapse;font-size:.95rem}
+.bal td{padding:6px 0;border-bottom:1.5px dashed var(--grid)}
+.bal td:last-child{text-align:right;font-weight:700}
+.bal tr.total td{border-bottom:0;border-top:var(--bw) solid var(--line);font-family:var(--font-display);font-weight:800;padding-top:10px}
+.mv{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.big{font-family:var(--font-display);font-weight:800;font-size:1.5rem}
+
+/* ИТОГИ МЕСЯЦА */
+.report-head{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:flex-end}
+.profit{font-family:var(--font-display);font-weight:800;font-size:clamp(1.9rem,6vw,3rem)}
+.wf{display:grid;gap:8px;margin-top:6px}
+.wf-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;font-size:.93rem}
+.wf-row .bar{grid-column:1/-1;height:8px;background:var(--track);border-radius:99px;overflow:hidden}
+.wf-row .bar i{display:block;height:100%;background:var(--ink)}
+.wf-row.plus .bar i{background:#19B37A}
+.wf-row.minus .bar i{background:#E5484D}
+.wf-row b{font-variant-numeric:tabular-nums}
+.wf-row.sum{border-top:var(--bw) solid var(--line);padding-top:10px;font-weight:800}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+
+/* ВИКТОРИНА */
+.qopts{display:grid;gap:10px;margin-top:14px}
+.qopt{display:flex;gap:12px;align-items:center;text-align:left;padding:12px 14px;background:var(--surface);border:var(--bw) solid var(--line);border-radius:12px;box-shadow:3px 3px 0 var(--shadow);cursor:pointer;width:100%;font-weight:600}
+.qopt .k{flex:none;width:30px;height:30px;border-radius:8px;border:2px solid var(--line);display:grid;place-items:center;font-family:var(--font-display);font-size:.8rem;background:var(--surface-2)}
+.qopt:hover{background:var(--surface-2)}
+.qopt.right{background:var(--gain-bg);color:var(--gain-fg)}
+.qopt.wrong{background:var(--loss-bg);color:var(--loss-fg)}
+.qopt.dim{opacity:.55;pointer-events:none}
+.qprog{display:flex;gap:6px}
+.qprog i{flex:1;height:8px;border-radius:99px;background:var(--track);border:1.5px solid var(--line)}
+.qprog i.on{background:var(--ink)}
+
+/* ФИНАЛ */
+.final-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.rank{font-family:var(--font-display);font-weight:800;font-size:clamp(1.7rem,5vw,2.6rem)}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.bdg{display:flex;gap:10px;align-items:center;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.bdg.on{background:var(--coin);color:var(--coin-ink)}
+.bdg.off{opacity:.55}
+.bdg svg{width:26px;height:26px;flex:none}
+.bdg small{display:block;font-size:.76rem;opacity:.85;line-height:1.3}
+.code{width:100%;min-height:76px;resize:vertical;padding:10px 12px;background:var(--surface-2);border:var(--bw) solid var(--line);border-radius:12px;font-family:var(--font-mono);font-size:.82rem}
+
+/* МОДАЛКА / ТОСТ */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(5,12,18,.62);display:grid;place-items:center;padding:16px}
+.modal-box{width:min(680px,100%);max-height:calc(100% - 8px);overflow:auto;background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--r);box-shadow:6px 6px 0 var(--shadow);padding:20px;display:grid;gap:14px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.terms{display:grid;gap:10px}
+.term{padding:12px 14px;border:2px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.term b{display:block}
+.term span{color:var(--muted);font-size:.92rem}
+.term.lock{opacity:.5}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 90px);transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--ground);padding:10px 16px;border-radius:12px;font-weight:600;max-width:calc(100% - 32px);box-shadow:3px 3px 0 var(--shadow);animation:pop .25s ease}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70}
+@keyframes pop{from{transform:translate(-50%,10px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+@keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+.stage.enter>*{animation:rise .35s ease both}
+.stage.enter>*:nth-child(2){animation-delay:.05s}.stage.enter>*:nth-child(3){animation-delay:.1s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.bob{animation:bob 3.2s ease-in-out infinite}
+.bob.d2{animation-delay:-1.2s}.bob.d3{animation-delay:-2.1s}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ПЛАНШЕТ И ТЕЛЕФОН */
+@media (max-width:860px){
+  .hero,.plan,.final-top,.two{grid-template-columns:minmax(0,1fr)}
+  .hero-art{order:-1}.hero-art svg{max-width:240px}
+  .howto,.lessons{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:560px){
+  .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .stat b{font-size:.58rem;letter-spacing:.03em}
+  .stat span{font-size:.74rem}
+  .hud{padding-block:4px}
+  .hud-card{gap:6px}
+  .pips,.hud-sub,.goalrow span:first-child{display:none}
+  .goalrow{justify-content:flex-end;margin-top:2px}
+  .goalbar{height:10px}
+  .event{grid-template-columns:minmax(0,1fr)}
+  .badge-ico{width:64px;height:64px}.badge-ico svg{width:34px;height:34px}
+  .pip{width:9px;height:9px}
+  .logo span.t{font-size:.95rem}
+  .fc{grid-template-columns:minmax(0,1fr)}
+  .actionbar{flex-direction:column;align-items:stretch}
+  .actionbar .btn{width:100%}
+  .hud-card{padding:10px 12px}
+  .card{padding:14px}
+  .adgrid{grid-template-columns:minmax(0,1fr)}
+}
+
+</style>
+<div class="wrap">
+  <header class="topbar">
+    <div class="logo"><span class="logo-coin">₽</span><span class="t">Мерч-Империя</span></div>
+    <div class="tools" id="app-tools"></div>
+  </header>
+  <div class="hud" id="hud"></div>
+  <main class="stage" id="stage"></main>
+</div>
+<div id="modal"></div>
+<div id="toast" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script>
+/* ===== Экономический движок «Мерч-Империи» (без интерфейса) ===== */
+
+var GOAL = 1000000, TOTAL = 16, START_CASH = 30000, ELASTICITY = 1.7, BASE_COST = 350, BASE_PRICE = 900, D0 = 55;
+var MONTH_NAMES = ['Сентябрь','Октябрь','Ноябрь','Декабрь','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+var SEASON = [1.0,1.0,1.2,1.4,0.75,1.05,1.2,1.0,1.0,1.1,0.85,1.15,1.0,1.0,1.2,1.4];
+var AD = [
+  {name:'Без рекламы', cost:0, mult:1, brand:0},
+  {name:'Соцсети', cost:3000, mult:1.10, brand:1.5},
+  {name:'Блогеры', cost:8000, mult:1.22, brand:3},
+  {name:'Большая кампания', cost:20000, mult:1.32, brand:5}
+];
+var UPGRADES = [
+  {id:'press', name:'Термопресс PRO', cost:25000, from:1, desc:'Печатает быстрее и дешевле.', fx:['+30 футболок в месяц','себестоимость −40 ₽']},
+  {id:'online', name:'Интернет-магазин', cost:18000, from:1, desc:'Заказы приходят со всего города.', fx:['спрос ×1,25','комиссия сайта 2 000 ₽/мес']},
+  {id:'brandkit', name:'Фирменный стиль', cost:35000, from:5, desc:'Логотип, упаковка, единый вид.', fx:['узнаваемость +10','спрос ×1,08']},
+  {id:'designer', name:'Штатный дизайнер', cost:0, from:5, desc:'Новые принты каждую неделю.', fx:['спрос ×1,12','зарплата 20 000 ₽/мес']},
+  {id:'workshop', name:'Швейный цех', cost:150000, from:9, desc:'Своё производство вместо гаража.', fx:['+150 футболок в месяц','себестоимость −60 ₽']},
+  {id:'line', name:'Автоматическая линия', cost:300000, from:13, desc:'Печать почти без участия людей.', fx:['+300 футболок в месяц','себестоимость −50 ₽']}
+];
+var TAX_MIN = 0.01;
+
+function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
+function newState(name){
+  return { name:name||'Предприниматель', month:1, cash:START_CASH, savings:0, fund:0, stock:0,
+    inv:0, invValue:0, loanLeft:0, loanStep:0, brand:0, infl:1, costBase:1,
+    qualityMult:1, nicheMult:1, store:'none', staffPro:0, staffTeen:0, taxMode:null,
+    up:{}, mods:[], price:BASE_PRICE, produce:30, adIdx:0, discount:1,
+    unlock:{deposit:false, invest:false, loan:false},
+    history:[], quizScore:[], quizTotal:0, badges:{}, terms:[], tookRisk:false, riskWon:false,
+    overdrafts:0, lastMargin:0.3, totalRevenue:0, log:[] };
+}
+function modProd(s, k){ var p=1; s.mods.forEach(function(m){ if(m.k===k) p*=m.m; }); return p; }
+function unitCost(s){
+  var c = BASE_COST;
+  if(s.up.press) c -= 40; if(s.up.workshop) c -= 60; if(s.up.line) c -= 50;
+  c += (s.costAdd||0);
+  return Math.round(Math.max(120, c) * s.costBase * modProd(s,'cost'));
+}
+function capacity(s){
+  var c = 55;
+  if(s.store==='shop') c+=60; if(s.store==='cowork') c+=20;
+  if(s.up.press) c+=40; if(s.up.workshop) c+=250; if(s.up.line) c+=450;
+  if(s.staffPro) c+=80; if(s.staffTeen) c+=25;
+  return c;
+}
+function refPrice(s){ return Math.round(BASE_PRICE * s.infl * modProd(s,'ref') / 10) * 10; }
+function permanentDemand(s){
+  var m = s.qualityMult * s.nicheMult;
+  if(s.store==='shop') m*=1.3; else if(s.store==='cowork') m*=1.12;
+  if(s.up.online) m*=1.25; if(s.up.brandkit) m*=1.08; if(s.up.designer) m*=1.12;
+  if(s.staffPro) m*=1.08;
+  return m;
+}
+function demandAt(s, price, adIdx, noise){
+  var d = D0 * SEASON[s.month-1] * Math.pow(refPrice(s)/price, ELASTICITY) * AD[adIdx].mult *
+          (1 + s.brand*0.012) * permanentDemand(s) * modProd(s,'dem') * (noise||1);
+  return Math.max(0, d);
+}
+function fixedCosts(s){
+  var f = 0;
+  if(s.store==='shop') f+=15000; if(s.store==='cowork') f+=6000;
+  f += s.staffPro*25000*s.infl + s.staffTeen*10000*s.infl;
+  if(s.up.designer) f+=20000*s.infl;
+  if(s.up.online) f+=2000;
+  f = f * modProd(s,'fixed');
+  return Math.round(f);
+}
+function loanPayment(s){
+  if(s.loanLeft<=0) return 0;
+  return Math.round(Math.min(s.loanLeft, s.loanStep) + s.loanLeft*0.015);
+}
+function netWorth(s){
+  return Math.round(s.cash + s.savings + s.fund + s.stock + s.invValue - s.loanLeft);
+}
+function planCost(s, plan){
+  return plan.produce*unitCost(s) + AD[plan.adIdx].cost;
+}
+function netProfitPreview(s, plan, demand){
+  var c = unitCost(s), avail = s.inv + plan.produce, sold = Math.min(Math.round(demand), avail);
+  var priceNow = plan.price * s.discount;
+  var rev = sold*priceNow;
+  var avg = avail>0 ? (s.invValue + plan.produce*c)/avail : c;
+  var cogs = sold*avg;
+  var fixed = fixedCosts(s) + (avail-sold)*15 + Math.round(s.loanLeft*0.015);
+  var pbt = rev - cogs - AD[plan.adIdx].cost - fixed;
+  var tax = calcTax(s, rev, pbt);
+  return {sold:sold, revenue:rev, profit:pbt-tax, demand:demand};
+}
+function calcTax(s, revenue, pbt){
+  if(s.taxMode==='rev') return Math.round(revenue*0.06);
+  if(s.taxMode==='profit') return Math.round(Math.max(pbt*0.15, revenue*TAX_MIN));
+  return 0;
+}
+function gauss(rng){ return (rng()+rng()+rng()+rng()-2)*1.7; }
+
+function runMonth(s, plan, rng){
+  rng = rng || Math.random;
+  var c = unitCost(s), cap = capacity(s);
+  var produce = clamp(Math.round(plan.produce), 0, cap);
+  var price = plan.price, ad = AD[plan.adIdx];
+  var r = {month:s.month, produce:produce, price:price, unit:c, ad:ad.cost, discount:s.discount};
+  /* закупка и реклама оплачиваются сразу */
+  var upfront = produce*c + ad.cost;
+  s.cash -= upfront;
+  s.inv += produce; s.invValue += produce*c;
+  /* спрос */
+  var noise = 0.92 + rng()*0.16;
+  var D = Math.round(demandAt(s, price, plan.adIdx, noise));
+  var sold = Math.min(D, s.inv);
+  var avg = s.inv>0 ? s.invValue/s.inv : c;
+  var cogs = Math.round(sold*avg);
+  var revenue = Math.round(sold*price*s.discount);
+  s.inv -= sold; s.invValue = s.inv>0 ? Math.max(0, s.invValue - cogs) : 0;
+  r.demand = D; r.sold = sold; r.lost = Math.max(0, D-sold); r.left = s.inv;
+  r.revenue = revenue; r.cogs = cogs;
+  /* постоянные расходы */
+  var fixed = fixedCosts(s), carry = s.inv*15;
+  var interest = Math.round(s.loanLeft*0.015), principal = Math.round(Math.min(s.loanLeft, s.loanStep));
+  r.fixed = fixed; r.carry = carry; r.interest = interest; r.principal = principal;
+  var pbt = revenue - cogs - ad.cost - fixed - carry - interest;
+  var tax = calcTax(s, revenue, pbt);
+  r.tax = tax; r.profit = pbt - tax;
+  s.cash += revenue - fixed - carry - interest - principal - tax;
+  s.loanLeft -= principal; if(s.loanLeft<1){ s.loanLeft=0; s.loanStep=0; }
+  /* вклады и инвестиции */
+  r.depositGain = Math.round(s.savings*0.01); s.savings += r.depositGain;
+  var fundR = 0.008 + 0.04*gauss(rng)/1.7*1.0, stockR = 0.012 + 0.13*gauss(rng)/1.7;
+  var shock = s.month===15 ? 1 : 0;
+  if(shock){ fundR -= 0.10; stockR -= 0.22; }
+  fundR = clamp(fundR, -0.25, 0.15); stockR = clamp(stockR, -0.45, 0.30);
+  r.fundR = fundR; r.stockR = stockR;
+  var fb = s.fund, sb = s.stock;
+  s.fund = Math.round(s.fund*(1+fundR)); s.stock = Math.round(s.stock*(1+stockR));
+  r.investGain = (s.fund-fb)+(s.stock-sb);
+  /* овердрафт */
+  r.overdraft = 0;
+  if(s.cash<0 && s.savings>0){ var take=Math.min(s.savings, -s.cash); s.savings-=take; s.cash+=take; r.fromSavings=take; }
+  if(s.cash<0){ r.overdraft = Math.round(-s.cash); s.loanLeft += r.overdraft; s.loanStep = Math.max(s.loanStep, Math.round(s.loanLeft/12)); s.cash = 0; s.overdrafts++; }
+  /* узнаваемость и итоги */
+  s.brand = clamp(s.brand*0.97 + ad.brand + (D>0 ? Math.min(3, sold/40) : 0), 0, 100);
+  s.lastMargin = revenue>0 ? r.profit/revenue : 0;
+  s.totalRevenue += revenue;
+  s.mods.forEach(function(m){ m.left--; });
+  s.mods = s.mods.filter(function(m){ return m.left>0; });
+  s.discount = 1;
+  s.history.push({m:s.month, revenue:revenue, profit:r.profit, nw:netWorth(s), sold:sold, cash:s.cash});
+  r.nw = netWorth(s);
+  s.month++;
+  return r;
+}
+function coverDeficit(s){
+  if(s.cash>=0) return 0;
+  var d = Math.round(-s.cash);
+  s.loanLeft += d; s.loanStep = Math.max(s.loanStep, Math.round(s.loanLeft/12)); s.cash = 0; s.overdrafts++; s.unlock.loan = true;
+  return d;
+}
+
+
+/* ===== События, словарик и вопросы ===== */
+function rub(n){ n=Math.round(n); var sgn=n<0?'−':''; return sgn+Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' ₽'; }
+function pct(x, d){ return (x*100).toFixed(d||0).replace('.',',')+'%'; }
+function cash(s, n, label){ s.cash += n; return {t:(n>=0?'+':'')+rub(n)+(label?' '+label:''), k:n>=0?'gain':'loss'}; }
+function mod(s, k, m, left, label){ s.mods.push({k:k, m:m, left:left, label:label}); }
+function modChip(txt, good){ return {t:txt, k:good?'gain':'loss'}; }
+function addBrand(s, n){ s.brand = clamp(s.brand+n,0,100); return {t:'узнаваемость '+(n>=0?'+':'')+n, k:n>=0?'gain':'loss'}; }
+
+var TERMS = {
+  margin:   ['Маржа (прибыль с единицы)', 'Разница между ценой и себестоимостью. Цена 900 ₽ минус себестоимость 350 ₽ даёт маржу 550 ₽ с каждой футболки.'],
+  demand:   ['Закон спроса', 'Чем выше цена, тем меньше покупателей. Чем ниже цена, тем больше. Покупатели сравнивают.'],
+  compete:  ['Конкуренция', 'Соперничество продавцов за покупателей. Продавцы борются ценой или качеством, а покупатели выигрывают.'],
+  season:   ['Сезонность', 'Спрос меняется в течение года. Перед праздниками покупают больше, после них меньше.'],
+  cost:     ['Издержки и себестоимость', 'Всё, что ты тратишь на производство. Когда материалы дорожают, нужно пересчитывать цену.'],
+  fixed:    ['Постоянные и переменные расходы', 'Переменные растут с каждой футболкой (ткань, краска). Постоянные платятся всегда (аренда, зарплата).'],
+  tax:      ['Налоги', 'Часть дохода, которую бизнес отдаёт государству. На эти деньги строят школы, дороги и больницы.'],
+  labor:    ['Труд и зарплата', 'Сотрудник увеличивает выпуск, но его зарплата становится постоянным расходом.'],
+  risk:     ['Риск и доходность', 'Чем выше возможная прибыль, тем выше шанс потерять деньги. Безопасные вложения приносят меньше.'],
+  credit:   ['Кредит и процент', 'Деньги, взятые у банка в долг. Вернуть нужно больше, чем взяли. Разница называется переплатой.'],
+  inflation:['Инфляция', 'Рост цен в стране. Из-за неё на одни и те же деньги можно купить меньше, чем раньше.'],
+  deposit:  ['Вклад и сложный процент', 'Банк платит тебе за то, что ты оставил деньги у него. Проценты начисляются и на проценты.'],
+  fx:       ['Валютный курс', 'Цена одной валюты в другой. Если рубль слабеет, импортные товары и материалы дорожают.'],
+  diversify:['Диверсификация', 'Не класть все яйца в одну корзину. Деньги в разных активах: если один упадёт, другие смягчат удар.'],
+  scale:    ['Эффект масштаба', 'Крупная компания делает одну вещь дешевле, потому что делает их миллионы. Малому бизнесу выигрывать нужно иначе.'],
+  cycle:    ['Экономический цикл', 'Экономика то растёт, то замедляется. В спад спрос падает, и выживают те, у кого есть запас денег.'],
+  capital:  ['Капитал', 'Всё, что у тебя есть (деньги, вклады, товар на складе), минус всё, что ты должен. Это главный результат игры.']
+};
+
+var HINTS = [
+  'Посмотри на кривую спроса. Чем выше цена, тем меньше покупателей, но больше денег с каждого.',
+  'Не печатай больше, чем купят. Лишние футболки лежат на складе и стоят денег.',
+  'В ноябре спрос выше. Подготовь больше товара, но и цену не занижай.',
+  'Декабрь — самый сильный месяц. Проверь, хватает ли мощности выпуска.',
+  'Январь — слабый месяц. Постоянные расходы платятся, даже если покупателей мало.',
+  'Следи за маржой в отчёте. Налоговый режим выгоден по-разному при разной марже.',
+  'Помощник и новое оборудование окупаются, если ты успеваешь продавать больше.',
+  'Реклама окупается не всегда. Сравни расходы с тем, сколько футболок она добавит.',
+  'Кредит стоит денег. Бери его, только если на эти деньги заработаешь больше, чем заплатишь процентами.',
+  'Инфляция сдвигает оптимальную цену вверх вместе с себестоимостью.',
+  'Деньги без дела лучше положить на вклад, но оставь запас на расходы месяца.',
+  'Если материалы дорожают, оптимальная цена растёт примерно в 2,4 раза от себестоимости.',
+  'Не вкладывай в акции все деньги. Разные вложения страхуют друг друга.',
+  'Конкурент большой. Выигрывай там, где у него нет преимущества: уникальность и бренд.',
+  'В кризис выживает тот, у кого есть запас денег. Не трать всё до копейки.',
+  'Последний месяц. Выжми всё из декабрьского спроса и проверь, что готов к итогам.'
+];
+
+var EVENTS = [
+/* 1 */ {icon:'shirt', tag:'Маржа', term:'margin', title:'Первый крупный заказ',
+ text:function(s){return 'Одноклассник Лёва собирает команду и хочет 30 футболок. Он просит скидку за опт. Себестоимость одной футболки — '+rub(unitCost(s))+', обычная цена — '+rub(900)+'.';},
+ choices:[
+  {label:'Продать почти по себестоимости', sub:'+10% к себестоимости, берёт 30 штук', apply:function(s){var g=30*Math.round(unitCost(s)*0.1);return [cash(s,g),addBrand(s,6)];}},
+  {label:'Дать скидку 15%', sub:'Цена 765 ₽, берёт 30 штук', apply:function(s){var g=30*(765-unitCost(s));return [cash(s,g),addBrand(s,3)];}},
+  {label:'Продать по полной цене', sub:'900 ₽, но Лёва возьмёт только 15', apply:function(s){var g=15*(900-unitCost(s));return [cash(s,g)];}}],
+ lesson:'Прибыль = (цена − себестоимость) × количество. Скидка за опт уменьшает прибыль с одной футболки, но может сильно увеличить количество. Здесь лучше всего сработал средний вариант: небольшая скидка и большой заказ.'},
+/* 2 */ {icon:'swords', tag:'Конкуренция', term:'compete', title:'Конкурент у школы',
+ text:function(){return 'Рядом появился продавец футболок. Его цены на 20% ниже твоих. Покупатели сравнивают тебя и его.';},
+ choices:[
+  {label:'Запустить рекламу «Лучше, чем у них»', sub:'−5 000 ₽, спрос ×0,93 на 3 месяца', apply:function(s){mod(s,'dem',0.93,3,'Конкурент');return [cash(s,-5000),modChip('спрос ×0,93 на 3 мес.',false),addBrand(s,4)];}},
+  {label:'Сделать футболки лучше', sub:'−6 000 ₽, себестоимость +30 ₽, спрос ×1,12 навсегда', apply:function(s){s.costAdd=(s.costAdd||0)+30;s.qualityMult*=1.12;return [cash(s,-6000),modChip('себестоимость +30 ₽',false),modChip('спрос ×1,12 навсегда',true)];}},
+  {label:'Ничего не менять', sub:'спрос ×0,85 на 3 месяца', apply:function(s){mod(s,'dem',0.85,3,'Конкурент');return [modChip('спрос ×0,85 на 3 мес.',false)];}}],
+ lesson:'Конкуренты борются ценой или качеством. Качество — неценовая конкуренция: покупатель готов платить больше за то, что нравится ему сильнее.'},
+/* 3 */ {icon:'tag', tag:'Сезонность', term:'season', title:'Чёрная пятница',
+ text:function(){return 'Все магазины объявили скидки, и покупатели ждут распродаж. В ноябре спрос и так выше, но участвовать в акции или нет — решать тебе.';},
+ choices:[
+  {label:'Скидка 20% на всё', sub:'цена −20%, спрос ×1,5 в этом месяце', apply:function(s){s.discount=0.8;mod(s,'dem',1.5,1,'Чёрная пятница');return [modChip('цена продажи −20%',false),modChip('спрос ×1,5',true),addBrand(s,4)];}},
+  {label:'Без скидок, но с подарком', sub:'стикеры к каждой футболке: себестоимость +25 ₽, спрос ×1,2', apply:function(s){mod(s,'cost',1+25/Math.max(1,unitCost(s)),1,'Подарок');mod(s,'dem',1.2,1,'Подарок');return [modChip('себестоимость +25 ₽ на месяц',false),modChip('спрос ×1,2',true)];}},
+  {label:'Не участвовать', sub:'спрос остаётся как есть', apply:function(s){return [modChip('без изменений',true)];}}],
+ lesson:'Скидка не всегда выгодна. Выручка выросла, а прибыль с каждой футболки упала. Сравнивай именно прибыль, а не оборот.'},
+/* 4 */ {icon:'truck', tag:'Издержки', term:'cost', title:'Ткань подорожала',
+ text:function(s){return 'Поставщик сообщил: ткань дорожает на 20%. Себестоимость футболки вырастет примерно с '+rub(unitCost(s))+' до '+rub(unitCost(s)*1.15)+'.';},
+ choices:[
+  {label:'Принять новые цены', sub:'себестоимость +15% навсегда', apply:function(s){s.costBase*=1.15;return [modChip('себестоимость +15%',false)];}},
+  {label:'Найти другого поставщика', sub:'−10 000 ₽ на поиск, себестоимость только +5%', apply:function(s){s.costBase*=1.05;return [cash(s,-10000),modChip('себестоимость +5%',false)];}},
+  {label:'Купить ткань впрок', sub:'−20 000 ₽ сейчас, старая цена ещё 2 месяца', apply:function(s){mod(s,'cost',1/1.15,2,'Запас ткани');s.costBase*=1.15;return [cash(s,-20000),modChip('старая цена 2 месяца',true),modChip('потом +15%',false)];}}],
+ lesson:'Когда издержки растут, оптимальная цена растёт вместе с ними. Подумай об этом при выборе цены.'},
+/* 5 */ {icon:'store', tag:'Постоянные расходы', term:'fixed', title:'Свой магазин',
+ text:function(){return 'Мама Ирины сдаёт небольшое помещение у школы за 15 000 ₽ в месяц. Там больше покупателей и место для производства. Платить придётся, даже если никто не придёт. Январь — месяц с низким спросом.';},
+ choices:[
+  {label:'Арендовать магазин', sub:'−15 000 ₽ в месяц, +40 мощность, спрос ×1,3', apply:function(s){s.store='shop';return [modChip('аренда 15 000 ₽/мес',false),modChip('+40 футболок в месяц',true),modChip('спрос ×1,3',true)];}},
+  {label:'Коворкинг-стол', sub:'−6 000 ₽ в месяц, +15 мощность, спрос ×1,12', apply:function(s){s.store='cowork';return [modChip('аренда 6 000 ₽/мес',false),modChip('+15 футболок в месяц',true),modChip('спрос ×1,12',true)];}},
+  {label:'Остаться в гараже', sub:'ничего не меняется', apply:function(s){return [modChip('без новых расходов',true)];}}],
+ lesson:'Переменные расходы зависят от количества футболок. Постоянные платятся каждый месяц независимо от продаж. Чем больше постоянных расходов, тем важнее продавать много.'},
+/* 6 */ {icon:'percent', tag:'Налоги', term:'tax', title:'Пора платить налоги',
+ text:function(s){return 'Выручка выросла, и бизнес нужно оформить. Режим «Доходы»: 6% с каждой выручки. Режим «Доходы минус расходы»: 15% только с прибыли (но не меньше 1% выручки). Твоя прибыльность в прошлом месяце: '+pct(Math.max(0,s.lastMargin))+' от выручки.';},
+ choices:[
+  {label:'«Доходы»: 6% с выручки', sub:'просто и предсказуемо', apply:function(s){s.taxMode='rev';return [modChip('налог 6% с выручки',false)];}},
+  {label:'«Доходы минус расходы»: 15% с прибыли', sub:'выгодно при невысокой марже', apply:function(s){s.taxMode='profit';return [modChip('налог 15% с прибыли',false)];}},
+  {label:'Пока не оформляться', sub:'штраф 20 000 ₽ и принудительный режим 6%', apply:function(s){s.taxMode='rev';return [cash(s,-20000,'штраф'),modChip('налог 6% с выручки',false)];}}],
+ lesson:'Режим 15% с прибыли выгоднее, если прибыль меньше 40% выручки (тогда 15% от прибыли меньше, чем 6% от выручки). Работать без оформления нельзя: это нарушение и штраф. Налоги идут на школы, дороги и больницы.'},
+/* 7 */ {icon:'user', tag:'Труд', term:'labor', title:'Нужен помощник',
+ text:function(){return 'К 8 Марта заказов втрое больше. Ты сам печатаешь, пакуешь и отвечаешь в чате и не успеваешь. Продавец-помощник стоит 25 000 ₽ в месяц.';},
+ choices:[
+  {label:'Нанять помощника', sub:'−25 000 ₽ в месяц, +60 мощность, спрос ×1,08', apply:function(s){s.staffPro=1;return [modChip('зарплата 25 000 ₽/мес',false),modChip('+60 футболок в месяц',true),modChip('спрос ×1,08',true)];}},
+  {label:'Нанять подростка на подработку', sub:'−10 000 ₽ в месяц, +20 мощность', apply:function(s){s.staffTeen=1;return [modChip('зарплата 10 000 ₽/мес',false),modChip('+20 футболок в месяц',true)];}},
+  {label:'Справляться самому', sub:'ничего не меняется', apply:function(s){return [modChip('без новых расходов',true)];}}],
+ lesson:'Работники — ресурс бизнеса. Они увеличивают выпуск, но их зарплата становится постоянным расходом. Нанимать выгодно, когда дополнительная прибыль больше зарплаты.'},
+/* 8 */ {icon:'megaphone', tag:'Риск', term:'risk', title:'Реклама у блогера',
+ text:function(){return 'Школьный блогер со 120 тысячами подписчиков предлагает ролик за 15 000 ₽. Шанс, что он «выстрелит», примерно 55%. Таргет в соцсетях стоит 6 000 ₽ и работает стабильно.';},
+ choices:[
+  {label:'Блогер', sub:'−15 000 ₽, 55% шанс: спрос ×1,6 на 2 месяца', apply:function(s,rng){s.tookRisk=true;var win=rng()<0.55;if(win){s.riskWon=true;mod(s,'dem',1.6,2,'Блогер');return [cash(s,-15000),modChip('ролик выстрелил! спрос ×1,6 на 2 мес.',true),addBrand(s,12)];}mod(s,'dem',1.05,2,'Блогер');return [cash(s,-15000),modChip('ролик не взлетел: спрос ×1,05',false),addBrand(s,2)];}},
+  {label:'Таргет в соцсетях', sub:'−6 000 ₽, точно: спрос ×1,18 на 2 месяца', apply:function(s){mod(s,'dem',1.18,2,'Таргет');return [cash(s,-6000),modChip('спрос ×1,18 на 2 мес.',true),addBrand(s,4)];}},
+  {label:'Пропустить', sub:'ничего не меняется', apply:function(s){return [modChip('без изменений',true)];}}],
+ lesson:'Высокая награда всегда связана с высоким риском. Блогер выигрывает в среднем, но может подвести. Таргет надёжнее, но даёт меньше. Выбор зависит от того, сколько ты готов потерять.'},
+/* 9 */ {icon:'bank', tag:'Кредит', term:'credit', title:'Кредит на расширение',
+ text:function(){return 'Банк предлагает кредит на 12 месяцев под 1,5% в месяц. Каждый месяц нужно возвращать часть долга и проценты. Например, для 200 000 ₽ переплата составит около 19 500 ₽. Новое оборудование (Швейный цех, 150 000 ₽) окупится, если ты сможешь продавать больше.';},
+ choices:[
+  {label:'Взять 200 000 ₽', sub:'платёж ≈ 21 000 ₽ в первый месяц', apply:function(s){s.cash+=200000;s.loanLeft+=200000;s.loanStep=Math.round(s.loanLeft/12);s.unlock.loan=true;return [cash(s,200000),modChip('долг 200 000 ₽',false)];}},
+  {label:'Взять 100 000 ₽', sub:'платёж ≈ 10 000 ₽ в первый месяц', apply:function(s){s.cash+=100000;s.loanLeft+=100000;s.loanStep=Math.round(s.loanLeft/12);s.unlock.loan=true;return [cash(s,100000),modChip('долг 100 000 ₽',false)];}},
+  {label:'Обойтись без кредита', sub:'растём на свои деньги', apply:function(s){return [modChip('без долгов',true)];}}],
+ lesson:'Кредит — это деньги в аренду. Он выгоден, если ты заработаешь на нём больше, чем заплатишь процентами. Чем больше сумма, тем больше переплата и тем сильнее нагрузка на каждый месяц.'},
+/* 10 */ {icon:'trend', tag:'Инфляция', term:'inflation', title:'Цены растут',
+ text:function(){return 'За полгода цены в магазинах выросли на 8%: ткань, краска, зарплаты. Это инфляция. Рыночные цены на футболки тоже поднимутся, а вот твоей копилке будет сложнее купить то же самое, что и раньше.';},
+ choices:[
+  {label:'Закупить материалы на 3 месяца', sub:'−30 000 ₽, старая себестоимость 3 месяца', apply:function(s){s.infl*=1.08;s.costBase*=1.08;mod(s,'cost',1/1.08,3,'Запас материалов');return [cash(s,-30000),modChip('цены рынка +8%',false),modChip('старая себестоимость 3 мес.',true)];}},
+  {label:'Заключить договор с фиксированной ценой', sub:'−10 000 ₽, себестоимость +3% вместо +8% на 6 месяцев', apply:function(s){s.infl*=1.08;s.costBase*=1.08;mod(s,'cost',1.03/1.08,6,'Фиксированная цена');return [cash(s,-10000),modChip('цены рынка +8%',false),modChip('себестоимость +3% на 6 мес.',true)];}},
+  {label:'Принять как есть', sub:'себестоимость и зарплаты +8%', apply:function(s){s.infl*=1.08;s.costBase*=1.08;return [modChip('цены рынка +8%',false),modChip('себестоимость +8%',false)];}}],
+ lesson:'Инфляция — рост цен. Деньги, лежащие дома, покупают всё меньше. Чтобы деньги не обесценивались, их стоит хранить так, чтобы они росли хотя бы наравне с инфляцией.'},
+/* 11 */ {icon:'safe', tag:'Вклад', term:'deposit', title:'Вклад в банке',
+ text:function(s){return 'Банк предлагает вклад под 12% годовых (1% в месяц). Деньги можно забрать в любой момент. Инфляция сейчас около 0,6% в месяц. Сейчас у тебя на счету '+rub(s.cash)+'.';},
+ choices:[
+  {label:'Положить 30 000 ₽', sub:'станет «подушкой безопасности»', apply:function(s){var a=Math.min(30000,Math.max(0,s.cash));s.cash-=a;s.savings+=a;s.unlock.deposit=true;return [modChip('на вкладе '+rub(a),true)];}},
+  {label:'Положить 20% наличных', sub:'часть денег работает на тебя', apply:function(s){var a=Math.round(Math.max(0,s.cash)*0.2/1000)*1000;s.cash-=a;s.savings+=a;s.unlock.deposit=true;return [modChip('на вкладе '+rub(a),true)];}},
+  {label:'Всё в оборот', sub:'вклад откроется, но пока без денег', apply:function(s){s.unlock.deposit=true;return [modChip('вклад доступен во вкладке «Финансы»',true)];}}],
+ lesson:'Вклад — надёжный способ сохранить деньги от инфляции. Проценты начисляются и на уже начисленные проценты, это сложный процент. Деньги на вкладе всегда можно вернуть, это называется ликвидность.'},
+/* 12 */ {icon:'globe', tag:'Валюта', term:'fx', title:'Курс доллара подскочил',
+ text:function(){return 'Часть материалов ты покупаешь за доллары. Рубль ослаб на 15%, и импортные ткань и краска дорожают.';},
+ choices:[
+  {label:'Перейти на российского поставщика', sub:'−8 000 ₽, себестоимость +4%, спрос ×0,97', apply:function(s){s.costBase*=1.04;s.qualityMult*=0.97;return [cash(s,-8000),modChip('себестоимость +4%',false),modChip('спрос ×0,97',false)];}},
+  {label:'Остаться с импортом', sub:'себестоимость +12%', apply:function(s){s.costBase*=1.12;return [modChip('себестоимость +12%',false)];}},
+  {label:'Купить запас на 2 месяца', sub:'−25 000 ₽, старая цена 2 месяца, потом +12%', apply:function(s){mod(s,'cost',1/1.12,2,'Запас');s.costBase*=1.12;return [cash(s,-25000),modChip('старая цена 2 мес.',true),modChip('потом +12%',false)];}}],
+ lesson:'Курс валюты влияет на цены внутри страны. Бизнес защищается от скачков курса: делает запасы или меняет поставщика. Это называется управлением валютным риском.'},
+/* 13 */ {icon:'chart', tag:'Диверсификация', term:'diversify', title:'Деньги без дела',
+ text:function(s){return 'Бизнес приносит деньги, а часть из них лежит без дела. Знакомый финансист предлагает вложиться в ценные бумаги. Индексный фонд — это сотни компаний сразу (надёжнее, но скромнее). Акции одной модной компании могут вырасти в разы или упасть. На счету сейчас '+rub(s.cash)+'.';},
+ choices:[
+  {label:'Индексный фонд: 50 000 ₽', sub:'в среднем +0,8% в месяц, колебания до ±4%', apply:function(s){var a=Math.min(50000,Math.max(0,s.cash));s.cash-=a;s.fund+=a;s.unlock.invest=true;return [modChip('в фонде '+rub(a),true)];}},
+  {label:'Акции одной компании: 50 000 ₽', sub:'в среднем +1,2% в месяц, колебания до ±13%', apply:function(s){var a=Math.min(50000,Math.max(0,s.cash));s.cash-=a;s.stock+=a;s.unlock.invest=true;return [modChip('в акциях '+rub(a),true)];}},
+  {label:'Разделить: по 25 000 ₽', sub:'и в фонд, и в акции', apply:function(s){var a=Math.min(25000,Math.max(0,s.cash/2));s.cash-=2*a;s.fund+=a;s.stock+=a;s.unlock.invest=true;return [modChip('в фонде и в акциях по '+rub(a),true)];}}],
+ lesson:'Диверсификация значит «не класть все яйца в одну корзину». Доходность акций одной компании скачет сильнее, чем фонда. Лучше распределять деньги по разным вложениям.'},
+/* 14 */ {icon:'castle', tag:'Масштаб', term:'scale', title:'Гигант заходит на рынок',
+ text:function(){return 'Крупный маркетплейс запустил собственные футболки по 590 ₽. Он может держать низкую цену, потому что продаёт миллионы штук, а ты тысячи.';},
+ choices:[
+  {label:'Коллаборация с художником', sub:'−40 000 ₽, узнаваемость +15, спрос ×1,2 на 3 месяца', apply:function(s){mod(s,'dem',1.2,3,'Коллаборация');return [cash(s,-40000),addBrand(s,15),modChip('спрос ×1,2 на 3 мес.',true)];}},
+  {label:'Персональные принты на заказ', sub:'себестоимость +40 ₽, рыночная цена ×1,15, спрос ×0,95', apply:function(s){s.costAdd=(s.costAdd||0)+40;s.nicheMult*=0.95;mod(s,'ref',1.15,99,'Ниша');return [modChip('себестоимость +40 ₽',false),modChip('покупатели платят больше',true),modChip('спрос ×0,95',false)];}},
+  {label:'Бороться ценой', sub:'спрос ×0,9 на 3 месяца', apply:function(s){mod(s,'dem',0.9,3,'Гигант');return [modChip('спрос ×0,9 на 3 мес.',false)];}}],
+ lesson:'У крупных компаний есть эффект масштаба: чем больше производство, тем дешевле одна вещь. Маленькому бизнесу выгоднее выигрывать уникальностью и брендом, а не ценой.'},
+/* 15 */ {icon:'storm', tag:'Цикл', term:'cycle', title:'Экономика замедляется',
+ text:function(){return 'В стране начался спад. Люди экономят, поэтому спрос падает на 22% на ближайшие 3 месяца. Акции тоже просели. Выживет тот, у кого есть запас денег.';},
+ choices:[
+  {label:'Сократить расходы', sub:'постоянные расходы −20% на 3 месяца, узнаваемость −3', apply:function(s){mod(s,'dem',0.78,3,'Спад');mod(s,'fixed',0.8,3,'Экономия');s.brand=clamp(s.brand-3,0,100);return [modChip('спрос ×0,78 на 3 мес.',false),modChip('постоянные расходы −20%',true)];}},
+  {label:'Антикризисная акция', sub:'−10 000 ₽, спрос ×0,9 вместо ×0,78', apply:function(s){mod(s,'dem',0.9,3,'Спад и акция');return [cash(s,-10000),modChip('спрос ×0,9 на 3 мес.',false)];}},
+  {label:'Ничего не делать', sub:'спрос ×0,78 на 3 месяца', apply:function(s){mod(s,'dem',0.78,3,'Спад');return [modChip('спрос ×0,78 на 3 мес.',false)];}}],
+ lesson:'Экономика движется по циклу: рост, спад, снова рост. В спад люди покупают меньше. Выживают компании с финансовой подушкой и разными источниками дохода.'},
+/* 16 */ {icon:'doc', tag:'Капитал', term:'capital', title:'Последний рывок',
+ text:function(s){return 'Год подходит к концу. Новогодний спрос — самый высокий. Бухгалтер напоминает: капитал = всё, что у тебя есть, минус всё, что ты должен. Сейчас он равен '+rub(netWorth(s))+'.';},
+ choices:[
+  {label:'Новогодняя кампания', sub:'−30 000 ₽, спрос ×1,4 в этом месяце', apply:function(s){mod(s,'dem',1.4,1,'Кампания');return [cash(s,-30000),modChip('спрос ×1,4',true)];}},
+  {label:'Подарочные наборы', sub:'себестоимость +40 ₽, рыночная цена ×1,2 в этом месяце', apply:function(s){mod(s,'cost',1+40/Math.max(1,unitCost(s)),1,'Наборы');mod(s,'ref',1.2,1,'Наборы');return [modChip('себестоимость +40 ₽',false),modChip('покупатели платят больше',true)];}},
+  {label:'Погасить долги досрочно', sub:'если есть чем, закрываем кредит', apply:function(s){var pay=Math.min(s.loanLeft, s.cash);s.cash-=pay;s.loanLeft-=pay;if(s.loanLeft<1){s.loanLeft=0;s.loanStep=0;}return [pay>0?modChip('погашено '+rub(pay),true):modChip('долгов нет',true)];}}],
+ lesson:'Капитал показывает, насколько ты действительно богат. В него входят и деньги, и товар на складе, и вклады, а долги вычитаются.'}
+];
+
+var CHOICE_COST = {'2.0':5000,'2.1':6000,'4.1':10000,'4.2':20000,'8.0':15000,'8.1':6000,'10.0':30000,'10.1':10000,'12.0':8000,'12.2':25000,'14.0':40000,'15.1':10000,'16.0':30000};
+Object.keys(CHOICE_COST).forEach(function(k){ var a=k.split('.'); EVENTS[+a[0]-1].choices[+a[1]].cost = CHOICE_COST[k]; });
+
+var QUIZ = [
+ [ {q:'Футболка стоит 900 ₽, а себестоимость 350 ₽. Сколько прибыли приносит одна?', a:['350 ₽','550 ₽','900 ₽','1 250 ₽'], c:1, e:'Прибыль с одной футболки = цена − себестоимость = 900 − 350 = 550 ₽.'},
+   {q:'Что обычно происходит со спросом, если цену повысить, а всё остальное не менять?', a:['Растёт','Снижается','Не меняется','Становится нулевым'], c:1, e:'Это закон спроса: чем выше цена, тем меньше покупателей.'},
+   {q:'Чем конкуренция полезна покупателям?', a:['Цены растут','Выбор меньше','Цены ниже, качество выше','Ничем'], c:2, e:'Продавцы борются за покупателей, снижают цены и улучшают товар.'} ],
+ [ {q:'Что из этого относится к постоянным расходам?', a:['Ткань для футболок','Краска для печати','Аренда магазина','Упаковка'], c:2, e:'Аренду нужно платить каждый месяц независимо от количества проданных футболок.'},
+   {q:'Выручка 100 000 ₽, расходы 70 000 ₽. Чему равна прибыль?', a:['170 000 ₽','30 000 ₽','70 000 ₽','100 000 ₽'], c:1, e:'Прибыль = выручка − расходы = 100 000 − 70 000 = 30 000 ₽.'},
+   {q:'Что означает «высокий риск — высокая доходность»?', a:['Любой риск приносит прибыль','Больше возможная прибыль, больше и шанс потерь','Рисковать выгодно всегда','Риска можно избежать'], c:1, e:'Чем выше возможная награда, тем выше вероятность потерь. Поэтому важно считать, сколько ты готов потерять.'} ],
+ [ {q:'Кредит 100 000 ₽ под 2% в месяц. Сколько процентов за первый месяц?', a:['200 ₽','2 000 ₽','20 000 ₽','100 000 ₽'], c:1, e:'2% от 100 000 ₽ = 2 000 ₽.'},
+   {q:'Что делает инфляция с деньгами, которые просто лежат дома?', a:['Они становятся ценнее','Они покупают всё меньше','Ничего','Они удваиваются'], c:1, e:'Из-за роста цен на те же деньги можно купить меньше, чем раньше.'},
+   {q:'Что такое ликвидность?', a:['Размер прибыли','Как быстро актив можно превратить в деньги','Размер налога','Вид кредита'], c:1, e:'Наличные и вклад очень ликвидны. Станок или склад продать быстро труднее.'} ],
+ [ {q:'Что такое диверсификация?', a:['Вложить всё в одну акцию','Распределить деньги по разным вложениям','Взять кредит','Нанять сотрудника'], c:1, e:'Не класть все яйца в одну корзину: потери в одном месте компенсируются в другом.'},
+   {q:'Как лучше пережить спад в экономике?', a:['Тратить всё до копейки','Иметь запас денег','Взять побольше кредитов','Закрыть бизнес'], c:1, e:'Финансовая подушка позволяет платить по счетам, пока спрос восстанавливается.'},
+   {q:'Зачем нужны налоги?', a:['Чтобы наказывать бизнес','Чтобы государство оплачивало школы, дороги и больницы','Налоги ничего не дают','Чтобы поднять цены'], c:1, e:'Налоги финансируют общие блага: образование, здравоохранение, дороги и безопасность.'} ]
+];
+var QUIZ_BONUS = 4000;
+var CHAPTERS = [
+  {name:'Гараж', lesson:1, months:[1,4], about:'Основы: цена, спрос и прибыль'},
+  {name:'Первый магазин', lesson:1, months:[5,8], about:'Расходы, налоги, команда и риск'},
+  {name:'Рост', lesson:2, months:[9,12], about:'Кредиты, инфляция, вклады и валюта'},
+  {name:'Империя', lesson:2, months:[13,16], about:'Инвестиции, конкуренция и кризис'}
+];
+function chapterOf(month){ for(var i=0;i<CHAPTERS.length;i++){ if(month>=CHAPTERS[i].months[0] && month<=CHAPTERS[i].months[1]) return i; } return 3; }
+var TITLES = [[1000000,'Магнат'],[750000,'Бизнесмен'],[500000,'Предприниматель'],[300000,'Начинающий делец'],[0,'Стажёр']];
+function titleOf(nw){ for(var i=0;i<TITLES.length;i++){ if(nw>=TITLES[i][0]) return TITLES[i][1]; } return 'Стажёр'; }
+
+/* ===== Интерфейс «Мерч-Империи» ===== */
+(function(){
+'use strict';
+var KEY='merch-empire-v1', THEME_KEY='merch-empire-theme';
+var S=null, U={screen:'title'}, soundOn=true, actx=null;
+
+var IC={
+ shirt:'<path d="M9 3 3.5 6 5 10l3-1v12h8V9l3 1 1.5-4L15 3c-.5 1.3-1.7 2-3 2s-2.5-.7-3-2Z"/>',
+ swords:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+ tag:'<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/>',
+ truck:'<path d="M2 6h12v10H2zM14 9h4l4 3.5V16h-8"/><circle cx="6.5" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/>',
+ store:'<path d="M4 9l1-5h14l1 5M4 9a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0A2.7 2.7 0 0 0 20 9M5 11.5V20h14v-8.5M10 20v-5h4v5"/>',
+ percent:'<path d="M19 5 5 19"/><circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/>',
+ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+ megaphone:'<path d="M3 10v4h3l8 4V6L6 10H3ZM17 9a4 4 0 0 1 0 6M7 14l1.5 6h3L10 15.5"/>',
+ bank:'<path d="M3 10 12 4l9 6H3ZM5.5 10v8M10 10v8M14 10v8M18.5 10v8M3 20.5h18"/>',
+ trend:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>',
+ safe:'<rect x="3.5" y="4" width="17" height="15" rx="2"/><circle cx="12" cy="11.5" r="3.5"/><path d="M12 8.5v1.5M7 19v2M17 19v2"/>',
+ globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3.5 3.2 3.5 14.8 0 18M12 3c-3.5 3.2-3.5 14.8 0 18"/>',
+ chart:'<path d="M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6"/>',
+ castle:'<path d="M5 21V7h3v3h2V7h4v3h2V7h3v14M10 21v-5h4v5"/>',
+ storm:'<path d="M7 15.5a4 4 0 0 1 .4-8A5.2 5.2 0 0 1 17.500 9a3.300 3.300 0 0 1-.5 6.500ZM12.500 13l-2.500 4h3l-1.500 4"/>',
+ doc:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h7"/>',
+ coin:'<circle cx="12" cy="12" r="9"/><path d="M10 17V7h3.500a2.800 2.800 0 0 1 0 5.600H8.500M8.500 15h5"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.900 4.900l1.400 1.400M17.700 17.700l1.400 1.400M4.900 19.100l1.400-1.400M17.700 6.300l1.400-1.400"/>',
+ moon:'<path d="M20 14.500A8 8 0 0 1 9.500 4 8 8 0 1 0 20 14.500Z"/>',
+ vol:'<path d="M4 9v6h4l5 4V5L8 9H4ZM16.500 8.500a5 5 0 0 1 0 7M19 6a8.500 8.500 0 0 1 0 12"/>',
+ mute:'<path d="M4 9v6h4l5 4V5L8 9H4ZM17 9.500l5 5M22 9.500l-5 5"/>',
+ book:'<path d="M4 5.500A2.500 2.500 0 0 1 6.500 3H20v16H6.500A2.500 2.500 0 0 0 4 21.500ZM4 5.500v16M8 7h8"/>',
+ save:'<path d="M5 3h11l3 3v15H5zM8 3v5h7V3M8 21v-7h8v7"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.500v.01"/>',
+ warn:'<path d="M12 3 2 20h20L12 3ZM12 10v5M12 17.500v.01"/>',
+ check:'<path d="M4 12.500 9.500 18 20 6.500"/>',
+ lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+ star:'<path d="m12 3 2.700 5.600 6.100.8-4.500 4.300 1.100 6.100L12 16.800 6.600 19.800l1.100-6.100L3.200 9.400l6.100-.8L12 3Z"/>',
+ shield:'<path d="M12 3 4 6v6c0 4.500 3.200 7.800 8 9 4.800-1.200 8-4.500 8-9V6l-8-3Z"/><path d="m8.500 12 2.500 2.500 4.500-5"/>',
+ dice:'<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="15" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="9" cy="15" r="1"/>',
+ grad:'<path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11.500V16c0 1.500 2.700 3 6 3s6-1.500 6-3v-4.500M22 9v6"/>',
+ link:'<path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1"/>'
+};
+function ico(n,c){ return '<svg class="ico '+(c||'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(IC[n]||'')+'</svg>'; }
+function esc(t){ return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function $(s,r){ return (r||document).querySelector(s); }
+function num(n){ return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,' '); }
+function f1(x){ return (Math.round(x*100)/100).toString().replace('.',','); }
+
+/* ---------- сохранение ---------- */
+function snapshot(){ return {S:S, U:{screen:U.screen,phase:U.phase,res:U.res,report:U.report,quiz:U.quiz,tab:U.tab,chapterInfo:U.chapterInfo,final:U.final}}; }
+function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(snapshot())); }catch(e){} }
+function readSave(){ try{ var t=localStorage.getItem(KEY); return t?JSON.parse(t):null; }catch(e){ return null; } }
+function applySave(d){ S=d.S; U=d.U||{}; if(!U.screen||U.screen==='title') U.screen='event'; }
+function exportCode(){ try{ return btoa(unescape(encodeURIComponent(JSON.stringify(snapshot())))); }catch(e){ return ''; } }
+function importCode(code){ try{ var d=JSON.parse(decodeURIComponent(escape(atob(code.trim())))); if(d&&d.S&&typeof d.S.month==='number'){ applySave(d); return true; } }catch(e){} return false; }
+
+/* ---------- звук и эффекты ---------- */
+function tone(freq,dur,delay,type,vol){
+  if(!soundOn) return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    var t=actx.currentTime+(delay||0), o=actx.createOscillator(), g=actx.createGain();
+    o.type=type||'square'; o.frequency.value=freq; g.gain.setValueAtTime(vol||0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur+0.02);
+  }catch(e){}
+}
+function sfx(k){
+  if(k==='click') tone(520,0.06,0,'square',0.03);
+  else if(k==='coin'){ tone(988,0.08,0,'square',0.05); tone(1319,0.18,0.08,'square',0.05); }
+  else if(k==='good'){ tone(523,0.1,0,'triangle',0.08); tone(659,0.1,0.1,'triangle',0.08); tone(784,0.2,0.2,'triangle',0.08); }
+  else if(k==='bad'){ tone(220,0.18,0,'sawtooth',0.05); tone(165,0.28,0.15,'sawtooth',0.05); }
+  else if(k==='win'){ [523,659,784,1047].forEach(function(f,i){ tone(f,0.2,i*0.12,'triangle',0.09); }); }
+}
+var fxc=null, parts=[], raf=0;
+function burst(n,cx,cy){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  fxc=fxc||$('#fx'); if(!fxc) return;
+  var w=fxc.width=innerWidth, h=fxc.height=innerHeight, cols=['#FFC83D','#19B37A','#3B5BFF','#FF5C7A','#FFFFFF'];
+  for(var i=0;i<n;i++){ var a=Math.random()*Math.PI*2, v=4+Math.random()*9;
+    parts.push({x:cx==null?w/2:cx,y:cy==null?h*0.35:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-5,r:3+Math.random()*4,c:cols[i%cols.length],life:70+Math.random()*40,rot:Math.random()*6}); }
+  if(!raf) raf=requestAnimationFrame(tick);
+}
+function tick(){
+  var ctx=fxc.getContext('2d'); ctx.clearRect(0,0,fxc.width,fxc.height);
+  parts=parts.filter(function(p){ return p.life>0; });
+  parts.forEach(function(p){ p.x+=p.vx; p.y+=p.vy; p.vy+=0.28; p.vx*=0.985; p.life--; p.rot+=0.2;
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.c; ctx.globalAlpha=Math.min(1,p.life/30); ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r); ctx.restore(); });
+  if(parts.length) raf=requestAnimationFrame(tick); else { raf=0; ctx.clearRect(0,0,fxc.width,fxc.height); }
+}
+var toastT=0;
+function toast(msg){ var t=$('#toast'); t.innerHTML='<div class="toast" role="status">'+esc(msg)+'</div>'; clearTimeout(toastT); toastT=setTimeout(function(){ t.innerHTML=''; },2600); }
+
+/* ---------- словарик ---------- */
+function addTerm(k){ if(k && S.terms.indexOf(k)<0) S.terms.push(k); }
+
+/* ---------- шапка ---------- */
+function hudHTML(){
+  if(!S) return '';
+  var after=['report','quiz','chapter','lessonend','final'].indexOf(U.screen)>=0;
+  var m=clamp(after?S.month-1:S.month,1,TOTAL), ch=CHAPTERS[chapterOf(m)], nw=netWorth(S), pctG=clamp(nw/GOAL,0,1);
+  var pips=''; for(var i=1;i<=TOTAL;i++){ var cls=(after?i<=m:i<m)?'done':(i===m&&!after?'now':''); if(i===9) cls+=' gap'; pips+='<i class="pip '+cls+'" title="Месяц '+i+'"></i>'; }
+  var debt = S.loanLeft>0 ? '<div class="stat neg"><b>Долг</b><span class="num">'+rub(S.loanLeft)+'</span></div>' : '<div class="stat"><b>Вклады и акции</b><span class="num">'+rub(S.savings+S.fund+S.stock)+'</span></div>';
+  var ph = U.screen==='final'?'Итоги':(MONTH_NAMES[m-1]+' · месяц '+m+' из '+TOTAL);
+  return '<div class="hud-card">'+
+   '<div class="hud-top"><div><div class="hud-month">'+ph+'</div><div class="hud-sub">Урок '+ch.lesson+' · глава «'+ch.name+'» · '+esc(S.name)+'</div></div><div class="pips" aria-label="Прогресс по месяцам">'+pips+'</div></div>'+
+   '<div class="stats"><div class="stat"><b>На счету</b><span class="num">'+rub(S.cash)+'</span></div>'+
+   '<div class="stat"><b>Склад</b><span class="num">'+S.inv+' шт.</span></div>'+debt+
+   '<div class="stat"><b>Капитал</b><span class="num">'+rub(nw)+'</span></div></div>'+
+   '<div><div class="goalbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+GOAL+'" aria-valuenow="'+Math.max(0,nw)+'"><i style="width:'+(pctG*100)+'%"></i></div>'+
+   '<div class="goalrow"><span>Цель: капитал '+rub(GOAL)+'</span><span class="num">'+Math.round(pctG*100)+'%</span></div></div></div>';
+}
+
+/* ---------- заставка ---------- */
+function titleHTML(){
+  var sv=readSave(), cont=sv&&sv.S&&sv.U&&sv.U.screen!=='title';
+  var art='<svg viewBox="0 0 360 330" role="img" aria-label="Футболка с монетой">'+
+   '<g class="bob d2"><circle cx="58" cy="70" r="26" fill="var(--coin)" stroke="var(--line)" stroke-width="4"/><text x="58" y="80" text-anchor="middle" font-family="Unbounded,sans-serif" font-weight="800" font-size="26" fill="#10202E">₽</text></g>'+
+   '<g class="bob d3"><circle cx="312" cy="250" r="22" fill="var(--coin)" stroke="var(--line)" stroke-width="4"/><text x="312" y="259" text-anchor="middle" font-family="Unbounded,sans-serif" font-weight="800" font-size="22" fill="#10202E">₽</text></g>'+
+   '<g class="bob"><path d="M128 40 56 78l22 62 34-12v176h136V128l34 12 22-62-72-38c-8 22-26 34-52 34s-44-12-52-34Z" transform="translate(7,8)" fill="var(--shadow)"/>'+
+   '<path d="M128 40 56 78l22 62 34-12v176h136V128l34 12 22-62-72-38c-8 22-26 34-52 34s-44-12-52-34Z" fill="var(--coin)" stroke="var(--line)" stroke-width="5" stroke-linejoin="round"/>'+
+   '<circle cx="180" cy="190" r="48" fill="var(--surface)" stroke="var(--line)" stroke-width="5"/><text x="180" y="208" text-anchor="middle" font-family="Unbounded,sans-serif" font-weight="800" font-size="52" fill="#10202E">₽</text></g></svg>';
+  return '<div class="hero"><div><div class="eyebrow">Экономическая игра для класса</div>'+
+   '<h1>Мерч-<em>Империя</em></h1>'+
+   '<p class="lead">Ты запускаешь школьный бизнес по печати футболок. За 16 игровых месяцев нужно вырастить его от гаража до капитала в 1 000 000 ₽. Цена, спрос, налоги, кредиты, инфляция и риск. Каждое решение считается.</p>'+
+   '<div class="field"><label for="pname">Как тебя зовут?</label><input id="pname" type="text" maxlength="24" autocomplete="off" placeholder="Например, Алексей" value="'+(S&&S.name&&S.name!=='Предприниматель'?esc(S.name):'')+'"></div>'+
+   '<div class="row" style="margin-top:16px"><button class="btn primary" data-act="start" id="startbtn">'+(U.confirmNew?'Стереть и начать заново':'Начать игру')+'</button>'+
+   (cont?'<button class="btn" data-act="continue">Продолжить: месяц '+Math.min(sv.S.month,TOTAL)+'</button>':'')+
+   '<button class="btn small" data-act="loadcode">Загрузить код сохранения</button></div>'+
+   (cont&&!U.confirmNew?'<p class="ctl-note">На этом устройстве есть сохранённая игра.</p>':'')+
+   (U.confirmNew?'<p class="ctl-note loss-t">Прошлый прогресс будет удалён. Нажми ещё раз, чтобы подтвердить.</p>':'')+
+   '</div><div class="hero-art">'+art+'</div></div>'+
+   '<div class="howto"><div class="card"><div class="step-n">1</div><h3>Реши</h3><p class="ctl-note">В начале месяца случается событие. Выбери один из вариантов и узнай, чему он учит.</p></div>'+
+   '<div class="card"><div class="step-n">2</div><h3>Спланируй</h3><p class="ctl-note">Назначь цену, реши, сколько напечатать, и вложись в развитие.</p></div>'+
+   '<div class="card"><div class="step-n">3</div><h3>Проверь</h3><p class="ctl-note">Смотри итоги месяца, отвечай на вопросы после каждой главы и зарабатывай гранты.</p></div></div>'+
+   '<div class="lessons"><div class="card flat"><div class="eyebrow">Урок 1 · месяцы 1–8</div><ul><li>Глава 1 «Гараж»: цена, спрос, прибыль</li><li>Глава 2 «Первый магазин»: расходы, налоги, найм, риск</li></ul></div>'+
+   '<div class="card flat"><div class="eyebrow">Урок 2 · месяцы 9–16</div><ul><li>Глава 3 «Рост»: кредит, инфляция, вклад, валюта</li><li>Глава 4 «Империя»: инвестиции, конкуренция, кризис</li></ul></div></div>'+
+   '<p class="ctl-note">Игра сама сохраняется после каждого шага. Для второго урока достаточно открыть её снова и нажать «Продолжить».</p>';
+}
+
+/* ---------- событие ---------- */
+function eventHTML(){
+  var ev=EVENTS[S.month-1], ch=CHAPTERS[chapterOf(S.month)], res=U.res, h='';
+  h+='<div class="card"><div class="event"><div class="badge-ico">'+ico(ev.icon)+'</div><div><div class="chips"><span class="chip coin">'+ev.tag+'</span><span class="chip">'+MONTH_NAMES[S.month-1]+', месяц '+S.month+'</span></div>'+
+     '<h2>'+ev.title+'</h2><p class="text">'+ev.text(S)+'</p></div></div></div>';
+  h+='<div class="choices" role="group" aria-label="Варианты решения">';
+  ev.choices.forEach(function(c,i){
+    var cls=res?(res.i===i?'picked':'dim'):'', poor=!res&&c.cost&&c.cost>S.cash;
+    h+='<button class="choice '+(poor?'dim':cls)+'" data-act="choose" data-i="'+i+'"'+(res||poor?' disabled':'')+'><b>'+c.label+'</b><span>'+c.sub+(poor?' · не хватает денег':'')+'</span></button>';
+  });
+  h+='</div>';
+  if(res){
+    h+='<div class="card"><div class="eyebrow">Что произошло</div><div class="chips" style="margin-top:10px">'+res.chips.map(function(c){ return '<span class="chip '+c.k+'">'+esc(c.t)+'</span>'; }).join('')+'</div></div>';
+    h+='<div class="lesson"><b>Урок экономики.</b> '+ev.lesson+'</div>';
+    h+='<div><button class="btn primary" data-act="toplan">К планированию месяца</button></div>';
+  }
+  return h;
+}
+
+/* ---------- планирование ---------- */
+function bounds(){ var c=unitCost(S); return {min:Math.ceil(c*1.05/10)*10, max:Math.round(refPrice(S)*2.2/10)*10}; }
+function prepareMonth(){
+  var b=bounds(); S.price=clamp(Math.round((S.price||refPrice(S))/10)*10,b.min,b.max);
+  S.adIdx=clamp(S.adIdx||0,0,AD.length-1);
+  var d=demandAt(S,S.price,S.adIdx,1); S.produce=clamp(Math.round(d)-S.inv,0,capacity(S));
+  fitProduce();
+}
+function fitProduce(){
+  var c=unitCost(S), room=Math.floor((S.cash-AD[S.adIdx].cost)/c);
+  S.produce=clamp(Math.min(S.produce,room),0,capacity(S));
+}
+function modsHTML(){
+  var out=[];
+  S.mods.forEach(function(m){
+    if(m.k==='dem'&&m.label==='Подарок'&&false) return;
+    var nm={dem:'спрос',cost:'себестоимость',ref:'рыночная цена',fixed:'постоянные расходы'}[m.k];
+    var good = (m.k==='dem'||m.k==='ref') ? m.m>=1 : m.m<=1;
+    out.push('<span class="chip '+(good?'gain':'loss')+'">'+esc(m.label)+': '+nm+' ×'+f1(m.m)+(m.left>50?'':' ('+m.left+' мес.)')+'</span>');
+  });
+  if(S.discount!==1) out.push('<span class="chip loss">Скидка: цена продажи ×'+f1(S.discount)+'</span>');
+  return out.length?'<div class="chips">'+out.join('')+'</div>':'';
+}
+function planHTML(){
+  var tabs=[['biz','Дело'],['dev','Развитие'],['fin','Финансы']], t=U.tab||'biz', ch=CHAPTERS[chapterOf(S.month)];
+  var h='<div class="card flat"><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · глава «'+ch.name+'»</div><h2 style="margin-top:4px">Спланируй месяц</h2>'+(modsHTML()?'<div style="margin-top:10px">'+modsHTML()+'</div>':'')+'</div>';
+  h+='<div class="tabs" role="tablist">'+tabs.map(function(x){ return '<button class="tab" role="tab" data-act="tab" data-t="'+x[0]+'" aria-selected="'+(t===x[0])+'">'+x[1]+'</button>'; }).join('')+'</div>';
+  if(t==='biz') h+=bizHTML(); else if(t==='dev') h+=devHTML(); else h+=finHTML();
+  h+='<div class="actionbar"><div class="sum" id="sum"></div><button class="btn primary" data-act="go" id="gobtn">Запустить месяц</button></div>';
+  return h;
+}
+function bizHTML(){
+  var b=bounds(), cap=capacity(S), c=unitCost(S), ref=refPrice(S);
+  var h='<div class="plan"><div class="col">';
+  h+='<div class="card"><div class="ctl-head"><h3>Цена одной футболки</h3><div class="ctl-val num" id="v-price">'+rub(S.price)+'</div></div>'+
+     '<input type="range" id="price" min="'+b.min+'" max="'+b.max+'" step="10" value="'+S.price+'" aria-label="Цена"><div class="scale num"><span>'+rub(b.min)+'</span><span>'+rub(b.max)+'</span></div>'+
+     '<p class="ctl-note">Себестоимость: <b class="num">'+rub(c)+'</b>. Сейчас в городе похожие футболки стоят около <b class="num">'+rub(ref)+'</b>.</p></div>';
+  h+='<div class="card"><div class="ctl-head"><h3>Сколько напечатать</h3><div class="ctl-val num" id="v-prod">'+S.produce+' шт.</div></div>'+
+     '<input type="range" id="produce" min="0" max="'+cap+'" step="1" value="'+S.produce+'" aria-label="Выпуск"><div class="scale num"><span>0</span><span>мощность: '+cap+'</span></div>'+
+     '<p class="ctl-note">На складе уже: <b class="num">'+S.inv+' шт.</b> Печать стоит <b class="num" id="v-prodcost"></b>. Нераспроданное лежит на складе и стоит 15 ₽ в месяц за штуку.</p></div>';
+  h+='<div class="card"><h3>Реклама</h3><div class="adgrid">'+AD.map(function(a,i){ return '<button class="ad" data-act="ad" data-i="'+i+'" aria-pressed="'+(S.adIdx===i)+'"><b>'+a.name+'</b><span>'+(a.cost?rub(a.cost):'бесплатно')+(a.cost?' · спрос ×'+f1(a.mult):'')+'</span></button>'; }).join('')+'</div></div>';
+  h+='</div><div class="col">';
+  h+='<div class="card"><div class="ctl-head"><h3>Спрос на футболки</h3><span class="chip info">кривая спроса</span></div><svg class="curve" id="curve" viewBox="0 0 400 230" role="img" aria-label="График: чем выше цена, тем меньше покупателей"></svg>'+
+     '<div class="fc"><div><b>Покупателей</b><span id="fc-d" class="num"></span></div><div><b>Выручка</b><span id="fc-r" class="num"></span></div><div><b>Прибыль</b><span id="fc-p" class="num"></span></div></div>'+
+     '<div id="advice" style="margin-top:12px"></div></div>';
+  h+='<div class="callout">'+ico('info')+'<div><b>Совет консультанта.</b> '+HINTS[S.month-1]+'</div></div>';
+  h+='</div></div>';
+  return h;
+}
+function devHTML(){
+  var h='<div class="callout">'+ico('info')+'<div>Развитие стоит денег сейчас и окупается позже. Покупай то, что увеличивает прибыль больше, чем стоит. Мощность выпуска сейчас: <b>'+capacity(S)+' шт.</b></div></div><div class="ups">';
+  UPGRADES.forEach(function(u){
+    var owned=!!S.up[u.id], locked=S.month<u.from, afford=S.cash>=u.cost;
+    h+='<div class="card up '+(owned?'owned':'')+(locked&&!owned?' locked':'')+'"><div><h3>'+u.name+'</h3><p class="ctl-note">'+u.desc+'</p><div class="chips" style="margin-top:10px">'+u.fx.map(function(f){ return '<span class="chip info">'+f+'</span>'; }).join('')+'</div></div>'+
+     (owned?'<span class="chip gain">'+ico('check')+' куплено</span>':(locked?'<span class="chip">'+ico('lock')+' откроется в месяце '+u.from+'</span>':'<button class="btn small" data-act="buy" data-id="'+u.id+'"'+(afford?'':' disabled')+'>'+(u.cost?'Купить за '+rub(u.cost):'Нанять')+'</button>'))+'</div>';
+  });
+  h+='</div>';
+  return h;
+}
+function assetCard(key,title,about,rate,have,on){
+  if(!on) return '<div class="card up locked"><div><h3>'+title+'</h3><p class="ctl-note">'+about+'</p></div><span class="chip">'+ico('lock')+' откроется позже</span></div>';
+  return '<div class="card"><h3>'+title+'</h3><p class="ctl-note">'+about+'</p><div class="chips" style="margin-top:8px"><span class="chip info">'+rate+'</span></div>'+
+   '<div class="big num" style="margin-top:10px">'+rub(have)+'</div>'+
+   '<div class="mv"><button class="btn small" data-act="mv" data-k="'+key+'" data-d="10000">+10 000</button><button class="btn small" data-act="mv" data-k="'+key+'" data-d="50000">+50 000</button><button class="btn small" data-act="mv" data-k="'+key+'" data-d="all">Всё сюда</button>'+
+   '<button class="btn small" data-act="mv" data-k="'+key+'" data-d="-10000">−10 000</button><button class="btn small" data-act="mv" data-k="'+key+'" data-d="-all">Забрать всё</button></div></div>';
+}
+function finHTML(){
+  var assets=S.cash+S.savings+S.fund+S.stock+S.invValue;
+  var h='<div class="plan"><div class="card"><h3>Баланс: из чего состоит капитал</h3><table class="bal num"><tbody>'+
+    '<tr><td>Деньги на счету</td><td>'+rub(S.cash)+'</td></tr><tr><td>Вклад</td><td>'+rub(S.savings)+'</td></tr><tr><td>Индексный фонд</td><td>'+rub(S.fund)+'</td></tr><tr><td>Акции</td><td>'+rub(S.stock)+'</td></tr><tr><td>Товар на складе (по себестоимости)</td><td>'+rub(S.invValue)+'</td></tr>'+
+    '<tr><td>Долги</td><td class="loss-t">'+rub(-S.loanLeft)+'</td></tr><tr class="total"><td>Капитал</td><td>'+rub(assets-S.loanLeft)+'</td></tr></tbody></table>'+
+    '<p class="ctl-note">Капитал = всё, что у тебя есть, минус всё, что ты должен.</p></div>';
+  h+='<div class="col">'+(S.loanLeft>0 ?
+    '<div class="card"><h3>Кредит</h3><p class="ctl-note">Ставка 1,5% в месяц. Платёж в конце месяца: часть долга плюс проценты.</p><div class="big num loss-t" style="margin-top:10px">'+rub(S.loanLeft)+'</div><p class="ctl-note">Ближайший платёж: <b class="num">'+rub(loanPayment(S))+'</b></p><div class="mv"><button class="btn small" data-act="repay" data-d="50000"'+(S.cash<1?' disabled':'')+'>Погасить 50 000</button><button class="btn small" data-act="repay" data-d="all"'+(S.cash<1?' disabled':'')+'>Погасить всё, что можно</button></div></div>' :
+    '<div class="card"><h3>Кредит</h3><p class="ctl-note">'+(S.unlock.loan?'Долгов нет. Это хорошо: переплачивать банку не нужно.':'Банк предложит кредит в одной из глав.')+'</p></div>')+'</div></div>';
+  h+='<div class="fin-grid">'+
+    assetCard('savings','Вклад','Надёжно. Деньги можно забрать в любой момент.','+1% в месяц',S.savings,S.unlock.deposit)+
+    assetCard('fund','Индексный фонд','Сотни компаний сразу. Колеблется умеренно.','≈ +0,8% в месяц, колебания ±4%',S.fund,S.unlock.invest)+
+    assetCard('stock','Акции одной компании','Может вырасти и упасть сильно.','≈ +1,2% в месяц, колебания ±13%',S.stock,S.unlock.invest)+'</div>';
+  return h;
+}
+
+/* ---------- прогноз ---------- */
+function curveSVG(){
+  var b=bounds(), cap=capacity(S), ref=refPrice(S), W=400,H=230,L=42,R=10,T=12,B=34, pw=W-L-R, ph=H-T-B;
+  var ymax=Math.max(cap*1.35, demandAt(S,Math.round(ref*1.05),S.adIdx,1)*1.5, 20); ymax=Math.ceil(ymax/10)*10;
+  function X(p){ return L+(p-b.min)/(b.max-b.min)*pw; } function Y(d){ return T+ph-Math.min(d,ymax)/ymax*ph; }
+  var pts=[],i,p; for(i=0;i<=50;i++){ p=b.min+(b.max-b.min)*i/50; pts.push(X(p).toFixed(1)+','+Y(demandAt(S,p,S.adIdx,1)).toFixed(1)); }
+  var d=demandAt(S,S.price,S.adIdx,1), avail=S.inv+S.produce, g='';
+  [0,0.5,1].forEach(function(t){ var yy=T+ph-t*ph; g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'" stroke="var(--grid)" stroke-width="1"/><text x="'+(L-6)+'" y="'+(yy+3.5)+'" text-anchor="end">'+Math.round(ymax*t)+'</text>'; });
+  [b.min,Math.round((b.min+b.max)/20)*10,b.max].forEach(function(pp,k){ g+='<text x="'+X(pp)+'" y="'+(H-14)+'" text-anchor="'+(k===0?'start':(k===2?'end':'middle'))+'">'+num(pp)+' ₽</text>'; });
+  g+='<text x="'+(L)+'" y="'+(H-2)+'" style="font-size:10px">цена →</text><text x="'+(W-R)+'" y="'+(T+8)+'" text-anchor="end" style="font-size:10px">↑ покупателей в месяц</text>';
+  var cl=Math.min(avail,ymax);
+  return g+'<line x1="'+X(ref)+'" x2="'+X(ref)+'" y1="'+T+'" y2="'+(T+ph)+'" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4" opacity=".5"/>'+
+   '<polyline points="'+L+','+(T+ph)+' '+pts.join(' ')+' '+(W-R)+','+(T+ph)+'" fill="var(--info-bg)" stroke="none" opacity=".8"/>'+
+   '<polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--info-fg)" stroke-width="3" stroke-linejoin="round"/>'+
+   '<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(cl)+'" y2="'+Y(cl)+'" stroke="var(--coin-deep)" stroke-width="2.5" stroke-dasharray="7 5"/>'+
+   '<text x="'+(L+4)+'" y="'+(Y(cl)-5)+'" style="fill:var(--ink);font-weight:700">у тебя будет: '+avail+' шт.</text>'+
+   '<line x1="'+X(S.price)+'" x2="'+X(S.price)+'" y1="'+Y(d)+'" y2="'+(T+ph)+'" stroke="var(--ink)" stroke-width="1.5"/>'+
+   '<circle cx="'+X(S.price)+'" cy="'+Y(d)+'" r="7" fill="var(--coin)" stroke="var(--line)" stroke-width="2.5"/>';
+}
+function drawForecast(){
+  if(!$('#curve')) { updateSum(); return; }
+  var plan={price:S.price,produce:S.produce,adIdx:S.adIdx}, c=unitCost(S);
+  var dLo=demandAt(S,S.price,S.adIdx,0.92), dMid=demandAt(S,S.price,S.adIdx,1), dHi=demandAt(S,S.price,S.adIdx,1.08);
+  var pLo=netProfitPreview(S,plan,dLo), pMid=netProfitPreview(S,plan,dMid), pHi=netProfitPreview(S,plan,dHi);
+  $('#curve').innerHTML=curveSVG();
+  $('#v-price').textContent=rub(S.price); $('#v-prod').textContent=S.produce+' шт.'; $('#v-prodcost').textContent=rub(S.produce*c);
+  $('#fc-d').textContent=Math.round(dLo)+'–'+Math.round(dHi);
+  $('#fc-r').textContent='≈ '+rub(pMid.revenue);
+  var pe=$('#fc-p'); pe.textContent='≈ '+rub(pMid.profit); pe.className='num '+(pMid.profit>=0?'gain-t':'loss-t');
+  var avail=S.inv+S.produce, adv='', cap=capacity(S);
+  if(avail<dLo-2) adv='<div class="callout warn">'+ico('warn')+'<div>Покупателей больше, чем футболок. Около '+Math.round(dLo-avail)+' человек уйдут ни с чем. Можно напечатать больше'+(S.produce>=cap?' (мощность выпуска исчерпана, подними цену или купи оборудование)':'')+'.</div></div>';
+  else if(avail>dHi+2) adv='<div class="callout warn">'+ico('warn')+'<div>Футболок больше, чем покупателей. Около '+Math.round(avail-dHi)+' останутся на складе и будут стоить денег.</div></div>';
+  else adv='<div class="callout ok">'+ico('check')+'<div>Выпуск близок к спросу. Хороший баланс.</div></div>';
+  $('#advice').innerHTML=adv;
+  updateSum();
+}
+function planSpend(){ return S.produce*unitCost(S)+AD[S.adIdx].cost; }
+function updateSum(){
+  var sp=planSpend(), left=S.cash-sp, s=$('#sum'), b=$('#gobtn'); if(!s) return;
+  s.innerHTML='<span>Сейчас потратишь: <b class="num">'+rub(sp)+'</b></span><span>В конце месяца ещё: <b class="num">'+rub(fixedCosts(S)+loanPayment(S))+'</b> постоянных расходов и платежей</span>'+(left<0?'<span class="loss-t">Не хватает '+rub(-left)+'. Напечатай меньше или убери рекламу.</span>':'');
+  b.disabled=left<0;
+}
+
+/* ---------- итоги месяца ---------- */
+function lineChart(hist,w,h){
+  if(!hist.length) return '';
+  var W=w||520,H=h||200,L=52,R=12,T=14,B=26,pw=W-L-R,ph=H-T-B;
+  var mx=Math.max(GOAL,Math.max.apply(null,hist.map(function(x){return x.nw;})))*1.05, mn=Math.min(0,Math.min.apply(null,hist.map(function(x){return x.nw;})));
+  function X(i){ return L+i/(TOTAL-1)*pw; } function Y(v){ return T+ph-(v-mn)/(mx-mn)*ph; }
+  var pts=hist.map(function(x,i){ return X(i).toFixed(1)+','+Y(x.nw).toFixed(1); }), last=hist[hist.length-1];
+  var g='<text x="'+(L-6)+'" y="'+(Y(0)+4)+'" text-anchor="end">0</text><line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="var(--grid)"/>';
+  g+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+Y(GOAL)+'" y2="'+Y(GOAL)+'" stroke="var(--coin-deep)" stroke-width="2" stroke-dasharray="7 5"/><text x="'+(L-6)+'" y="'+(Y(GOAL)+4)+'" text-anchor="end">1 млн</text><text x="'+(W-R)+'" y="'+(Y(GOAL)-6)+'" text-anchor="end" style="fill:var(--ink);font-weight:700">цель</text>';
+  [1,4,8,12,16].forEach(function(m){ g+='<text x="'+X(m-1)+'" y="'+(H-8)+'" text-anchor="middle">'+m+'</text>'; });
+  return '<svg class="curve" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Капитал по месяцам">'+g+
+   '<polyline points="'+L+','+Y(0)+' '+pts.join(' ')+' '+X(hist.length-1)+','+Y(0)+'" fill="var(--gain-bg)" opacity=".85"/>'+
+   '<polyline points="'+pts.join(' ')+'" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+   '<circle cx="'+X(hist.length-1)+'" cy="'+Y(last.nw)+'" r="6.5" fill="var(--coin)" stroke="var(--line)" stroke-width="2.5"/></svg>';
+}
+function reportHTML(){
+  var r=U.report, mx=Math.max(r.revenue,1), rows='';
+  function row(name,val,kind,w){ return '<div class="wf-row '+kind+'"><span>'+name+'</span><b>'+(kind==='minus'?'−':(kind==='plus'?'+':''))+rub(Math.abs(val)).replace('−','')+'</b><div class="bar"><i style="width:'+clamp(Math.abs(val)/mx*100,0,100)+'%"></i></div></div>'; }
+  rows+=row('Выручка',r.revenue,'plus');
+  rows+=row('Себестоимость проданного',r.cogs,'minus');
+  if(r.ad) rows+=row('Реклама',r.ad,'minus');
+  if(r.fixed) rows+=row('Постоянные расходы',r.fixed,'minus');
+  if(r.carry) rows+=row('Хранение склада',r.carry,'minus');
+  if(r.interest) rows+=row('Проценты по кредиту',r.interest,'minus');
+  if(r.tax) rows+=row('Налоги',r.tax,'minus');
+  var best=S.history.every(function(x){ return r.profit>=x.profit; })&&S.history.length>1;
+  var notes=[];
+  if(r.lost>=3) notes.push('Спрос был выше запасов: '+r.lost+' покупателей ушли ни с чем. В следующий раз печатай больше или подними цену.');
+  else if(r.left>=8) notes.push('На складе осталось '+r.left+' футболок. Они ждут покупателей и стоят денег.');
+  else notes.push('Выпуск почти совпал со спросом. Так и нужно.');
+  if(r.profit<0) notes.push('Месяц в минус. Посмотри на постоянные расходы и на цену.');
+  var spentPrint=r.produce*r.unit, delta=r.cashAfter-r.cashBefore;
+  if(Math.abs(delta-r.profit)>0.12*Math.max(1,Math.abs(r.profit))+1000) notes.push('Прибыль и деньги на счёте не совпадают: на печать партии ушло '+rub(spentPrint)+(r.principal?', на возврат долга '+rub(r.principal):'')+'. Деньги, вложенные в товар, превратятся в выручку позже.');
+  if(r.overdraft) notes.push('Денег не хватило на расходы месяца. Банк закрыл дефицит '+rub(r.overdraft)+', он добавлен к долгу.');
+  if(r.fromSavings) notes.push('Не хватало денег на счету, поэтому '+rub(r.fromSavings)+' пришлось снять со вклада.');
+  if(r.depositGain>0||Math.abs(r.investGain)>0) notes.push('Проценты по вкладу: '+rub(r.depositGain)+'. Изменение акций и фонда: '+(r.investGain>=0?'+':'')+rub(r.investGain)+'.');
+  var h='<div class="card"><div class="report-head"><div><div class="eyebrow">'+MONTH_NAMES[r.month-1]+': итоги</div><div class="profit num '+(r.profit>=0?'gain-t':'loss-t')+'">'+(r.profit>=0?'+':'')+rub(r.profit)+'</div><div class="ctl-note">чистая прибыль за месяц</div></div>'+
+   '<div class="chips">'+(best?'<span class="chip coin">'+ico('star')+' лучший месяц</span>':'')+'<span class="chip info">Продано '+r.sold+' из '+r.demand+'</span><span class="chip">Капитал '+rub(r.nw)+'</span></div></div></div>';
+  h+='<div class="two"><div class="card"><h3>Как получилась прибыль</h3><div class="wf">'+rows+'<div class="wf-row sum"><span>Прибыль</span><b class="'+(r.profit>=0?'gain-t':'loss-t')+'">'+rub(r.profit)+'</b></div></div></div>'+
+   '<div class="card"><h3>Капитал по месяцам</h3>'+lineChart(S.history,520,230)+'</div></div>';
+  h+='<div class="card flat"><div class="eyebrow">Разбор месяца</div>'+notes.map(function(n){ return '<p style="margin-top:8px">'+n+'</p>'; }).join('')+'</div>';
+  var m=r.month, quiz=(m%4===0);
+  h+='<div><button class="btn primary" data-act="afterreport">'+(quiz?'Проверить знания':'Следующий месяц')+'</button></div>';
+  return h;
+}
+
+/* ---------- викторина ---------- */
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)), t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function startQuiz(ch){
+  var qs=QUIZ[ch].map(function(q){ var opts=q.a.map(function(t,i){ return {t:t,ok:i===q.c}; }); return {q:q.q,opts:shuffle(opts),e:q.e}; });
+  U.quiz={ch:ch,qs:qs,i:0,picked:null,correct:0}; U.screen='quiz';
+}
+function quizHTML(){
+  var Q=U.quiz, q=Q.qs[Q.i], ch=CHAPTERS[Q.ch], L='АБВГ';
+  var h='<div class="card"><div class="ctl-head"><div><div class="eyebrow">Проверка знаний · глава «'+ch.name+'»</div><h2 style="margin-top:4px">Вопрос '+(Q.i+1)+' из '+Q.qs.length+'</h2></div><span class="chip coin">'+ico('coin')+' +'+rub(QUIZ_BONUS)+' за верный ответ</span></div>'+
+   '<div class="qprog" style="margin-top:14px">'+Q.qs.map(function(x,i){ return '<i class="'+(i<Q.i||(i===Q.i&&Q.picked!==null)?'on':'')+'"></i>'; }).join('')+'</div>'+
+   '<p style="margin-top:16px;font-size:1.12rem;font-weight:600">'+q.q+'</p><div class="qopts">';
+  q.opts.forEach(function(o,i){
+    var cls=''; if(Q.picked!==null){ cls=o.ok?'right':(Q.picked===i?'wrong':'dim'); }
+    h+='<button class="qopt '+cls+'" data-act="qpick" data-i="'+i+'"'+(Q.picked!==null?' disabled':'')+'><span class="k">'+L[i]+'</span><span>'+o.t+'</span></button>';
+  });
+  h+='</div></div>';
+  if(Q.picked!==null){
+    var ok=q.opts[Q.picked].ok;
+    h+='<div class="callout '+(ok?'ok':'warn')+'">'+ico(ok?'check':'info')+'<div><b>'+(ok?'Верно! ':'Не совсем. ')+'</b>'+q.e+'</div></div>';
+    h+='<div><button class="btn primary" data-act="qnext">'+(Q.i===Q.qs.length-1?'Узнать результат':'Дальше')+'</button></div>';
+  }
+  return h;
+}
+function chapterHTML(){
+  var I=U.chapterInfo, ch=CHAPTERS[I.ch];
+  var h='<div class="card"><div class="eyebrow">Глава пройдена</div><h2 style="margin-top:4px">«'+ch.name+'»</h2>'+
+   '<div class="two" style="margin-top:16px"><div><div class="chips"><span class="chip '+(I.correct>=2?'gain':'loss')+'">Верных ответов: '+I.correct+' из 3</span><span class="chip coin">Грант: +'+rub(I.bonus)+'</span></div>'+
+   '<p class="ctl-note" style="margin-top:12px">Прибыль за главу: <b class="num '+(I.profit>=0?'gain-t':'loss-t')+'">'+rub(I.profit)+'</b>. Капитал сейчас: <b class="num">'+rub(netWorth(S))+'</b>.</p></div>'+lineChart(S.history,520,200)+'</div></div>';
+  h+='<div><button class="btn primary" data-act="chapternext">'+(I.ch===3?'Посмотреть итоги игры':(I.ch===1?'Завершить урок 1':'Следующая глава'))+'</button></div>';
+  return h;
+}
+function lessonEndHTML(){
+  var code=exportCode();
+  return '<div class="card"><div class="eyebrow">Урок 1 завершён</div><h2 style="margin-top:4px">Ты прошёл половину пути</h2>'+
+   '<p style="margin-top:12px;max-width:60ch">Капитал: <b class="num">'+rub(netWorth(S))+'</b>. Игра сохранена на этом устройстве. На втором уроке открой её на этом же компьютере и нажми «Продолжить». Если компьютер другой, скопируй код ниже и загрузи его на заставке.</p>'+
+   '<div class="chips" style="margin-top:14px"><span class="chip gain">'+ico('check')+' Главы 1–2 пройдены</span><span class="chip info">Ответов верно: '+S.quizScore.reduce(function(a,b){return a+b;},0)+' из '+S.quizTotal+'</span></div>'+
+   '<h3 style="margin-top:18px">Код сохранения</h3><textarea class="code" id="savecode" readonly>'+code+'</textarea>'+
+   '<div class="row" style="margin-top:10px"><button class="btn small" data-act="copysave">Скопировать код</button></div></div>'+
+   '<div class="callout">'+ico('book')+'<div><b>Для учителя.</b> Результат ученика: '+esc(resultLine())+'</div></div>'+
+   '<div><button class="btn primary" data-act="lessonnext">Продолжить: урок 2</button></div>';
+}
+
+/* ---------- финал ---------- */
+function badgeList(){
+  var nw=netWorth(S), q=S.quizScore.reduce(function(a,b){return a+b;},0);
+  var first=S.history[0]&&S.history[0].profit>0;
+  return [
+   {id:'first',n:'Первая прибыль',d:'Первый месяц закончился в плюсе',ic:'coin',on:!!first},
+   {id:'cushion',n:'Подушка безопасности',d:'Вклад и вложения на 50 000 ₽ и больше',ic:'shield',on:S.savings+S.fund+S.stock>=50000},
+   {id:'div',n:'Диверсификатор',d:'Деньги и на вкладе, и в ценных бумагах',ic:'chart',on:S.savings>0&&(S.fund>0||S.stock>0)},
+   {id:'risk',n:'Рискнул и выиграл',d:'Ролик блогера выстрелил',ic:'dice',on:!!S.riskWon},
+   {id:'scholar',n:'Отличник',d:'Все 12 вопросов верно',ic:'grad',on:q===12},
+   {id:'free',n:'Без долгов',d:'К концу игры кредитов нет',ic:'check',on:S.loanLeft===0},
+   {id:'ctrl',n:'Деньги под контролем',d:'Ни разу не ушёл в овердрафт',ic:'lock',on:S.overdrafts===0},
+   {id:'tycoon',n:'Миллион!',d:'Капитал '+rub(GOAL)+' и больше',ic:'star',on:nw>=GOAL}
+  ];
+}
+function resultLine(){
+  var q=S.quizScore.reduce(function(a,b){return a+b;},0);
+  return S.name+' | месяц '+Math.min(S.month-1,TOTAL)+' из '+TOTAL+' | капитал '+rub(netWorth(S))+' | звание «'+titleOf(netWorth(S))+'» | вопросы '+q+'/'+S.quizTotal;
+}
+function finalHTML(){
+  var nw=netWorth(S), q=S.quizScore.reduce(function(a,b){return a+b;},0), win=nw>=GOAL;
+  var bestM=S.history.reduce(function(a,b){ return b.profit>a.profit?b:a; },S.history[0]);
+  var h='<div class="card"><div class="final-top"><div><div class="eyebrow">'+(win?'Цель достигнута':'Игра окончена')+'</div><div class="rank" style="margin-top:6px">'+titleOf(nw)+'</div>'+
+   '<div class="big num" style="margin-top:6px">'+rub(nw)+'</div><p class="ctl-note">итоговый капитал, цель: '+rub(GOAL)+'</p>'+
+   '<div class="chips" style="margin-top:14px"><span class="chip info">Вопросы: '+q+' из '+S.quizTotal+'</span><span class="chip">Выручка за игру: '+rub(S.totalRevenue)+'</span>'+(bestM?'<span class="chip coin">Лучший месяц: '+MONTH_NAMES[bestM.m-1]+', '+rub(bestM.profit)+'</span>':'')+'</div></div>'+
+   '<div>'+lineChart(S.history,520,230)+'</div></div></div>';
+  h+='<div class="card"><h3>Награды</h3><div class="badges" style="margin-top:12px">'+badgeList().map(function(b){ return '<div class="bdg '+(b.on?'on':'off')+'">'+ico(b.ic)+'<div><b>'+b.n+'</b><small>'+b.d+'</small></div></div>'; }).join('')+'</div></div>';
+  h+='<div class="card"><h3>Результат для учителя</h3><textarea class="code" id="resline" readonly>'+esc(resultLine())+'</textarea><div class="row" style="margin-top:10px"><button class="btn small" data-act="copyres">Скопировать</button></div></div>';
+  h+='<div class="lesson"><b>Главный вывод.</b> Бизнес — это постоянный выбор между риском и выгодой, расходами и доходами, сегодня и завтра. Ты управлял ценой и спросом, платил налоги, брал кредит, защищался от инфляции и пережил кризис. Это те же решения, что принимают настоящие предприниматели.</div>';
+  h+='<div class="row"><button class="btn primary" data-act="restart">Сыграть ещё раз</button><button class="btn" data-act="glossary">Открыть словарик</button></div>';
+  return h;
+}
+
+/* ---------- модальные окна ---------- */
+function openModal(html){ $('#modal').innerHTML='<div class="modal" data-act="closemodal"><div class="modal-box" role="dialog" aria-modal="true">'+html+'</div></div>'; var b=$('#modal .iconbtn,#modal .btn'); if(b) b.focus(); }
+function closeModal(){ $('#modal').innerHTML=''; }
+function glossaryHTML(){
+  var keys=Object.keys(TERMS), got=S?S.terms:[];
+  return '<div class="modal-head"><h2>Словарик экономиста</h2><button class="btn small" data-act="closemodal">Закрыть</button></div>'+
+   '<p class="ctl-note">Открыто терминов: '+got.length+' из '+keys.length+'. Новые появляются, когда ты встречаешь их в событиях.</p><div class="terms">'+
+   keys.map(function(k){ return got.indexOf(k)>=0 ? '<div class="term"><b>'+TERMS[k][0]+'</b><span>'+TERMS[k][1]+'</span></div>' : '<div class="term lock"><b>'+ico('lock')+' Закрытый термин</b><span>Откроется по ходу игры.</span></div>'; }).join('')+'</div>';
+}
+function loadHTML(){
+  return '<div class="modal-head"><h2>Загрузить игру</h2><button class="btn small" data-act="closemodal">Закрыть</button></div>'+
+   '<p class="ctl-note">Вставь код сохранения, который ты скопировал на прошлом уроке.</p><textarea class="code" id="loadcode" placeholder="Вставь код сюда"></textarea><div class="row"><button class="btn primary" data-act="doload">Загрузить</button></div><p class="ctl-note loss-t" id="loaderr"></p>';
+}
+
+/* ---------- отрисовка ---------- */
+function stageHTML(){
+  switch(U.screen){
+    case 'title': return titleHTML();
+    case 'event': return eventHTML();
+    case 'plan': return planHTML();
+    case 'report': return reportHTML();
+    case 'quiz': return quizHTML();
+    case 'chapter': return chapterHTML();
+    case 'lessonend': return lessonEndHTML();
+    case 'final': return finalHTML();
+  }
+  return '';
+}
+function render(keepScroll){
+  $('#hud').innerHTML = (S && U.screen!=='title') ? hudHTML() : '';
+  var st=$('#stage'); st.classList.toggle('enter',!keepScroll); st.innerHTML = stageHTML();
+  if(!keepScroll) window.scrollTo(0,0);
+  if(U.screen==='plan') drawForecast();
+  var th=$('#themebtn'); if(th) th.innerHTML = ico(isDark()?'sun':'moon');
+  var sb=$('#soundbtn'); if(sb) sb.innerHTML = ico(soundOn?'vol':'mute');
+  if(S && U.screen!=='title') persist();
+}
+function isDark(){ var d=document.documentElement.getAttribute('data-theme'); if(d) return d==='dark'; return window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches; }
+
+/* ---------- действия ---------- */
+var A={
+ start:function(){
+   var sv=readSave(); if(sv&&sv.S&&!U.confirmNew){ U.confirmNew=true; render(true); return; }
+   var nm=($('#pname').value||'').trim()||'Предприниматель'; U.confirmNew=false;
+   S=newState(nm); U={screen:'event',phase:'choose',res:null}; sfx('coin'); render();
+ },
+ continue:function(){ var sv=readSave(); if(sv){ applySave(sv); sfx('click'); render(); } },
+ loadcode:function(){ openModal(loadHTML()); },
+ doload:function(){ var v=$('#loadcode').value; if(importCode(v)){ closeModal(); render(); toast('Игра загружена'); } else $('#loaderr').textContent='Код не подошёл. Проверь, что скопировал его целиком.'; },
+ choose:function(el){
+   var i=+el.getAttribute('data-i'), ev=EVENTS[S.month-1];
+   var before=S.cash, chips=ev.choices[i].apply(S, Math.random);
+   var gap=coverDeficit(S); if(gap) chips.push({t:'Денег не хватило: банк покрыл '+rub(gap)+' в долг',k:'loss'});
+   addTerm(ev.term); U.res={i:i,chips:chips}; sfx(S.cash>=before?'good':'bad'); render(true);
+   var n=$('.lesson'); if(n) n.scrollIntoView({behavior:'smooth',block:'center'});
+ },
+ toplan:function(){ prepareMonth(); U.screen='plan'; U.tab='biz'; U.res=null; render(); },
+ tab:function(el){ U.tab=el.getAttribute('data-t'); render(true); },
+ ad:function(el){ S.adIdx=+el.getAttribute('data-i'); sfx('click'); render(true); },
+ buy:function(el){
+   var u=UPGRADES.filter(function(x){return x.id===el.getAttribute('data-id');})[0];
+   if(S.cash<u.cost||S.up[u.id]) return; S.cash-=u.cost; S.up[u.id]=true;
+   var b=bounds(); S.price=clamp(S.price,b.min,b.max); fitProduce();
+   if(u.id==='brandkit') S.brand=clamp(S.brand+10,0,100);
+   sfx('coin'); toast('Куплено: '+u.name); render(true);
+ },
+ mv:function(el){
+   var k=el.getAttribute('data-k'), d=el.getAttribute('data-d'), amt;
+   if(d==='all') amt=Math.max(0,Math.floor(S.cash)); else if(d==='-all') amt=-S[k]; else amt=+d;
+   if(amt>0) amt=Math.min(amt,Math.floor(S.cash)); else amt=-Math.min(-amt,S[k]);
+   if(!amt) { toast(amt===0&&d.charAt(0)!=='-'?'На счету нет свободных денег':'Здесь нечего забирать'); return; }
+   S.cash-=amt; S[k]+=amt; sfx('click'); render(true);
+ },
+ repay:function(el){
+   var d=el.getAttribute('data-d'), amt=d==='all'?S.loanLeft:+d; amt=Math.min(amt,S.loanLeft,Math.floor(S.cash)); if(amt<=0) return;
+   S.cash-=amt; S.loanLeft-=amt; if(S.loanLeft<1){S.loanLeft=0;S.loanStep=0;} else S.loanStep=Math.min(S.loanStep,S.loanLeft);
+   sfx('coin'); toast('Погашено: '+rub(amt)); render(true);
+ },
+ go:function(){
+   if(planSpend()>S.cash) return;
+   var before=S.cash, r=runMonth(S,{price:S.price,produce:S.produce,adIdx:S.adIdx},Math.random);
+   r.cashBefore=before; r.cashAfter=S.cash; U.report=r; U.screen='report';
+   if(r.profit>0){ sfx('good'); burst(34); } else sfx('bad'); render();
+ },
+ afterreport:function(){
+   var m=U.report.month;
+   if(m%4===0){ startQuiz(chapterOf(m)); render(); } else { U.screen='event'; U.res=null; render(); }
+ },
+ qpick:function(el){
+   var Q=U.quiz; if(Q.picked!==null) return; var i=+el.getAttribute('data-i'); Q.picked=i;
+   if(Q.qs[Q.i].opts[i].ok){ Q.correct++; sfx('good'); } else sfx('bad'); render(true);
+ },
+ qnext:function(){
+   var Q=U.quiz;
+   if(Q.i<Q.qs.length-1){ Q.i++; Q.picked=null; render(); return; }
+   var ch=Q.ch, bonus=Q.correct*QUIZ_BONUS, m0=CHAPTERS[ch].months[0], m1=CHAPTERS[ch].months[1];
+   S.cash+=bonus; S.quizScore.push(Q.correct); S.quizTotal+=Q.qs.length;
+   var prof=S.history.filter(function(x){return x.m>=m0&&x.m<=m1;}).reduce(function(a,x){return a+x.profit;},0);
+   U.chapterInfo={ch:ch,correct:Q.correct,bonus:bonus,profit:prof}; U.screen='chapter'; if(Q.correct>=2){ sfx('win'); burst(30); }
+   render();
+ },
+ chapternext:function(){
+   var ch=U.chapterInfo.ch;
+   if(ch===3){ U.screen='final'; var good=netWorth(S)>=GOAL*0.5; if(good) sfx('win'); render(); if(good) burst(netWorth(S)>=GOAL?160:70); }
+   else if(ch===1){ U.screen='lessonend'; render(); }
+   else { U.screen='event'; U.res=null; render(); }
+ },
+ lessonnext:function(){ U.screen='event'; U.res=null; render(); },
+ copysave:function(){ copyText($('#savecode').value,'#savecode'); },
+ copyres:function(){ copyText($('#resline').value,'#resline'); },
+ restart:function(){ U={screen:'title',confirmNew:false}; S=null; render(); },
+ glossary:function(){ openModal(glossaryHTML()); },
+ closemodal:function(){ closeModal(); },
+ theme:function(){ var d=!isDark(); document.documentElement.setAttribute('data-theme',d?'dark':'light'); try{ localStorage.setItem(THEME_KEY,d?'dark':'light'); }catch(e){} render(true); },
+ sound:function(){ soundOn=!soundOn; render(true); sfx('click'); }
+};
+function copyText(t,sel){
+  var done=function(){ toast('Скопировано'); };
+  try{ navigator.clipboard.writeText(t).then(done,function(){ var e=$(sel); e.focus(); e.select(); toast('Выдели текст и нажми Ctrl+C'); }); }
+  catch(e){ var x=$(sel); x.focus(); x.select(); toast('Выдели текст и нажми Ctrl+C'); }
+}
+
+document.addEventListener('click',function(e){
+  var el=e.target.closest('[data-act]'); if(!el) return;
+  if(el.classList.contains('modal') && e.target!==el) return;
+  var a=el.getAttribute('data-act'); if(A[a]){ if(a!=='go'&&a!=='choose'&&a!=='qpick'&&a!=='start') sfx('click'); A[a](el); }
+});
+document.addEventListener('input',function(e){
+  if(!S||U.screen!=='plan') return;
+  if(e.target.id==='price'){ S.price=+e.target.value; drawForecast(); }
+  else if(e.target.id==='produce'){ S.produce=+e.target.value; drawForecast(); }
+});
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); if(e.key==='Enter' && e.target.id==='pname') A.start(); });
+
+/* ---------- запуск ---------- */
+function boot(){
+  try{ var th=localStorage.getItem(THEME_KEY); if(th) document.documentElement.setAttribute('data-theme',th); }catch(e){}
+  $('#app-tools').innerHTML=
+   '<button class="iconbtn" data-act="glossary" title="Словарик" aria-label="Словарик">'+ico('book')+'</button>'+
+   '<button class="iconbtn" id="soundbtn" data-act="sound" title="Звук" aria-label="Звук"></button>'+
+   '<button class="iconbtn" id="themebtn" data-act="theme" title="Тема" aria-label="Сменить тему"></button>';
+  var sv=readSave(); if(sv&&sv.S){ S=newState('x'); S=null; }
+  U={screen:'title'}; render();
+  window.__game={get S(){return S;},get U(){return U;},A:A,render:render};
+}
+boot();
+})();
+
+</script>
+
+</body>
+</html>
