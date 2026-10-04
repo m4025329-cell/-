@@ -52,6 +52,7 @@ const CHECK=require('./check.js');
     else if(s==='quiz'){ const q=await p.evaluate(()=>window.__game.U.quiz); if(q.picked==null){ if(!seen['qz'+month]){ seen['qz'+month]=1; await shot('14-quiz-m'+month); } const opts=await p.$$('.qopt'); await opts[MODE==='random'?Math.floor(Math.random()*4):0].click(); } else await p.click('[data-act=qnext]'); }
     else if(s==='chapter'){ if(!seen['ch'+month]){ seen['ch'+month]=1; await shot('15-chapter-m'+month); } await p.click('[data-act=chapternext]'); }
     else if(s==='lessonend'){ await shot('16-lessonend'); await p.click('[data-act=lessonnext]'); }
+    else if(s==='qc'){ if(!seen['qc'+month]){ seen['qc'+month]=1; await shot('18-qc-intro'); } await p.click('[data-act=qcskip]'); }
     else if(s==='final'){ await shot('17-final'); break; }
     else { errs.push('UNKNOWN SCREEN '+s); break; }
   }

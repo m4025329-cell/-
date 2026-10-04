@@ -227,6 +227,19 @@ function curveSVG(s, id, plan, w, h){
 /* ---------- логотип ---------- */
 function logoSVG(sz){ return '<svg class="logo-mark" viewBox="0 0 32 32" width="'+(sz||32)+'" height="'+(sz||32)+'" aria-hidden="true" focusable="false"><rect x="4" y="21" width="24" height="6" rx="3" fill="#FF7A2F"/><rect x="7" y="14" width="18" height="6" rx="3" fill="#FF9A5C"/><rect x="10" y="7" width="12" height="6" rx="3" fill="#FFBE8F"/><rect x="4" y="21" width="24" height="2" rx="1" fill="#fff" opacity=".35"/></svg>'; }
 
+/* ---------- деталь для контроля качества: флаг дефекта — crack, string, gap, warp ---------- */
+function qcItemSVG(kind, col){
+  var out='', i, n=7, W=110;
+  for(i=0;i<n;i++){
+    var y=150-(i+1)*17, w=W-(i>4?(i-4)*10:0), x=(200-w)/2, dx=(kind==='warp'&&i>=4)?(i-3)*6:0;
+    if(kind==='gap' && i===3) continue;
+    out+='<rect x="'+(x+dx)+'" y="'+y+'" width="'+w+'" height="15" rx="4" fill="var(--c-'+col+')"/><rect x="'+(x+dx+4)+'" y="'+(y+2)+'" width="'+(w-8)+'" height="3" rx="1.500" fill="#fff" opacity=".35"/>';
+  }
+  if(kind==='crack') out+='<path d="M96 42l8 14-10 10 12 16-8 14" fill="none" stroke="#1A1226" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+  if(kind==='string') out+='<g stroke="var(--c-'+col+')" stroke-width="1.400" opacity=".8"><path d="M60 120q-18 -6 -26 8M70 108q-20 -4 -30 12M142 118q18 -4 24 10M132 100q20 -4 28 10M100 80q2 -22 12 -30"/></g>';
+  return '<svg viewBox="0 0 200 160" class="qcitem" aria-hidden="true" focusable="false"><ellipse cx="100" cy="152" rx="70" ry="6" fill="var(--shadow-soft)"/>'+out+'</svg>';
+}
+
 /* ---------- вывеска мастерской ---------- */
 function signSVG(name, w, h){
   var n=Math.max(1,String(name||'').length), fs=Math.max(18,Math.min(40,300/(n*0.62)));

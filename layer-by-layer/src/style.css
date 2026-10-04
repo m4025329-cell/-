@@ -314,6 +314,7 @@ input[type=range]:focus-visible{outline-offset:2px}
 /* ---------- печать месяца ---------- */
 .run{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;justify-items:center;text-align:center}
 .run .farm{width:100%;max-width:880px;grid-template-columns:repeat(auto-fit,minmax(150px,190px));justify-content:center;padding:18px 12px 8px}
+.runfact{max-width:62ch;margin:0}
 .run-bar{width:100%;max-width:880px}
 .run-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%;max-width:880px}
 .run-weeks{display:flex;gap:8px;width:100%;max-width:880px;justify-content:space-between}
@@ -392,6 +393,18 @@ input[type=range]:focus-visible{outline-offset:2px}
 .stars .st.off{fill:var(--edge-strong);opacity:.45}
 .chip.brand .stars .st.on{fill:var(--on-brand)}
 .chip.brand .stars .st.off{fill:var(--on-brand);opacity:.3}
+
+/* ---------- контроль качества ---------- */
+.qcbox{position:relative;display:grid;justify-items:center;gap:8px;padding:16px;border-radius:20px;background:var(--surface-2);border:3px solid var(--edge);transition:border-color var(--d-fast)}
+.qcbox.ok{border-color:var(--gain-fg)}.qcbox.bad{border-color:var(--loss-fg);animation:shake .4s}
+.qcitem{width:min(100%,280px);height:auto}
+.qcfb{margin:0;font-weight:700;text-align:center}
+.qctimer{width:min(100%,280px);height:8px;border-radius:99px;background:var(--surface-3);overflow:hidden}
+.qctimer i{display:block;height:100%;background:var(--brand);transform-origin:left;animation:qctime 2.3s linear forwards}
+@keyframes qctime{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.qcbtns{justify-content:center;gap:16px}
+.btn.big{min-height:64px;min-width:150px;font-size:19px}
+.btn.danger{border-color:var(--loss-fg);box-shadow:0 4px 0 var(--loss-fg);color:var(--loss-fg)}
 
 /* ---------- табло класса ---------- */
 .podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end}

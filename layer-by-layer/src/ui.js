@@ -26,6 +26,7 @@ function applySave(d){
   if(U.screen==='title') U.screen='scene';
   if((U.screen==='report'||U.screen==='run') && !U.report){ U.screen='scene'; U.stage=0; U.res=[]; }
   if(U.screen==='scene' && !U.res) U.res=[];
+  if(U.screen==='qc'){ U.screen='scene'; U.stage=0; U.res=[]; U.view=null; }
 }
 function exportCode(){ try{ return btoa(unescape(encodeURIComponent(JSON.stringify(snapshot(true))))); }catch(e){ return ''; } }
 function importCode(code){ try{ var d=JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/\s+/g,''))))); if(d&&d.S&&typeof d.S.month==='number'&&d.S.printers){ applySave(d); return true; } }catch(e){} return false; }
@@ -149,6 +150,44 @@ function titleHTML(){
     '<section class="acts"><div class="card flat"><div class="eyebrow">Урок 1 · месяцы 1–8</div><ul><li>Акт I «Нулевой слой»: цена, спрос, конкуренция</li><li>Акт II «Каркас»: аренда, налоги, оборудование, риск</li></ul></div>'+
     '<div class="card flat"><div class="eyebrow">Урок 2 · месяцы 9–16</div><ul><li>Акт III «Прочность»: кредит, инфляция, копии, валюта</li><li>Акт IV «Финальные слои»: пожар, гигант, кризис, добрые дела</li></ul></div></section>'+
     '<p class="muted">Игра сохраняется сама после каждого шага. На втором уроке открой её на том же компьютере и нажми «Продолжить».</p>';
+}
+
+/* ---------- мини-игра «Контроль качества» ---------- */
+var QC_KINDS={crack:'Трещина: слой не спёкся',string:'Паутинка: нити пластика между частями',gap:'Пропущенный слой: недоэкструзия',warp:'Перекос: верх отлип от стола'};
+var qcT=0;
+function qcStart(){
+  var cols=['cyan','orange','magenta','lime'], ks=Object.keys(QC_KINDS), items=[], i;
+  for(i=0;i<10;i++){ var bad=Math.random()<0.45; items.push({bad:bad, kind:bad?ks[Math.floor(Math.random()*ks.length)]:'ok', col:cols[Math.floor(Math.random()*cols.length)]}); }
+  U.qc={i:-1, items:items, hit:0, miss:0, wrong:0, phase:'intro'}; U.screen='qc'; render();
+}
+function qcNext(){
+  clearTimeout(qcT); var Q=U.qc; Q.i++;
+  if(Q.i>=Q.items.length){ Q.phase='done'; render(true); return; }
+  Q.phase='play'; Q.fb=''; render(true);
+  qcT=setTimeout(function(){ if(U.screen==='qc'&&U.qc.phase==='play') qcAnswer(false,true); },2300);
+}
+function qcAnswer(sayBad, timeout){
+  var Q=U.qc; if(Q.phase!=='play') return; clearTimeout(qcT); var it=Q.items[Q.i];
+  if(it.bad && sayBad){ Q.hit++; Q.fb='ok'; sfx('coin'); } else if(!it.bad && !sayBad){ Q.fb='ok'; sfx('click'); } else if(it.bad){ Q.miss++; Q.fb='bad'; sfx('bad'); } else { Q.wrong++; Q.fb='bad'; sfx('bad'); }
+  Q.phase='fb'; render(true); qcT=setTimeout(qcNext,timeout?500:750);
+}
+function qcGrade(){ var Q=U.qc, bads=Q.items.filter(function(x){ return x.bad; }).length, pts=Q.hit-Q.wrong-Q.miss*0.5; return pts>=bads-1?'gold':(pts>=bads*0.5?'silver':'bronze'); }
+function qcHTML(){
+  var Q=U.qc, h='<section class="card lined stack-lg"><div class="row between"><div><div class="eyebrow">Бонусная мини-игра</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(26px,4vw,38px)">Контроль качества</h1></div>'+(Q.phase==='play'||Q.phase==='fb'?'<span class="chip info">Деталь '+(Q.i+1)+' из '+Q.items.length+'</span>':'')+'</div>';
+  if(Q.phase==='intro'){
+    h+='<div class="dialog">'+bubble(say('phil','excited','Перед отправкой партии проверим каждую деталь. Годную пропускай, бракованную отбрасывай. На каждую у тебя пара секунд!'),0)+'</div>'+
+      '<ul class="muted" style="margin:0;padding-left:1.2em">'+Object.keys(QC_KINDS).map(function(k){ return '<li>'+QC_KINDS[k]+'</li>'; }).join('')+'</ul>'+
+      '<p class="muted">Клавиши: стрелка влево или Г — годно, стрелка вправо или Б — брак. Успех даёт репутацию и снижает брак в следующем месяце. Если пропустить, ничего не теряется.</p>'+
+      '<div class="row"><button class="btn primary" data-act="qcgo">Начать проверку'+ico('play')+'</button><button class="btn ghost" data-act="qcskip">Пропустить</button></div>';
+  } else if(Q.phase==='done'){
+    var g=qcGrade(), T={gold:['Безупречный контроль','репутация +2, брак −1 п.п. на 2 месяца'],silver:['Хороший контроль','репутация +1'],bronze:['Глаз замылился','репутация без изменений']}[g];
+    h+='<div class="callout '+(g==='bronze'?'warn':'ok')+'">'+ico(g==='bronze'?'info':'star')+'<div><b>'+T[0]+'.</b> Найдено брака: '+Q.hit+', пропущено: '+Q.miss+', годных забраковано: '+Q.wrong+'. Награда: '+T[1]+'.</div></div><div><button class="btn primary" data-act="qcend">Дальше'+ico('right')+'</button></div>';
+  } else {
+    var it=Q.items[Q.i];
+    h+='<div class="qcbox '+(Q.fb||'')+'" aria-live="polite">'+qcItemSVG(it.kind,it.col)+(Q.phase==='fb'?'<p class="qcfb">'+(it.bad?QC_KINDS[it.kind]:'Деталь без дефектов')+'</p>':'<div class="qctimer"><i></i></div>')+'</div>'+
+      '<div class="row qcbtns"><button class="btn big" data-act="qcgood"'+(Q.phase==='fb'?' disabled':'')+'>'+ico('check')+' Годно</button><button class="btn big danger" data-act="qcbad"'+(Q.phase==='fb'?' disabled':'')+'>'+ico('x')+' Брак</button></div>';
+  }
+  return h+'</section>';
 }
 
 /* ---------- табло класса (для учителя) ---------- */
@@ -524,7 +563,7 @@ function runHTML(){
   var r=U.report, pv={rows:r.rows,H:r.H,hours:r.hours};
   var made=0, defects=0; PROD_IDS.forEach(function(id){ var x=r.rows[id]; if(x){ made+=x.q; defects+=x.defects; } });
   return '<section class="run"><div><div class="eyebrow">'+MONTH_NAMES[r.month-1]+' · печать</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.6vw,44px)">Принтеры работают</h1></div>'+
-    '<div class="run-weeks" aria-hidden="true"><span id="wk0" class="on">Неделя 1</span><span id="wk1">Неделя 2</span><span id="wk2">Неделя 3</span><span id="wk3">Неделя 4</span></div>'+
+    (r.fact?'<p class="muted runfact"><b>Знаешь ли ты?</b> '+esc(r.fact)+'</p>':'')+'<div class="run-weeks" aria-hidden="true"><span id="wk0" class="on">Неделя 1</span><span id="wk1">Неделя 2</span><span id="wk2">Неделя 3</span><span id="wk3">Неделя 4</span></div>'+
     '<div class="run-bar"><div class="fil" aria-hidden="true"><i id="runfill" style="width:0%;transition:width 3000ms linear"></i></div></div>'+
     '<div class="ws-wrap">'+workshopSVG(S,{jobs:jobAssign({rows:r.rows}),working:true,month:r.month})+'</div>'+
     '<div class="run-nums"><div class="fbox"><b>Напечатано</b><span class="num" data-run="'+made+'" data-fmt="pcs">0 шт.</span></div><div class="fbox"><b>Продано</b><span class="num" data-run="'+r.soldTot+'" data-fmt="pcs">0 шт.</span></div><div class="fbox"><b>Выручка</b><span class="num" data-run="'+Math.round(r.revTot)+'" data-fmt="rub">0 ₽</span></div></div>'+
@@ -670,6 +709,7 @@ function stageHTML(){
     case 'intro': return introHTML();
     case 'setup': return setupHTML();
     case 'teacher': return teacherHTML();
+    case 'qc': return qcHTML();
     case 'calib': return calibHTML();
     case 'scene': return sceneHTML();
     case 'plan': return planHTML();
@@ -825,7 +865,7 @@ var A={
  },
  afterreport:function(){
    var m=U.report.month;
-   if(m%4===0){ startQuiz(chapterOf(m)); render(); } else enterMonth();
+   if(m%4===0){ startQuiz(chapterOf(m)); render(); } else if(m%4===3){ qcStart(); } else enterMonth();
  },
  qpick:function(el){
    var Q=U.quiz; if(Q.picked!=null) return; var i=+el.getAttribute('data-i'); Q.picked=i;
@@ -849,6 +889,11 @@ var A={
  lessonnext:function(){ enterMonth(); },
  copysave:function(){ var e=$('#savecode'); copyText(e?e.value:'','#savecode'); },
  copyres:function(){ var e=$('#resline'); copyText(e?e.value:'','#resline'); },
+ qcgo:function(){ qcNext(); },
+ qcgood:function(){ qcAnswer(false); },
+ qcbad:function(){ qcAnswer(true); },
+ qcskip:function(){ clearTimeout(qcT); enterMonth(); },
+ qcend:function(){ var g=qcGrade(); clearTimeout(qcT); if(g==='gold'){ S.rep=clamp(S.rep+2,0,100); addMod(S,'fail',-0.01,2,'Строгий контроль'); burst(40); sfx('good'); } else if(g==='silver'){ S.rep=clamp(S.rep+1,0,100); sfx('coin'); } enterMonth(); },
  teacher:function(){ U={screen:'teacher'}; render(); },
  boardgo:function(){ var v=$('#boardtxt').value; U.board=v; lsSet('lbl-board',v); render(true); },
  boardclear:function(){ U.board=''; lsSet('lbl-board',''); render(true); },
@@ -881,6 +926,7 @@ document.addEventListener('input',function(e){
 document.addEventListener('change',function(e){ if(S && e.target && e.target.type==='range') persist(); });
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape' && $('#modal .modal')){ closeModal(); return; }
+  if(U.screen==='qc' && U.qc && U.qc.phase==='play' && !$('#modal .modal')){ var k=e.key.toLowerCase(); if(k==='arrowleft'||k==='г'||k==='g'){ e.preventDefault(); qcAnswer(false); return; } if(k==='arrowright'||k==='б'||k==='b'){ e.preventDefault(); qcAnswer(true); return; } }
   if(e.key==='Enter' && e.target && e.target.id==='pname'){ e.preventDefault(); A.start(); return; }
   if(e.key==='Tab' && $('#modal .modal')){
     var f=$$('#modal button, #modal textarea, #modal input, #modal a[href]').filter(function(x){ return !x.disabled; }); if(!f.length) return;
