@@ -94,6 +94,20 @@ function playEvents(s, prefs, rng, ctr, force){
     if(!(st.mini)){ (s.__picked=s.__picked||[]).push(i); ctr.i++; } choicesOf(s,st)[i].apply(s,rngFor(s,'ev'+s.month+':'+si)); coverDeficit(s);
   });
 }
+/* ---- заказы: эксперт берёт то, что улучшает прогноз прибыли; средний игрок берёт почти всё; пассивный не берёт ---- */
+function playOrders(s, kind, opts){
+  var offers=s.board.offers.filter(function(o){ return o.state==='open'; });
+  if(kind==='passive' || kind==='bad2') return;
+  offers.forEach(function(o){
+    if(o.kind==='trap' && kind!=='bad') return;
+    if(!orderCheck(s,o).ok) return;
+    if(kind==='expert' || kind==='human'){
+      var base=clone(s); bestExpert(base,true); var p0=previewMonth(base,base.plan,1).profit;
+      var c=clone(s); if(!acceptOffer(c,o.id).ok) return; bestExpert(c,true); var p1=previewMonth(c,c.plan,1).profit;
+      if(p1>p0+(kind==='human'?800:200)) acceptOffer(s,o.id);
+    } else acceptOffer(s,o.id);
+  });
+}
 /* ---- политики ---- */
 var CHOICES = {
   best:   [1,0,1,0, 0,0,0, 0,0, 0, 0,0, 0, 0, 0,0, 0, 0,0, 0,0],
@@ -118,6 +132,7 @@ function runGame(kind, pol, seed, verbose, opts){
     if(opts.force && m===opts.force.month){ s.mini=s.mini||{}; s.mini[m]=opts.force.id; s.miniSeen=s.miniSeen||[]; s.miniSeen.push(opts.force.id); }
     else if(opts.noMini){ s.mini=s.mini||{}; s.mini[m]=''; }
     playEvents(s, prefs, rng, ctr, opts.force && m===opts.force.month ? opts.force : null);
+    if(!opts.noOrders){ makeBoard(s); goalsFor(s); playOrders(s, kind, opts); }
     if(kind==='expert'){ tryInvest(s,{}); bestExpert(s); }
     else if(kind==='human'){ tryInvest(s,{minGain:15000}); bestExpert(s,true); 
       PROD_IDS.forEach(function(id){ if(!isAvailable(s,id)) return; var pf=1+(rng()-0.5)*0.30, qf=1+(rng()-0.5)*0.40; s.plan.price[id]=Math.max(priceBounds(s,id,s.plan.mode).min, Math.round(s.plan.price[id]*pf/5)*5); s.plan.qty[id]=Math.max(lockQty(s,id), Math.round(s.plan.qty[id]*qf)); });
@@ -132,7 +147,7 @@ function runGame(kind, pol, seed, verbose, opts){
     else if(kind==='bad'){ suggestPlan(s); PROD_IDS.forEach(function(id){ if(isAvailable(s,id)){ s.plan.price[id]=Math.round(refPrice(s,id)*1.5/5)*5; s.plan.qty[id]=maxQtyFor(s,s.plan,id); } }); }
     /* вклад лишних денег (эксперт) */
     if(kind==='expert' && s.unlock.deposit && s.cash>150000){ var a=Math.round((s.cash-120000)/1000)*1000; s.cash-=a; s.savings+=a; }
-    var r=runMonth(s);
+    var r=runMonth(s); if(!opts.noOrders) settleGoals(s,r);
     rows.push([m,Math.round(r.hours)+'/'+r.H,Math.round(r.revTot),Math.round(r.profit),ownerCapital(s)].join(' '));
   }
   if(verbose){ console.log(rows.join('\n')); console.log('buys',(s._buys||[]).join(', ')); console.log('flags',JSON.stringify(s.flags),'printers',s.printers.map(function(p){return p.t;}).join(','),'staff',JSON.stringify(s.staff)); }

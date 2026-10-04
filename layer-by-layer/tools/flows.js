@@ -36,6 +36,7 @@ let fails=0; const ok=(c,m)=>{ if(!c){ fails++; console.log('FAIL',m); } else co
   s=base(4); s.cash=90000; s.contracts.push({prod:'key',qty:150,price:120,penalty:0.3,repLoss:6,repGain:3,label:'тест'}); await setState(s,{screen:'scene',stage:0,res:[{i:0,chips:[{t:'тест',k:'info'}],reply:null}]},);
   await p.evaluate(()=>{ window.__game.A.scenenext(); }); await p.waitForTimeout(300);
   if(await p.$('#modal .modal')) await p.click('#modal [data-act=closemodal]');
+  await p.click('[data-t=biz]'); await p.waitForTimeout(100);
   const lockMin=await p.evaluate(()=>+document.getElementById('qr-key').min); const qty=await p.evaluate(()=>window.__game.S.plan.qty.key);
   ok(lockMin===150 && qty>=150,'заказ: минимум выпуска брелоков 150 (min='+lockMin+', qty='+qty+')');
   ok((await p.textContent('#pc-key')).includes('не меньше 150'),'заказ: в карточке есть пояснение про минимум');

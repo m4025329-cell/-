@@ -1,7 +1,7 @@
 /* Проверка вёрстки: текстовые блоки не должны накладываться друг на друга и выходить за экран */
 module.exports=`(() => {
   const modal = document.querySelector('#modal .modal');
-  const skip = el => el.closest('svg,canvas,script,style,#fx,#actionbar,#toast,.sr-only,.skip,[hidden]') || (modal && !modal.contains(el));
+  const skip = el => el.closest('svg,canvas,script,style,#fx,#actionbar,#toast,.sr-only,.skip,[hidden]') || (modal && !modal.contains(el)) || (el.closest('details:not([open])') && !el.closest('summary'));
   const items = [];
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let n;

@@ -30,8 +30,8 @@ const FILE='file://'+path.join(__dirname,'..','index.html');
       else await p.click('[data-act=scenenext]');
     } else if(s==='plan'){
       if(await p.$('#modal .modal')) await p.click('#modal [data-act=closemodal]');
-      await check('план-печать'); await p.click('[data-t=shop]'); await check('план-мастерская'); await p.click('[data-t=fin]'); await check('план-финансы'); await p.click('[data-t=biz]');
-      await p.click('#gobtn'); await check('печать (run)');
+      await check('план-заказы'); const ob=await p.$('[data-act=oacc]:not([disabled])'); if(ob){ await ob.click(); await check('план-заказы после принятия'); } await p.click('[data-t=biz]'); await check('план-печать'); await p.click('[data-t=market]'); await check('план-рынок'); await p.click('[data-t=shop]'); await check('план-мастерская'); await p.click('[data-t=fin]'); await check('план-финансы'); await p.click('[data-t=biz]');
+      await p.click('#gobtn'); if(await p.$('[data-act=gosure]')) await p.click('[data-act=gosure]'); await check('печать (run)');
     } else if(s==='run'){ await p.click('[data-act=runskip]'); }
     else if(s==='report'){ await check('итоги месяца'); await p.click('[data-act=afterreport]'); }
     else if(s==='quiz'){ const q=await p.evaluate(()=>window.__game.U.quiz); if(q.picked==null){ await check('викторина до ответа'); await (await p.$$('.qopt'))[1].click(); await check('викторина после ответа'); } else await p.click('[data-act=qnext]'); }

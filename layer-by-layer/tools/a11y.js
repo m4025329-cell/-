@@ -26,6 +26,7 @@ let fails=0; const ok=(c,msg)=>{ if(!c){ fails++; console.log('FAIL',msg); } els
   ok((await unnamed()).length===0,'план: у всех кнопок и ползунков есть имя');
   /* ползунок цены с клавиатуры */
   const before=await p.evaluate(()=>window.__game.S.plan.price.key);
+  await p.click('[data-t=biz]'); await p.waitForTimeout(100);
   await p.focus('#pr-key'); for(let i=0;i<3;i++) await p.keyboard.press('ArrowRight'); await p.waitForTimeout(100);
   const after=await p.evaluate(()=>window.__game.S.plan.price.key);
   ok(after===before+15,'ползунок цены меняется стрелками: '+before+' → '+after);
@@ -51,7 +52,7 @@ let fails=0; const ok=(c,msg)=>{ if(!c){ fails++; console.log('FAIL',msg); } els
   await p.fill('#pname','Тихо'); await p.click('#startbtn'); await play.skipIntro(p);
   const en=await p.$$('.choice:not([disabled])'); await en[0].click(); await p.click('[data-act=scenenext]'); await p.waitForTimeout(200);
   if(await p.$('#modal .modal')) await p.click('#modal [data-act=closemodal]');
-  await p.click('#gobtn'); await p.waitForTimeout(300);
+  await p.click('#gobtn'); if(await p.$('[data-act=gosure]')) await p.click('[data-act=gosure]'); await p.waitForTimeout(300);
   ok(await p.evaluate(()=>window.__game.U.screen==='report'),'reduced-motion: экран печати пропускается, сразу итоги');
   await ctx.close();
 
@@ -60,10 +61,10 @@ let fails=0; const ok=(c,msg)=>{ if(!c){ fails++; console.log('FAIL',msg); } els
   await p.fill('#pname','Перенос'); await p.click('#startbtn'); await play.skipIntro(p);
   let g=0; while(g++<300){ const s=await p.evaluate(()=>window.__game.U.screen);
     if(s==='scene'){ const r=await p.evaluate(()=>{const u=window.__game.U; return !!(u.res||[])[u.stage||0];}); if(!r){ const e=await p.$$('.choice:not([disabled])'); await e[0].click(); } else await p.click('[data-act=scenenext]'); }
-    else if(s==='plan'){ if(await p.$('#modal .modal')) await p.click('#modal [data-act=closemodal]'); await p.click('#gobtn'); }
+    else if(s==='plan'){ if(await p.$('#modal .modal')) await p.click('#modal [data-act=closemodal]'); await p.click('#gobtn'); if(await p.$('[data-act=gosure]')) await p.click('[data-act=gosure]'); }
     else if(s==='run') await p.click('[data-act=runskip]'); else if(s==='report') await p.click('[data-act=afterreport]');
     else if(s==='quiz'){ const q=await p.evaluate(()=>window.__game.U.quiz); if(q.picked==null) await (await p.$$('.qopt'))[0].click(); else await p.click('[data-act=qnext]'); }
-    else if(s==='chapter') await p.click('[data-act=chapternext]'); else if(s==='lessonend') break; }
+    else if(s==='chapter') await p.click('[data-act=chapternext]'); else if(s==='qc') await p.click('[data-act=qcskip]'); else if(s==='lessonend') break; }
   const code=await p.inputValue('#savecode'); const cap=await p.evaluate(()=>ownerCapital(window.__game.S));
   ok(code.length>200,'код сохранения сформирован ('+code.length+' знаков)');
   await ctx.close();

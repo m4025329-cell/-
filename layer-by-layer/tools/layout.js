@@ -39,6 +39,7 @@ function richState(month) {
     await p.goto(FILE); await p.waitForTimeout(250);
     const tag = `${W}-${theme}`;
     const check = async name => {
+      await p.evaluate(() => window.scrollTo(0, 0));
       await p.waitForTimeout(800);
       const bad = await p.evaluate(CHECK);
       bad.forEach(x => problems.push(`LAYOUT ${tag} ${name}: ${x}`));
@@ -50,6 +51,12 @@ function richState(month) {
     /* месяц 12: план (три вкладки), запуск, итоги, викторина, глава */
     /* richState живёт в Node, поэтому передаём его в страницу исходным текстом */
     await p.evaluate(`window.__rich=${richState.toString()}; window.__game.setState(window.__rich(12), {screen:'plan', tab:'biz', helpSeen:true});`);
+    await p.evaluate(() => { const S = window.__game.S; S.clients = {school:{trust:3,done:4,failed:1}, cafe:{trust:5,done:6,failed:0}, club:{trust:1,done:1,failed:0}}; window.__game.render(true); });
+    await p.click('[data-t=orders]'); await check('plan-orders');
+    let ob = await p.$('[data-act=oacc]:not([disabled])'); if (ob) { await ob.click(); await check('plan-orders-taken'); }
+    const hb = await p.$('[data-act=ohag]'); if (hb) { await hb.click(); await check('plan-orders-haggle'); const hp = await p.$('[data-act=hagp]'); if (hp) { await hp.click(); await check('plan-orders-haggled'); } }
+    await p.click('[data-t=market]'); await check('plan-market');
+    await p.click('[data-t=biz]');
     await check('plan-biz');
     await p.click('[data-t=shop]'); await check('plan-shop');
     await p.click('[data-t=fin]'); await check('plan-fin');

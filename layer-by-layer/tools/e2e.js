@@ -18,6 +18,7 @@ const CHECK=require('./check.js');
   await p.goto(FILE); await p.waitForTimeout(500);
   const FULL=new Set(['09-plan-m1','09-plan-m9','10-shop','11-fin','13-report-m4','13-report-m8','13-report-m16','17-final','15-chapter-m5','16-lessonend','06-scene-m5','07-scene-result-m1','07-scene-result-m9']);
   const shot=async n=>{ await p.waitForTimeout(n.startsWith('03')?2600:900); await p.screenshot({path:path.join(OUT,`${WIDTH}-${THEME}-${n}.png`),fullPage:FULL.has(n)}); };
+  const chk=async n=>{ await p.evaluate(()=>window.scrollTo(0,0)); await p.waitForTimeout(750); const bad=await p.evaluate(CHECK); bad.forEach(x=>errs.push('LAYOUT '+WIDTH+' '+n+' '+JSON.stringify(x).slice(0,200))); };
   const U=()=>p.evaluate(()=>window.__game.U.screen);
   await shot('01-title');
   await p.fill('#pname','Алексей'); await p.click('#startbtn');
@@ -41,8 +42,9 @@ const CHECK=require('./check.js');
         if(!seen['scr'+month]){ seen['scr'+month]=1; if([1,9].includes(month)) await shot('07-scene-result-m'+month); } }
       else await p.click('[data-act=scenenext]');
     } else if(s==='plan'){
+      if(await p.$('#modal [data-act=gosure]')){ await p.click('#modal [data-act=gosure]'); continue; }
       if(await p.$('#modal .modal')){ if(month===1) await shot('08-help'); await p.click('#modal [data-act=closemodal]'); }
-      if(!seen['pl'+month]){ seen['pl'+month]=1; if([1,5,9,13].includes(month)) await shot('09-plan-m'+month); if(month===5){ await p.click('[data-t=shop]'); await shot('10-shop'); await p.click('[data-t=fin]'); await shot('11-fin'); await p.click('[data-t=biz]'); } }
+      if(!seen['pl'+month]){ seen['pl'+month]=1; if([1,5,9,13].includes(month)) await chk('orders m'+month); if([1,5,9,13].includes(month)) await shot('09-orders-m'+month); const ob=await p.$('[data-act=oacc]:not([disabled])'); if(ob && MODE==='smart') await ob.click(); const hb=await p.$('[data-act=ohag]'); if(hb && month%3===0){ await hb.click(); await chk('haggle m'+month); const hp=await p.$('[data-act=hagp]'); if(hp) await hp.click(); } await p.click('[data-t=biz]'); await p.click('[data-t=market]'); if([1,5,9].includes(month)) await chk('market m'+month); if([5,9].includes(month)) await shot('09-market-m'+month); await p.click('[data-t=biz]'); if([1,5,9,13].includes(month)) await shot('09-plan-m'+month); if(month===5){ await p.click('[data-t=shop]'); await shot('10-shop'); await p.click('[data-t=fin]'); await shot('11-fin'); await p.click('[data-t=biz]'); } }
       /* покупки умеренно */
       if(MODE==='smart'){ await p.evaluate(()=>{ const S=window.__game.S; const m=S.month; if([5,7,9,10].includes(m) && S.cash>60000){ buyPrinter && 0; } }); }
       const dis=await p.$eval('#gobtn',e=>e.disabled); if(dis){ errs.push('GO DISABLED month '+month); break; }

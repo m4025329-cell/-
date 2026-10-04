@@ -161,6 +161,11 @@ var ACH = [
   {id:'rec',     name:'Рекорд месяца',     desc:'Прибыль за месяц больше 100 000 ₽',      icon:'up',     test:function(s,r){ return r.profit>=100000; }},
   {id:'five',    name:'Пять звёзд',        desc:'Рейтинг мастерской 4,5 и выше',          icon:'star',   test:function(s,r){ var q=s.rate; return q && q.u>=200 && q.s/q.u>=4.5; }},
   {id:'range',   name:'Широкий ассортимент',desc:'Продано четыре товара за месяц',        icon:'grid',   test:function(s,r){ return r.soldKinds>=4; }},
+  {id:'deal5',  name:'Надёжный партнёр',  desc:'Выполнено пять заказов без срыва',       icon:'doc',    test:function(s,r){ return s.orderStats && s.orderStats.done>=5; }},
+  {id:'trust3', name:'Постоянные клиенты',desc:'Клиент доверяет мастерской на три сердца',icon:'users', test:function(s,r){ return Object.keys(s.clients||{}).some(function(k){ return s.clients[k].trust>=3; }); }},
+  {id:'haggle', name:'Дипломат',          desc:'Удачный торг: цена выросла',             icon:'percent',test:function(s,r){ return s.orderStats && s.orderStats.haggleWins>=1; }},
+  {id:'princ',  name:'Принципиальный',    desc:'Отказ от заказа с чужими моделями',      icon:'shield', test:function(s,r){ return s.orderStats && s.orderStats.trapNo>=1; }},
+  {id:'plans',  name:'Мастер планов',     desc:'Выполнены все цели месяца',              icon:'target', test:function(s,r){ return !!(r.goals && r.goals.bonus>0); }},
   {id:'rep80',   name:'Имя в городе',      desc:'Репутация 70 и выше',                    icon:'heart',  test:function(s,r){ return s.rep>=70; }}
 ];
 var MILES = [250000,500000,750000];

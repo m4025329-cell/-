@@ -16,7 +16,7 @@ def js(name):
     t = (src / name).read_text(encoding='utf-8')
     return t.replace("if(typeof module!=='undefined') module.exports = {};", '')
 
-scripts = '\n'.join(js(n) for n in ['engine.js', 'content.js', 'events.js', 'minievents.js', 'reviews.js', 'ending.js', 'art.js', 'workshop.js', 'ui.js'])
+scripts = '\n'.join(js(n) for n in ['engine.js', 'content.js', 'orders.js', 'events.js', 'minievents.js', 'reviews.js', 'ending.js', 'art.js', 'workshop.js', 'ui.js'])
 css = (src / 'style.css').read_text(encoding='utf-8').replace('/*FONTS*/', fonts_css())
 frag = (src / 'body.html').read_text(encoding='utf-8').replace('/*STYLE*/', css).replace('/*SCRIPTS*/', scripts)
 (root / 'dist').mkdir(exist_ok=True)

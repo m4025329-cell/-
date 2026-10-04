@@ -256,7 +256,7 @@ function computeMonth(s, rawPlan, noiseFn){
   var fromStock=Math.min(kg,stockKg), buyKg=kg-fromStock, buyCost=buyKg*mk, matCost=fromStock*stockAvg+buyCost;
   var runCost=hours*runCostPerHour(s), matPrice=kg>0?matCost/kg:mk;
   var ad=ADS[plan.ad];
-  var r={month:s.month, mode:mode, fail:f, H:H, hours:hours, kg:kg, buyKg:buyKg, buyCost:buyCost, matCost:matCost, matPrice:matPrice, runCost:runCost, adCost:ad.cost, rows:{}, plan:plan};
+  var r={month:s.month, mode:mode, fail:f, H:H, hours:hours, kg:kg, buyKg:buyKg, buyCost:buyCost, matCost:matCost, matPrice:matPrice, runCost:runCost, adCost:ad.cost, rows:{}, orders:[], plan:plan};
   var revenue=0, contractRev=0, cogs=0, commission=0, royalty=0, penalty=0, repLoss=0, repGain=0, soldKinds=0, invValEnd=0, soldTot=0, packTot=0, writeTot=0;
   var disc = modProd(s,'disc');
   PROD_IDS.forEach(function(id){
@@ -266,12 +266,18 @@ function computeMonth(s, rawPlan, noiseFn){
     var invN=s.inv[id], valN=s.invVal[id];
     var avgCost = (invN+q)>0 ? (valN + q*unit)/(invN+q) : unit;
     var avail = invN+q;
-    var cq = contractQty(s,id), cDeliver = Math.min(cq, avail);
+    var cq = 0; s.contracts.forEach(function(c){ if(c.prod===id && (!c.fine || mode==='fine')) cq+=c.qty; });
+    var cDeliver = Math.min(cq, avail);
     var cRev=0, cPen=0;
-    s.contracts.forEach(function(c){ if(c.prod===id){ } });
-    if(cq>0){
+    if(cq>0 || contractQty(s,id)>0){
       var left=cDeliver;
-      s.contracts.forEach(function(c){ if(c.prod!==id) return; var d=Math.min(c.qty,left); left-=d; cRev+=d*c.price; var miss=c.qty-d; if(miss>0){ cPen+=miss*c.price*c.penalty; repLoss+=c.repLoss; } else { repGain+=(c.repGain||0); } });
+      s.contracts.forEach(function(c){ if(c.prod!==id) return;
+        var okMode = !c.fine || mode==='fine', d = okMode ? Math.min(c.qty,left) : 0; left-=d;
+        var rv=d*c.price, miss=c.qty-d, pn=0, cl=0; cRev+=rv;
+        if(miss>0){ pn=miss*c.price*c.penalty; cPen+=pn; repLoss+=c.repLoss; }
+        else { repGain+=(c.repGain||0); if(c.claim){ cl=rv*c.claim; cPen+=cl; repLoss+=(c.claimRep||0); } }
+        r.orders.push({oid:c.oid||null, client:c.client||null, kind:c.kind||null, label:c.label, prod:id, qty:c.qty, done:d, rev:rv, pen:pn+cl, miss:miss, fineFail:!okMode, claim:cl, repGain:(miss>0?0:(c.repGain||0))});
+      });
     }
     var price=plan.price[id], eff=price*disc;
     var nz = noiseFn ? noiseFn(id) : 1;
@@ -347,6 +353,7 @@ function commitMonth(s, r, rng){
   s.printers.forEach(function(p){ p.age++; });
   s.mods.forEach(function(m){ m.left--; });
   s.mods = s.mods.filter(function(m){ return m.left>0; });
+  if(typeof applyOrderResults==='function') applyOrderResults(s, r);
   s.contracts = [];
   var util = r.H>0 ? r.hours/r.H : 0; if(util>=0.9) s.utilMonths++;
   s.maxKinds = Math.max(s.maxKinds||0, r.soldKinds);
