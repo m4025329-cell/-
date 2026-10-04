@@ -2847,7 +2847,7 @@ function parseResults(text){
     var parts=l.split('|').map(function(x){ return x.trim(); }); if(parts.length<4) return null;
     var cap=/капитал\s+([\d\s\u00a0\u202f]+)/.exec(l), q=/вопросы\s+(\d+)\/(\d+)/.exec(l); if(!cap) return null;
     function f(k){ var m=new RegExp(k+'\\s+([^|]+)').exec(l); return m?m[1].trim():''; }
-    var shop=/мастерская\s+«([^»]*)»/.exec(l), title=/звание\s+«([^»]*)»/.exec(l), mo=/месяц\s+(\d+)/.exec(l);
+    var shop=/мастерская\s+\u00ab([^\u00bb]*)\u00bb/.exec(l), title=/звание\s+\u00ab([^\u00bb]*)\u00bb/.exec(l), mo=/месяц\s+(\d+)/.exec(l);
     return {name:parts[0], shop:shop?shop[1]:'', talent:f('талант'), diff:f('сложность'), month:mo?+mo[1]:0, cap:+cap[1].replace(/[^\d]/g,''), title:title?title[1]:'', q:q?+q[1]:0, qn:q?+q[2]:0};
   }).filter(Boolean).sort(function(a,b){ return b.cap-a.cap; });
 }
