@@ -34,7 +34,8 @@ var PRINTERS = {
   used: {id:'used', name:'Б/у принтер',           hours:95,  fail:0.15, price:30000,  big:false, note:'Дёшево, но капризный'},
   fast: {id:'fast', name:'Быстрый CoreXY',        hours:165, fail:0.05, price:117000,  big:false, note:'В полтора раза быстрее'},
   big:  {id:'big',  name:'Большой формат',        hours:115, fail:0.07, price:142000,  big:true,  note:'Для крупных деталей и прототипов'},
-  ind:  {id:'ind',  name:'Промышленный принтер',  hours:320, fail:0.03, price:375000, big:true,  note:'Работает почти без остановок'}
+  ind:  {id:'ind',  name:'Промышленный принтер',  hours:320, fail:0.03, price:375000, big:true,  note:'Работает почти без остановок'},
+  diy:  {id:'diy',  name:'Самосборный принтер',   hours:105, fail:0.08, price:26000,  big:false, note:'Собран своими руками из деталей'}
 };
 var SPACES = {
   school: {id:'school', name:'Школьный кабинет',       rent:0,     limit:2, hm:1},
@@ -56,13 +57,46 @@ var CHANNELS = {
   market: {name:'Маркетплейс', mult:1.40, commission:0.12},
   site:   {name:'Свой сайт',   mult:1.22, fee:2500}
 };
+/* таланты: у каждого свои бонусы и особые варианты в нескольких сценах.
+   Числа лежат здесь, а текст описания собирается из них (talentPerk), чтобы они не расходились. */
+var TALENTS = {
+  eng: {id:'eng', name:'Инженер',  icon:'wrench',    time:0.95, fail:0.02,
+        desc:'Знаешь принтер изнутри: настройки слайсера подобраны, сопло прочищено, ремни натянуты.'},
+  des: {id:'des', name:'Дизайнер', icon:'sparkle',   dem:1.03,
+        desc:'Твои модели нравятся покупателям: изделия выглядят так, что хочется взять их в руки.'},
+  sel: {id:'sel', name:'Продавец', icon:'megaphone', ad:1.07, comm:0.015, rep:0,
+        desc:'Умеешь продавать: находишь слова, шутки и скидки, после которых покупатели достают кошельки.'}
+};
+function pct0(x){ return Math.round(x*100); }
+function talentPerk(k){
+  var T=TALENTS[k];
+  if(k==='eng') return 'Печать на '+pct0(1-T.time)+'% быстрее, брака меньше на '+(Math.round(T.fail*1000)/10).toString().replace('.',',')+' п.п.';
+  if(k==='des') return 'Спрос на брелоки, подставки и фигурки выше на '+pct0(T.dem-1)+'%';
+  return 'Реклама на '+pct0(T.ad-1)+'% сильнее, комиссия маркетплейса на '+(Math.round(T.comm*1000)/10).toString().replace('.',',')+' п.п. ниже'+(T.rep?', репутация +'+T.rep:'');
+}
+/* сложность: стартовые деньги и размах случайных колебаний спроса */
+var DIFFS = {
+  easy: {id:'easy', name:'Спокойная', cash:45000, noise:0.5, price:1.02, about:'45 000 ₽ на старте, покупатели платят чуть больше, спрос почти не прыгает'},
+  norm: {id:'norm', name:'Обычная',   cash:35000, noise:1,   price:1,    about:'35 000 ₽ на старте'},
+  hard: {id:'hard', name:'Сложная',   cash:25000, noise:1.7, price:0.95, about:'25 000 ₽ на старте, покупатели платят на 5% меньше, спрос колеблется сильнее'}
+};
 var SERVICE_COST = 2500, INSURANCE_COST = 2000, INSURANCE_PAYOUT = 0.90, ALLY_FEE = 4000, ALLY_HOURS = 40, ALLY2_HOURS = 80;
 
 function clamp(x, a, b){ return Math.max(a, Math.min(b, x)); }
 function round1(x){ return Math.round(x*10)/10; }
 
-function newState(name){
-  var s = { v:1, name:name||'Мастер', month:1, cash:START_CASH, savings:0, fund:0, loanLeft:0, loanStep:0, equity:1,
+/* ---------- случайности ----------
+   Результат зависит только от «кода класса» (s.seed), номера месяца и названия броска.
+   Ученики с одним кодом получают одинаковые события и спрос, поэтому результаты можно честно сравнивать. */
+function hashStr(str){ var h=2166136261; str=String(str); for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function rngFor(s, tag){ return mulberry32(hashStr((s.seed||'free')+'|'+tag)); }
+function rand01(s, tag){ return rngFor(s, tag)(); }
+function randomSeed(){ return Math.random().toString(36).slice(2,8); }
+
+function newState(name, opts){
+  opts = opts || {};
+  var s = { v:1, name:name||'Мастер', shop:'', talent:null, diff:'norm', code:'', seed:String(opts.seed||randomSeed()), month:1, cash:START_CASH, savings:0, fund:0, loanLeft:0, loanStep:0, equity:1,
     printers:[{t:'old', age:99}], space:'school', staff:{asst:0, teen:0},
     unlocked:{key:true, stand:true, mini:false, part:false, proto:false},
     inv:{}, invVal:{}, fil:{kg:3, val:3*1250}, filIdx:1, infl:1, rep:5,
@@ -76,6 +110,22 @@ function newState(name){
 }
 
 /* ---------- модификаторы ---------- */
+/* настройка мастерской: делается один раз после пролога */
+function cleanShopName(n){ return String(n||'').replace(/\s+/g,' ').trim().slice(0,28); }
+function cleanCode(c){ return String(c||'').replace(/\s+/g,'').toUpperCase().slice(0,16); }
+function applySetup(s, o){
+  if(s.setupDone) return s;
+  s.shop = cleanShopName(o.shop) || 'Слой за слоем';
+  s.talent = TALENTS[o.talent] ? o.talent : null;
+  s.diff = DIFFS[o.diff] ? o.diff : 'norm';
+  s.code = cleanCode(o.code);
+  if(s.code) s.seed = 'КЛАСС|'+s.code;
+  s.cash = DIFFS[s.diff].cash;
+  if(s.talent==='des'){ ['key','stand','mini'].forEach(function(id){ s.pdm[id]*=TALENTS.des.dem; }); }
+  if(s.talent==='sel'){ s.rep = clamp(s.rep+TALENTS.sel.rep,0,100); }
+  s.setupDone = true;
+  return s;
+}
 function addMod(s, k, m, left, label, prod){ s.mods.push({k:k, m:m, left:left, label:label, prod:prod||null}); }
 function modProd(s, k, id){ var p=1; s.mods.forEach(function(x){ if(x.k===k && (!x.prod || x.prod===id)) p*=x.m; }); return p; }
 function modSum(s, k){ var t=0; s.mods.forEach(function(x){ if(x.k===k) t+=x.m; }); return t; }
@@ -95,7 +145,7 @@ function baseFail(s){
   return h>0 ? t/h : 0.1;
 }
 function failRate(s, mode){
-  var f = baseFail(s) + MODES[mode].fail + modSum(s,'fail') - (s.service?0.02:0) - (s.flags.psu?0:0);
+  var f = baseFail(s) + MODES[mode].fail + modSum(s,'fail') - (s.service?0.02:0) - (s.talent==='eng'?TALENTS.eng.fail:0);
   return clamp(f, 0.01, 0.35);
 }
 function isAvailable(s, id){
@@ -113,8 +163,11 @@ function whyLocked(s, id){
 /* ---------- цены и спрос ---------- */
 function filMarket(s){ return FIL_BASE * s.filIdx * modProd(s,'fil'); }
 function runCostPerHour(s){ return RUN_COST * s.infl * modProd(s,'run'); }
-function refPrice(s, id){ return Math.round(PRODUCTS[id].ref * s.infl * modProd(s,'ref',id) / 5) * 5; }
-function p50Of(s, id){ return PRODUCTS[id].p50 * s.infl * modProd(s,'ref',id); }
+function levelMult(s){ return (DIFFS[s.diff||'norm']||DIFFS.norm).price; }
+function refPrice(s, id){ return Math.round(PRODUCTS[id].ref * s.infl * modProd(s,'ref',id) * levelMult(s) / 5) * 5; }
+function p50Of(s, id){ return PRODUCTS[id].p50 * s.infl * modProd(s,'ref',id) * levelMult(s); }
+function adMult(s, i){ var a=ADS[i]; return 1 + (a.mult-1)*(s.talent==='sel'?TALENTS.sel.ad:1); }
+function commissionRate(s){ return CHANNELS.market.commission - (s.talent==='sel'?TALENTS.sel.comm:0); }
 function channelMult(s){ return (s.channel.market?CHANNELS.market.mult:1) * (s.channel.site?CHANNELS.site.mult:1); }
 function demandAt(s, id, price, plan, noise){
   var P=PRODUCTS[id], x=price/p50Of(s,id);
@@ -122,7 +175,7 @@ function demandAt(s, id, price, plan, noise){
   var repMult = 1 + s.rep*(P.b2b?0.02:0.010);
   var q = Math.pow(MODES[plan.mode].q, P.qs);
   var ch = P.b2b ? 1 : channelMult(s);
-  return Math.max(0, base * SEASON[id][s.month-1] * repMult * ADS[plan.ad].mult * q * ch * modProd(s,'dem',id) * s.pdm[id] * (noise||1));
+  return Math.max(0, base * SEASON[id][s.month-1] * repMult * adMult(s,plan.ad) * q * ch * modProd(s,'dem',id) * s.pdm[id] * (noise||1));
 }
 function priceBounds(s, id, mode){
   var ref=refPrice(s,id); var c = unitCostEst(s, id, mode||s.plan.mode, 0);
@@ -155,7 +208,7 @@ function ownerCapital(s){ return Math.round(companyCapital(s) * s.equity); }
 /* ---------- контракты и план ---------- */
 function contractQty(s, id){ var q=0; s.contracts.forEach(function(c){ if(c.prod===id) q+=c.qty; }); return q; }
 function lockQty(s, id){ return Math.max(0, contractQty(s,id) - s.inv[id]); }
-function hoursPerUnit(s, id, mode){ var f=failRate(s,mode); return (PRODUCTS[id].t+(s.tAdd[id]||0))*MODES[mode].time/(1-f); }
+function hoursPerUnit(s, id, mode){ var f=failRate(s,mode); return (PRODUCTS[id].t+(s.tAdd[id]||0))*MODES[mode].time*(s.talent==='eng'?TALENTS.eng.time:1)/(1-f); }
 function gramsPerUnit(s, id, mode){ var f=failRate(s,mode); return PRODUCTS[id].g*MODES[mode].grams/(1-f); }
 function matBlend(s, kg){
   var stockKg=s.fil.kg, avg = stockKg>0 ? s.fil.val/stockKg : 0, mk=filMarket(s);
@@ -227,7 +280,7 @@ function computeMonth(s, rawPlan, noiseFn){
     var sold = Math.min(D, availMarket), lost=Math.max(0,D-sold), left2=availMarket-sold;
     var rev = sold*eff;
     var cg = (sold+cDeliver)*avgCost;
-    var comm = (!P.b2b && s.channel.market) ? rev*CHANNELS.market.commission : 0;
+    var comm = (!P.b2b && s.channel.market) ? rev*commissionRate(s) : 0;
     var roy = (id==='mini' && s.flags.liza==='partner') ? rev*0.12 : 0;
     if(s.flags.alliance2 && (id==='key' || id==='stand')) roy += rev*0.08;
     var packCost = (sold+cDeliver)*PACK[id]*s.infl;
@@ -275,7 +328,8 @@ function commitMonth(s, r, rng){
   s.totalRevenue += r.revTot;
   /* вклад и фонд */
   r.depositGain = Math.round(s.savings*DEPOSIT_RATE); s.savings += r.depositGain;
-  var fundR = 0.008 + 0.04*gauss(rng)/1.7;
+  var rf = rng || rngFor(s,'fund'+s.month);
+  var fundR = 0.008 + 0.04*gauss(rf)/1.7;
   if(s.month===15) fundR -= 0.10;
   fundR = clamp(fundR, -0.25, 0.15); r.fundR=fundR;
   var fb=s.fund; s.fund = Math.round(s.fund*(1+fundR)); r.fundGain = s.fund-fb;
@@ -289,7 +343,7 @@ function commitMonth(s, r, rng){
   s.lastMargin = r.revTot>0 ? r.profit/r.revTot : 0;
   s.lastProfitPerHour = r.hours>0 ? (r.revTot - r.cogs - 0)/Math.max(1,r.hours) : s.lastProfitPerHour;
   /* цены на пластик, возраст принтеров, модификаторы */
-  s.filIdx = clamp(s.filIdx*(1 + 0.004 + (rng()-0.5)*0.024), 0.8, 2);
+  s.filIdx = clamp(s.filIdx*(1 + 0.004 + ((rng ? rng() : rand01(s,'fil'+s.month))-0.5)*0.024), 0.8, 2);
   s.printers.forEach(function(p){ p.age++; });
   s.mods.forEach(function(m){ m.left--; });
   s.mods = s.mods.filter(function(m){ return m.left>0; });
@@ -302,9 +356,10 @@ function commitMonth(s, r, rng){
   return r;
 }
 function runMonth(s, rng){
-  rng = rng || Math.random;
-  var n = {}; 
-  var noise = function(key){ if(!(key in n)) n[key] = 1 + (rng()-0.5)*(key==='g'?0.08:0.10); return n[key]; };
+  /* без rng шум берётся из кода класса: для каждого товара свой, не зависящий от остальных решений игрока */
+  var n = {}, m = s.month;
+  var amp = (DIFFS[s.diff||'norm']||DIFFS.norm).noise;
+  var noise = function(key){ if(!(key in n)) n[key] = 1 + ((rng ? rng() : rand01(s,'n'+m+':'+key))-0.5)*(key==='g'?0.08:0.10)*amp; return n[key]; };
   var cashBefore = s.cash;
   var r = computeMonth(s, s.plan, noise);
   commitMonth(s, r, rng);

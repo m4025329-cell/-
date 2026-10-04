@@ -3,6 +3,7 @@
 const path=require('path'), fs=require('fs');
 const PW=process.env.PW_PATH||'/opt/node-tools/node_modules/playwright';
 const { chromium } = require(PW);
+const play=require('./play.js');
 const OUT=process.argv[2]||path.join(__dirname,'..','dist','shots');
 const WIDTH=+(process.argv[3]||1280), THEME=process.argv[4]||'light', MODE=process.argv[5]||'smart';
 fs.mkdirSync(OUT,{recursive:true});
@@ -22,6 +23,7 @@ const CHECK=require('./check.js');
   await p.fill('#pname','Алексей'); await p.click('#startbtn');
   await shot('02-intro1');
   await p.click('[data-act=intronext]'); await p.click('[data-act=intronext]'); await shot('03-intro3'); await p.click('[data-act=intronext]');
+  await p.waitForSelector('#setupgo'); await shot('03b-setup'); await play.setup(p,{shop:'Слой&Слой',talent:process.env.TALENT||'eng'});
   await p.click('[data-act=tocalib]'); await shot('04-calib');
   const t=await p.evaluate(()=>window.__game.U.calib.t); await p.evaluate(v=>{const r=document.getElementById('calibrange'); r.value=v; r.dispatchEvent(new Event('input',{bubbles:true}));},t);
   await p.click('[data-act=calibfix]'); await shot('05-calibdone'); await p.click('[data-act=calibdone]');

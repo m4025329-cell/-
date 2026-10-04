@@ -15,7 +15,7 @@ function qTotal(){ return S.quizScore.reduce(function(a,b){ return a+b; },0); }
 
 /* ---------- сохранение ---------- */
 function snapshot(strip){
-  var u={screen:U.screen, slide:U.slide, stage:U.stage, res:U.res, tab:U.tab, quiz:U.quiz, chapterInfo:U.chapterInfo, calib:U.calib, helpSeen:U.helpSeen, view:U.view};
+  var u={screen:U.screen, slide:U.slide, stage:U.stage, res:U.res, tab:U.tab, quiz:U.quiz, chapterInfo:U.chapterInfo, calib:U.calib, helpSeen:U.helpSeen, view:U.view, setup:U.setup};
   if(!strip){ u.report=U.report; u.run=U.run; }
   return {v:1, S:S, U:u};
 }
@@ -31,7 +31,7 @@ function exportCode(){ try{ return btoa(unescape(encodeURIComponent(JSON.stringi
 function importCode(code){ try{ var d=JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/\s+/g,''))))); if(d&&d.S&&typeof d.S.month==='number'&&d.S.printers){ applySave(d); return true; } }catch(e){} return false; }
 function resultLine(){
   var cap=ownerCapital(S), done=Math.min(S.month-1,TOTAL);
-  return S.name+' | месяц '+done+' из '+TOTAL+' | капитал '+rub(cap)+' | звание «'+titleOf(cap)+'» | вопросы '+qTotal()+'/'+S.quizTotal;
+  return S.name+' | мастерская «'+(S.shop||'—')+'» | талант '+(S.talent?TALENTS[S.talent].name:'—')+' | сложность '+DIFFS[S.diff||'norm'].name+(S.code?' | код '+S.code:'')+' | месяц '+done+' из '+TOTAL+' | капитал '+rub(cap)+' | звание «'+titleOf(cap)+'» | вопросы '+qTotal()+'/'+S.quizTotal;
 }
 
 /* ---------- звук (по умолчанию выключен, в классе тише) ---------- */
@@ -118,7 +118,7 @@ function hudHTML(){
   var third = S.loanLeft>0 ? {k:'loan',l:'Долг',v:S.loanLeft,neg:true} : {k:'fin',l:'Вклады и фонд',v:S.savings+S.fund,neg:false};
   var head = U.screen==='final' ? 'Итоги игры' : (MONTH_NAMES[m-1]+' · месяц '+m+' из '+TOTAL);
   var share = S.equity<1 ? '<div class="fil-row"><span>Твоя доля в мастерской: '+Math.round(S.equity*100)+'%</span><span></span></div>' : '';
-  return '<div class="hud-card"><div class="hud-top"><div><div class="hud-month">'+head+'</div><div class="hud-sub">Урок '+ch.lesson+' · акт «'+ch.name+'» · '+esc(S.name)+'</div></div><div class="pips" role="img" aria-label="Прогресс: пройдено '+(after?m:m-1)+' из '+TOTAL+' месяцев">'+pips+'</div></div>'+
+  return '<div class="hud-card"><div class="hud-top"><div><div class="hud-month">'+head+'</div><div class="hud-sub">Урок '+ch.lesson+' · акт «'+ch.name+'» · '+(S.shop?'«'+esc(S.shop)+'», ':'')+esc(S.name)+'</div></div><div class="pips" role="img" aria-label="Прогресс: пройдено '+(after?m:m-1)+' из '+TOTAL+' месяцев">'+pips+'</div></div>'+
     '<div class="stats"><div class="stat"><b>На счету</b><span class="num" data-k="cash" data-v="'+Math.round(S.cash)+'">'+rub(S.cash)+'</span></div>'+
     '<div class="stat"><b>Часы печати</b><span class="num">'+printerHours(S)+' ч<span class="pcount"> · '+S.printers.length+' '+plural(S.printers.length,'принтер','принтера','принтеров')+'</span></span></div>'+
     '<div class="stat'+(third.neg?' neg':'')+'"><b>'+third.l+'</b><span class="num" data-k="'+third.k+'" data-v="'+Math.round(third.v)+'">'+rub(third.v)+'</span></div>'+
@@ -128,7 +128,7 @@ function hudHTML(){
 }
 function renderHud(){
   var hud=$('#hud'); if(!hud) return;
-  hud.innerHTML = (S && U.screen!=='title' && U.screen!=='intro' && U.screen!=='calib') ? hudHTML() : '';
+  hud.innerHTML = (S && U.screen!=='title' && U.screen!=='intro' && U.screen!=='calib' && U.screen!=='setup') ? hudHTML() : '';
   $$('[data-k]',hud).forEach(function(el){ var k=el.getAttribute('data-k'), to=+el.getAttribute('data-v'), from=hudPrev[k]; if(from!=null && from!==to) animateNumber(el, from, to, 700); hudPrev[k]=to; });
 }
 
@@ -152,7 +152,9 @@ function titleHTML(){
 }
 
 /* ---------- вступление ---------- */
-var INTRO=[
+function introSlides(){
+  var cash=S?S.cash:START_CASH, fund=Math.max(0,cash-12000);
+  return [
   {art:'classroom', title:'Школа №17', lines:[
     say('nar','neutral','Школа №17. Кабинет технологии пахнет пылью и старыми проектами. Кружок закрывают: денег на мастерскую нет уже второй год.'),
     say('sem','sad','Всё списываем. Вот этот принтер ещё из прошлого десятилетия. Не печатает, только ворчит.')]},
@@ -163,9 +165,10 @@ var INTRO=[
     say('sem','neutral','Фонд «Технопарк» строит мастерские только в тех школах, которые сами себя кормят. Покажи за 16 месяцев капитал в миллион рублей, и школа получит технопарк.'),
     say('phil','worried','Миллион? Это сколько слоёв? Я посчитал: очень много.')]},
   {art:'coins', title:'Старт', lines:[
-    say('nar','neutral','У тебя есть 35 000 ₽: 12 000 из копилки и 23 000 из школьного фонда. Фил, пластик и шестнадцать месяцев.'),
+    say('nar','neutral','У тебя есть '+rub(cash)+': 12 000 ₽ из копилки'+(fund>0?' и '+rub(fund)+' из школьного фонда':'')+'. Плюс Фил, пластик и шестнадцать месяцев.'),
     say('phil','happy','Для начала нужно откалибровать стол: первый слой всегда решает всё. Это займёт пятнадцать секунд.')]}
-];
+  ];
+}
 function introArt(a){
   if(a==='classroom') return sceneClassroom();
   if(a==='path') return scenePath();
@@ -175,12 +178,35 @@ function introArt(a){
   return t;
 }
 function introHTML(){
-  var n=U.slide||0, sl=INTRO[n], last=n===INTRO.length-1;
-  return '<section class="slide"><div class="stack-lg"><div class="row between"><div class="eyebrow">Пролог · '+(n+1)+' из '+INTRO.length+'</div><div class="dots" aria-hidden="true">'+INTRO.map(function(_,i){ return '<i class="'+(i===n?'on':'')+'"></i>'; }).join('')+'</div></div>'+
+  var SL=introSlides(), n=U.slide||0, sl=SL[n], last=n===SL.length-1;
+  return '<section class="slide"><div class="stack-lg"><div class="row between"><div class="eyebrow">Пролог · '+(n+1)+' из '+SL.length+'</div><div class="dots" aria-hidden="true">'+SL.map(function(_,i){ return '<i class="'+(i===n?'on':'')+'"></i>'; }).join('')+'</div></div>'+
     '<h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.4vw,42px)">'+sl.title+'</h1><div class="dialog">'+sl.lines.map(function(l,i){ return bubble(l,i); }).join('')+'</div>'+
     '<div class="row">'+(n>0?'<button class="btn" data-act="introprev">'+ico('left')+' Назад</button>':'')+
     (last ? '<button class="btn primary" data-act="tocalib">Откалибровать стол'+ico('right')+'</button><button class="btn ghost" data-act="skipcalib">Сразу к делу</button>' : '<button class="btn primary" data-act="intronext">Дальше'+ico('right')+'</button><button class="btn ghost small" data-act="introskip">Пропустить пролог</button>')+
     '</div></div><div class="slide-art'+(sl.art==='terminal'?' is-term':'')+'" aria-hidden="'+(sl.art==='terminal'?'false':'true')+'">'+introArt(sl.art)+'</div></section>';
+}
+
+/* ---------- настройка мастерской ---------- */
+function toSetup(){
+  U.setup=U.setup||{shop:SHOP_NAMES[Math.floor(Math.random()*SHOP_NAMES.length)], talent:null, diff:'norm', code:''};
+  U.screen='setup'; render();
+}
+function setupHTML(){
+  var o=U.setup, d=DIFFS[o.diff], tal=o.talent?TALENTS[o.talent]:null;
+  var talents=Object.keys(TALENTS).map(function(k){ var x=TALENTS[k], on=o.talent===k;
+    return '<button class="talent" role="radio" aria-checked="'+on+'" data-act="ptalent" data-k="'+k+'"><span class="talent-ico">'+ico(x.icon)+'</span><span><b>'+x.name+'</b><small>'+talentPerk(k)+'</small></span></button>'; }).join('');
+  var diffs=Object.keys(DIFFS).map(function(k){ var x=DIFFS[k], on=o.diff===k;
+    return '<button role="radio" aria-checked="'+on+'" data-act="pdiff" data-k="'+k+'"><b>'+x.name+'</b><span>'+x.about+'</span></button>'; }).join('');
+  return '<section class="setup"><div class="stack-lg"><div><div class="eyebrow">Оформляем кружок как бизнес</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.4vw,42px)">Создай мастерскую</h1></div>'+
+    '<div class="dialog">'+bubble(say('phil','excited','Прежде чем печатать, придумай название, выбери талант и реши, насколько трудной будет игра. Вывеска уже ждёт!'),0)+'</div>'+
+    '<div class="field"><label for="shopname">Название мастерской</label><div class="row nowrap"><input class="input" id="shopname" type="text" maxlength="28" autocomplete="off" value="'+esc(o.shop)+'"><button class="btn small" data-act="rname" aria-label="Случайное название">'+ico('dice')+'<span class="hide-s">Случайное</span></button></div></div>'+
+    '<div class="field" role="radiogroup" aria-labelledby="tal-h"><div class="lab" id="tal-h">Твой талант</div><div class="talents">'+talents+'</div><p class="muted" style="font-size:14px">Талант открывает особые варианты ответа в нескольких сценах. Попробуй другой в следующий раз.</p></div>'+
+    '<div class="field" role="radiogroup" aria-labelledby="dif-h"><div class="lab" id="dif-h">Сложность</div><div class="seg">'+diffs+'</div></div>'+
+    '<div class="field"><label for="classcode">Код класса <span class="muted" style="font-weight:500">(необязательно)</span></label><input class="input" id="classcode" type="text" maxlength="16" autocomplete="off" placeholder="Например, 8Б-ПЕЧАТЬ" value="'+esc(o.code)+'"><p class="muted" style="font-size:14px">Если учитель назвал код, введи его. Тогда у всех в классе будут одинаковые события и спрос, и результаты можно честно сравнивать.</p></div>'+
+    '<div class="row"><button class="btn" data-act="setupback">'+ico('left')+' Назад</button><button class="btn primary" data-act="setupdone" id="setupgo">Дальше'+ico('right')+'</button></div></div>'+
+    '<aside class="setup-prev card lined stack" aria-label="Предпросмотр"><div id="signart">'+signSVG(cleanShopName(o.shop)||'Слой за слоем')+'</div>'+
+    '<div class="pstats"><div class="pstat"><b>Стартовый капитал</b><span class="num">'+rub(d.cash)+'</span></div><div class="pstat"><b>Сложность</b><span>'+d.name+'</span></div></div>'+
+    (tal?'<div class="callout ok">'+ico(tal.icon)+'<div><b>'+tal.name+'.</b> '+tal.desc+'</div></div>':'<div class="callout">'+ico('info')+'<div>Выбери талант, и здесь появится его описание.</div></div>')+'</aside></section>';
 }
 
 /* ---------- калибровка стола ---------- */
@@ -215,7 +241,7 @@ function sceneView(){
   if(U.view && U.view.key===key) return U.view;
   var ev=EVENTS[S.month-1], stages=ev.stages(S), g=stages[st];
   var view={key:key, title:ev.title, n:stages.length, tag:g.tag, term:g.term, lines:g.lines, lesson:fn(g.lesson,S),
-    choices:g.choices.map(function(c){ var cost=fn(c.cost,S)||0, req=c.req?c.req(S):''; return {label:fn(c.label,S), sub:fn(c.sub,S), cost:cost, why:req, poor:cost>S.cash}; })};
+    choices:choicesOf(S,g).map(function(c){ var cost=fn(c.cost,S)||0, req=c.req?c.req(S):''; return {label:fn(c.label,S), sub:fn(c.sub,S), cost:cost, why:req, poor:cost>S.cash, talent:c.talent||''}; })};
   /* страховка от тупика: если все варианты недоступны из-за денег, разрешаем взять недостающее в долг */
   var any=view.choices.some(function(c){ return !c.why && !c.poor; });
   if(!any) view.choices.forEach(function(c){ if(!c.why && c.poor){ c.poor=false; c.debt=true; } });
@@ -233,7 +259,7 @@ function sceneHTML(){
   h+='<section><div class="eyebrow" style="margin-bottom:10px">'+(res?'Твой выбор':'Что ты решишь?')+'</div><div class="choices" role="group" aria-label="Варианты решения">';
   v.choices.forEach(function(c,i){
     var cls=res?(res.i===i?'picked':'dim'):'', dis=!!(res||c.why||c.poor);
-    h+='<button class="choice '+cls+'" data-act="choose" data-i="'+i+'" style="--i:'+i+'"'+(dis?' disabled':'')+'><b>'+c.label+'</b><span>'+c.sub+'</span>'+
+    h+='<button class="choice '+cls+(c.talent?' talent-c':'')+'" data-act="choose" data-i="'+i+'" style="--i:'+i+'"'+(dis?' disabled':'')+'>'+(c.talent?'<span class="tal-tag">'+ico(TALENTS[c.talent].icon)+' Талант: '+TALENTS[c.talent].name+'</span>':'')+'<b>'+c.label+'</b><span>'+c.sub+'</span>'+
        (c.cost>0?'<span class="chip '+(c.poor?'loss':'warn')+' cost">'+(c.debt?'в долг ':'')+'−'+rub(c.cost).replace('−','')+'</span>':'')+
        ((c.why||c.poor)&&!res?'<span class="why">'+(c.why||'Не хватает денег')+'</span>':'')+'</button>';
   });
@@ -596,6 +622,7 @@ function stageHTML(){
   switch(U.screen){
     case 'title': return titleHTML();
     case 'intro': return introHTML();
+    case 'setup': return setupHTML();
     case 'calib': return calibHTML();
     case 'scene': return sceneHTML();
     case 'plan': return planHTML();
@@ -662,8 +689,19 @@ var A={
  loadcode:function(){ openModal('Загрузить игру','<p class="muted">Вставь код сохранения, который был показан в конце прошлого урока.</p><div class="field"><label for="loadcode">Код сохранения</label><textarea class="input" id="loadcode" rows="5" placeholder="Вставь код сюда"></textarea></div><p class="loss-t" id="loaderr" role="alert"></p><div><button class="btn primary" data-act="doload">Загрузить</button></div>'); },
  doload:function(){ var v=$('#loadcode').value; if(importCode(v)){ closeModal(); hudPrev={}; render(); toast('Игра загружена'); } else $('#loaderr').textContent='Код не подошёл. Проверь, что скопировал его целиком.'; },
  introprev:function(){ U.slide=Math.max(0,(U.slide||0)-1); render(); },
- intronext:function(){ U.slide=Math.min(INTRO.length-1,(U.slide||0)+1); render(); },
- introskip:function(){ U.slide=INTRO.length-1; render(); },
+ intronext:function(){
+   if((U.slide||0)===2 && !S.setupDone){ toSetup(); return; }
+   U.slide=Math.min(introSlides().length-1,(U.slide||0)+1); render();
+ },
+ introskip:function(){ if(!S.setupDone){ toSetup(); return; } U.slide=introSlides().length-1; render(); },
+ setupback:function(){ U.screen='intro'; U.slide=2; render(); },
+ rname:function(){ var cur=U.setup.shop, pool=SHOP_NAMES.filter(function(x){ return x!==cur; }); U.setup.shop=pool[Math.floor(Math.random()*pool.length)]; render(true); var e=$('#shopname'); if(e) e.focus(); },
+ ptalent:function(el){ U.setup.talent=el.getAttribute('data-k'); render(true); var e=$('[data-act=ptalent][data-k='+U.setup.talent+']'); if(e) e.focus(); },
+ pdiff:function(el){ U.setup.diff=el.getAttribute('data-k'); render(true); var e=$('[data-act=pdiff][data-k='+U.setup.diff+']'); if(e) e.focus(); },
+ setupdone:function(){
+   var o=U.setup; if(!o.talent){ toast('Выбери талант: он даёт бонусы и особые варианты в сценах'); return; }
+   applySetup(S,o); U.screen='intro'; U.slide=3; sfx('coin'); render();
+ },
  tocalib:function(){ U.screen='calib'; U.calib={t:38+Math.floor(Math.random()*24), v:Math.random()<0.5?8+Math.floor(Math.random()*10):86+Math.floor(Math.random()*10), done:false}; render(); },
  skipcalib:function(){ enterMonth(); },
  calibstep:function(el){ var C=U.calib; C.v=clamp(C.v+(+el.getAttribute('data-d')),0,100); var r=$('#calibrange'); if(r) r.value=C.v; calibLive(); },
@@ -678,8 +716,8 @@ var A={
  choose:function(el){
    var i=+el.getAttribute('data-i'), st=U.stage||0, v=sceneView(), vc=v.choices[i];
    if(!vc || vc.why || (U.res&&U.res[st])) return;
-   var stg=EVENTS[S.month-1].stages(S)[st], c=stg.choices[i];
-   var chips=c.apply(S, Math.random), gap=coverDeficit(S);
+   var stg=EVENTS[S.month-1].stages(S)[st], c=choicesOf(S,stg)[i];
+   var chips=c.apply(S, rngFor(S,'ev'+S.month+':'+st)), gap=coverDeficit(S);
    if(gap) chips.push(chip('Денег не хватило: банк покрыл '+rub(gap)+' в долг','loss'));
    addTerm(stg.term);
    U.res=U.res||[]; U.res[st]={i:i, chips:chips, reply:c.reply||null};
@@ -728,7 +766,7 @@ var A={
  },
  go:function(){
    var pv=previewMonth(S,S.plan,1); if(pv.cashNow>S.cash+0.5){ toast('Не хватает денег на закупку. Уменьши выпуск.'); return; }
-   var before=S.cash, r=runMonth(S,Math.random); r.cashBefore=before; r.cashAfter=S.cash;
+   var before=S.cash, r=runMonth(S); r.cashBefore=before; r.cashAfter=S.cash;
    U.report=r; U.screen=reduced?'report':'run'; U.tab='biz';
    if(reduced){ render(); sfx(r.profit>=0?'good':'bad'); } else render();
  },
@@ -780,6 +818,8 @@ document.addEventListener('click',function(e){
 document.addEventListener('input',function(e){
   var t=e.target; if(!S) return;
   if(t.id==='calibrange' && U.calib){ U.calib.v=+t.value; calibLive(); return; }
+  if(t.id==='shopname' && U.setup){ U.setup.shop=t.value; var sg=$('#signart'); if(sg) sg.innerHTML=signSVG(cleanShopName(t.value)||'Слой за слоем'); return; }
+  if(t.id==='classcode' && U.setup){ U.setup.code=t.value; return; }
   if(U.screen==='plan' && t.type==='range' && t.getAttribute('data-k')){
     var id=t.getAttribute('data-id'), k=t.getAttribute('data-k'), val=+t.value;
     if(k==='price') S.plan.price[id]=val; else S.plan.qty[id]=clamp(val,lockQty(S,id),Math.max(lockQty(S,id),maxQtyFor(S,S.plan,id)));

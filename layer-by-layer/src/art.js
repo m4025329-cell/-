@@ -54,7 +54,8 @@ var IC = {
  refresh:'<path d="M20 11a8 8 0 0 0-14.500-3.500M4 4v4h4M4 13a8 8 0 0 0 14.500 3.500M20 20v-4h-4"/>',
  gear:'<circle cx="12" cy="12" r="3"/><path d="M12 3v2.500M12 18.500V21M3 12h2.500M18.500 12H21M5.600 5.600l1.800 1.800M16.600 16.600l1.800 1.800M5.600 18.400l1.800-1.800M16.600 7.400l1.800-1.800"/>',
  flask:'<path d="M9 3h6M10 3v6L4.500 18.500A2 2 0 0 0 6.300 21.500h11.400a2 2 0 0 0 1.800-3L14 9V3"/><path d="M7.500 15h9"/>',
- pin:'<path d="M12 21s-7-6.200-7-11a7 7 0 0 1 14 0c0 4.800-7 11-7 11Z"/><circle cx="12" cy="10" r="2.500"/>'
+ pin:'<path d="M12 21s-7-6.200-7-11a7 7 0 0 1 14 0c0 4.800-7 11-7 11Z"/><circle cx="12" cy="10" r="2.500"/>',
+ dice:'<rect x="4" y="4" width="16" height="16" rx="3.500"/><circle cx="8.800" cy="8.800" r="1" fill="currentColor"/><circle cx="15.200" cy="8.800" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="8.800" cy="15.200" r="1" fill="currentColor"/><circle cx="15.200" cy="15.200" r="1" fill="currentColor"/>'
 };
 function ico(n, cls){ return '<svg class="ico '+(cls||'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(IC[n]||'')+'</svg>'; }
 function esc(t){ return String(t).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -221,6 +222,18 @@ function curveSVG(s, id, plan, w, h){
 
 /* ---------- логотип ---------- */
 function logoSVG(sz){ return '<svg class="logo-mark" viewBox="0 0 32 32" width="'+(sz||32)+'" height="'+(sz||32)+'" aria-hidden="true" focusable="false"><rect x="4" y="21" width="24" height="6" rx="3" fill="#FF7A2F"/><rect x="7" y="14" width="18" height="6" rx="3" fill="#FF9A5C"/><rect x="10" y="7" width="12" height="6" rx="3" fill="#FFBE8F"/><rect x="4" y="21" width="24" height="2" rx="1" fill="#fff" opacity=".35"/></svg>'; }
+
+/* ---------- вывеска мастерской ---------- */
+function signSVG(name, w, h){
+  var n=Math.max(1,String(name||'').length), fs=Math.max(18,Math.min(40,300/(n*0.62)));
+  return '<svg class="sign" viewBox="0 0 360 170" width="'+(w||360)+'" height="'+(h||170)+'" role="img" aria-label="Вывеска: '+esc(name||'')+'" focusable="false">'+
+    '<defs><clipPath id="signclip"><rect x="14" y="40" width="332" height="112" rx="20"/></clipPath></defs>'+
+    '<path d="M70 4v40M290 4v40" stroke="var(--edge-strong)" stroke-width="5" stroke-linecap="round"/><circle cx="70" cy="6" r="6" fill="var(--edge-strong)"/><circle cx="290" cy="6" r="6" fill="var(--edge-strong)"/>'+
+    '<rect x="14" y="40" width="332" height="112" rx="20" fill="var(--surface)"/>'+
+    '<g clip-path="url(#signclip)"><rect x="14" y="108" width="332" height="14" fill="var(--c-magenta)"/><rect x="14" y="122" width="332" height="14" fill="var(--c-orange)"/><rect x="14" y="136" width="332" height="16" fill="var(--c-cyan)"/></g>'+
+    '<rect x="14" y="40" width="332" height="112" rx="20" fill="none" stroke="var(--edge-strong)" stroke-width="5"/>'+
+    '<text x="180" y="'+Math.round(72+fs*0.34)+'" text-anchor="middle" font-family="Tektur,sans-serif" font-weight="800" font-size="'+fs.toFixed(1)+'" fill="var(--ink)">'+esc(name||'')+'</text></svg>';
+}
 
 /* ---------- сцены вступления ---------- */
 function sceneClassroom(){

@@ -1,6 +1,7 @@
 /* Проверка сохранения: перезагрузка страницы на каждом типе экрана и возврат кнопкой «Продолжить» */
 const path=require('path');
 const { chromium } = require(process.env.PW_PATH||'/opt/node-tools/node_modules/playwright');
+const play=require('./play.js');
 const FILE='file://'+path.join(__dirname,'..','index.html');
 (async()=>{
   const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
@@ -18,7 +19,7 @@ const FILE='file://'+path.join(__dirname,'..','index.html');
     if(diff.length){ fails++; console.log('FAIL',label,JSON.stringify(a),'=>',JSON.stringify(c)); } else console.log('ok  ',label);
   }
   await p.fill('#pname','Тест'); await p.click('#startbtn'); await p.click('[data-act=intronext]'); await check('intro-слайд 2');
-  await p.click('[data-act=introskip]'); await p.click('[data-act=tocalib]'); await check('calib');
+  await p.click('[data-act=introskip]'); await play.setup(p); await p.click('[data-act=tocalib]'); await check('calib');
   await p.click('[data-act=calibfix]'); await check('calib-готово'); await p.click('[data-act=calibdone]');
   let guard=0;
   while(guard++<400){

@@ -1,6 +1,7 @@
 /* Доступность и перенос: клавиатура, фокус, имена кнопок, reduced-motion, перенос игры по коду */
 const path=require('path');
 const { chromium } = require(process.env.PW_PATH||'/opt/node-tools/node_modules/playwright');
+const play=require('./play.js');
 const FILE='file://'+path.join(__dirname,'..','index.html');
 let fails=0; const ok=(c,msg)=>{ if(!c){ fails++; console.log('FAIL',msg); } else console.log('ok  ',msg); };
 (async()=>{
@@ -14,7 +15,7 @@ let fails=0; const ok=(c,msg)=>{ if(!c){ fails++; console.log('FAIL',msg); } els
   await p.focus('#pname'); await p.keyboard.type('Клава'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
   ok(await p.evaluate(()=>document.activeElement&&document.activeElement.id==='pagetitle'),'после Enter фокус на заголовке нового экрана');
   ok((await p.$$('h1')).length===1,'пролог: ровно один h1');
-  await p.click('[data-act=introskip]'); await p.click('[data-act=skipcalib]'); await p.waitForTimeout(300);
+  await play.skipIntro(p); await p.waitForTimeout(300);
   ok((await unnamed()).length===0,'сцена: у всех кнопок есть имя');
   ok((await p.$$('h1')).length===1,'сцена: ровно один h1');
   /* выбор с клавиатуры */
@@ -47,7 +48,7 @@ let fails=0; const ok=(c,msg)=>{ if(!c){ fails++; console.log('FAIL',msg); } els
   await p.goto(FILE); await p.waitForTimeout(300);
   const dur=await p.evaluate(()=>getComputedStyle(document.querySelector('.hero-art .p-head')||document.body).animationDuration);
   ok(parseFloat(dur)<0.001,'reduced-motion: анимация принтера отключена ('+dur+')');
-  await p.fill('#pname','Тихо'); await p.click('#startbtn'); await p.click('[data-act=introskip]'); await p.click('[data-act=skipcalib]');
+  await p.fill('#pname','Тихо'); await p.click('#startbtn'); await play.skipIntro(p);
   const en=await p.$$('.choice:not([disabled])'); await en[0].click(); await p.click('[data-act=scenenext]'); await p.waitForTimeout(200);
   if(await p.$('#modal .modal')) await p.click('#modal [data-act=closemodal]');
   await p.click('#gobtn'); await p.waitForTimeout(300);
@@ -56,7 +57,7 @@ let fails=0; const ok=(c,msg)=>{ if(!c){ fails++; console.log('FAIL',msg); } els
 
   /* ---------- 3. перенос по коду на другое устройство ---------- */
   ctx=await b.newContext({viewport:{width:1100,height:900}}); p=await ctx.newPage(); await p.goto(FILE); await p.waitForTimeout(300);
-  await p.fill('#pname','Перенос'); await p.click('#startbtn'); await p.click('[data-act=introskip]'); await p.click('[data-act=skipcalib]');
+  await p.fill('#pname','Перенос'); await p.click('#startbtn'); await play.skipIntro(p);
   let g=0; while(g++<300){ const s=await p.evaluate(()=>window.__game.U.screen);
     if(s==='scene'){ const r=await p.evaluate(()=>{const u=window.__game.U; return !!(u.res||[])[u.stage||0];}); if(!r){ const e=await p.$$('.choice:not([disabled])'); await e[0].click(); } else await p.click('[data-act=scenenext]'); }
     else if(s==='plan'){ if(await p.$('#modal .modal')) await p.click('#modal [data-act=closemodal]'); await p.click('#gobtn'); }

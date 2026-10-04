@@ -3,7 +3,7 @@ const path=require('path'), fs=require('fs'), vm=require('vm');
 const { chromium } = require(process.env.PW_PATH||'/opt/node-tools/node_modules/playwright');
 const FILE='file://'+path.join(__dirname,'..','index.html');
 const OUT=process.argv[2]||path.join(__dirname,'..','dist','shots'); fs.mkdirSync(OUT,{recursive:true});
-['engine','content','events','ending'].forEach(f=>vm.runInThisContext(fs.readFileSync(path.join(__dirname,'..','src',f+'.js'),'utf8').replace("if(typeof module!=='undefined') module.exports = {};",'')));
+require('./load.js');
 const sim=require('./sim.js');
 let fails=0; const ok=(c,m)=>{ if(!c){ fails++; console.log('FAIL',m); } else console.log('ok  ',m); };
 (async()=>{
@@ -60,6 +60,30 @@ let fails=0; const ok=(c,m)=>{ if(!c){ fails++; console.log('FAIL',m); } else co
     ok(title.length>3,'финал '+name+': звание «'+title+'», капитал '+cap);
     await p.screenshot({path:path.join(OUT,'flow-final-'+name+'.png'),fullPage:true});
   }
+  /* 10. таланты: особый вариант виден только своему таланту и работает */
+  s=base(2); s.cash=80000; s.talent='des'; await setState(s,{screen:'scene',stage:0,res:[]}); await p.waitForTimeout(300);
+  let labels=await p.$$eval('.choice b',els=>els.map(e=>e.textContent));
+  ok(labels.includes('Нарисовать свои модели') && (await p.textContent('.choice.talent-c')).includes('Талант: Дизайнер'),'дизайнер: в сцене Лизы есть особый вариант с подписью таланта');
+  await p.click('.choice.talent-c'); await p.waitForTimeout(250);
+  st=await p.evaluate(()=>({liza:window.__game.S.flags.liza, mini:window.__game.S.unlocked.mini}));
+  ok(st.liza==='own' && st.mini,'свои модели: фигурки открыты, роялти нет');
+  s=base(2); s.cash=80000; s.talent='eng'; await setState(s,{screen:'scene',stage:0,res:[]}); await p.waitForTimeout(300);
+  labels=await p.$$eval('.choice b',els=>els.map(e=>e.textContent)); ok(labels.length===3 && !labels.includes('Нарисовать свои модели'),'инженер не видит вариант дизайнера');
+  s=base(7); s.cash=90000; s.talent='eng'; await setState(s,{screen:'scene',stage:0,res:[]}); await p.waitForTimeout(300);
+  labels=await p.$$eval('.choice b',els=>els.map(e=>e.textContent)); ok(labels.includes('Собрать принтер своими руками'),'инженер: на месяце 7 можно собрать принтер самому');
+  await p.click('.choice.talent-c'); await p.waitForTimeout(250);
+  ok((await p.evaluate(()=>window.__game.S.printers.some(x=>x.t==='diy'))),'самосборный принтер добавлен в мастерскую');
+  s=base(13); s.cash=80000; s.talent='eng'; await setState(s,{screen:'scene',stage:0,res:[]}); await p.waitForTimeout(300);
+  labels=await p.$$eval('.choice b',els=>els.map(e=>e.textContent)); ok(labels.includes('Починить своими руками за ночь'),'инженер: при пожаре можно починить самому');
+  /* 11. экран настройки: название, талант, код класса, сложность */
+  await p.evaluate(()=>{ localStorage.clear(); window.__game.setState(null,{screen:'title'}); });
+  await p.fill('#pname','Проверка'); await p.click('#startbtn'); await p.click('[data-act=introskip]'); await p.waitForSelector('#setupgo');
+  await p.click('#setupgo'); await p.waitForTimeout(150);
+  ok((await p.evaluate(()=>window.__game.U.screen))==='setup','без таланта дальше не пускает');
+  await p.fill('#shopname','Тестовая  мастерская'); await p.click('[data-act=ptalent][data-k=sel]'); await p.click('[data-act=pdiff][data-k=hard]'); await p.fill('#classcode',' 8б-печать ');
+  await p.click('#setupgo'); await p.waitForTimeout(250);
+  st=await p.evaluate(()=>({shop:window.__game.S.shop, talent:window.__game.S.talent, diff:window.__game.S.diff, code:window.__game.S.code, cash:window.__game.S.cash, seed:window.__game.S.seed, scr:window.__game.U.screen}));
+  ok(st.shop==='Тестовая мастерская' && st.talent==='sel' && st.diff==='hard' && st.code==='8Б-ПЕЧАТЬ' && st.cash===25000 && st.seed==='КЛАСС|8Б-ПЕЧАТЬ' && st.scr==='intro','настройка применена: '+JSON.stringify(st));
   /* 9. сообщение «в долг» не ломает отображение ценников */
   ok(errs.length===0,'ошибок консоли нет'+(errs.length?': '+errs.join(' | '):''));
   await b.close(); console.log(fails?('\nПРОВАЛОВ: '+fails):'\nОсобые ветки: всё в порядке'); process.exit(fails?1:0);

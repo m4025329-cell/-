@@ -1,7 +1,5 @@
 /* Симулятор баланса «Слоя за слоем»: эксперт, средний игрок, пассивный и неудачный */
-var fs=require('fs'), vm=require('vm'), path=require('path');
-var SRC=path.join(__dirname,'..','src');
-['engine','content','events','ending'].forEach(function(f){ vm.runInThisContext(fs.readFileSync(path.join(SRC,f+'.js'),'utf8').replace("if(typeof module!=='undefined') module.exports = {};",'')); });
+require('./load.js');
 (function(){ var e=process.env; 
   if(e.DS) PROD_IDS.forEach(function(id){ PRODUCTS[id].dmax*=parseFloat(e.DS); });
   if(e.KADD) PROD_IDS.forEach(function(id){ PRODUCTS[id].k+=parseFloat(e.KADD); });
@@ -10,6 +8,8 @@ var SRC=path.join(__dirname,'..','src');
   if(e.HMULT) Object.keys(PRINTERS).forEach(function(k){ PRINTERS[k].hours=Math.round(PRINTERS[k].hours*parseFloat(e.HMULT)); });
   if(e.FILM) global.FIL_BASE=parseFloat(e.FILM);
   if(e.RUN) global.RUN_COST=parseFloat(e.RUN);
+  /* TALP="des.dem=1.03,sel.ad=1.2" переопределяет числа талантов */
+  if(e.TALP) e.TALP.split(',').forEach(function(kv){ var p=kv.split('='), a=p[0].split('.'); TALENTS[a[0]][a[1]]=parseFloat(p[1]); });
 })();
 function mulberry(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 function clone(s){ return JSON.parse(JSON.stringify(s)); }
@@ -78,14 +78,19 @@ function tryInvest(s, opts){
 
 /* ---- выбор в сюжетных сценах ---- */
 function pickChoice(s, stage, prefs, idx, rng){
-  var cs=stage.choices, want=prefs[idx], order=[want]; cs.forEach(function(_,i){ if(i!==want) order.push(i); });
+  var cs=choicesOf(s,stage), want=prefs[idx], order=[want]; cs.forEach(function(_,i){ if(i!==want) order.push(i); });
+  /* TALCH=pick: всегда брать «талантливый» вариант; TALCH=avoid: никогда его не брать */
+  var tc=process.env.TALCH, only=process.env.TALONLY, tIdx=-1; cs.forEach(function(c,i){ if(c.talent) tIdx=i; });
+  if(tIdx>=0 && only){ if(cs[tIdx].tid===only){ var c1=cs[tIdx], c1o=fn(c1.cost,s)||0; if(c1o<=s.cash && !(c1.req&&c1.req(s))) return tIdx; } else { order=order.filter(function(i){ return i!==tIdx; }); if(!order.length) order=[0]; } }
+  else if(tIdx>=0 && tc==='pick'){ var c0=cs[tIdx], co=fn(c0.cost,s)||0; if(co<=s.cash && !(c0.req&&c0.req(s))) return tIdx; }
+  else if(tIdx>=0 && tc==='avoid'){ order=order.filter(function(i){ return i!==tIdx; }); if(!order.length) order=[0]; }
   for(var k=0;k<order.length;k++){ var c=cs[order[k]]; if(!c) continue; var cost=fn(c.cost,s)||0; var rq=c.req?c.req(s):''; if(cost<=s.cash && !rq) return order[k]; }
   return cs.length-1;
 }
 function playEvents(s, prefs, rng, ctr){
-  var stages=EVENTS[s.month-1].stages(s);
-  stages.forEach(function(st){
-    var i=pickChoice(s,st,prefs,ctr.i,rng); (s.__picked=s.__picked||[]).push(i); ctr.i++; st.choices[i].apply(s,rng); coverDeficit(s);
+  var stages=stagesOf(s);
+  stages.forEach(function(st,si){
+    var i=pickChoice(s,st,prefs,ctr.i,rng); (s.__picked=s.__picked||[]).push(i); ctr.i++; choicesOf(s,st)[i].apply(s,rngFor(s,'ev'+s.month+':'+si)); coverDeficit(s);
   });
 }
 /* ---- политики ---- */
@@ -102,8 +107,10 @@ var POL = {
   mid:    [1,1,0,1, 1, 1,0, 1,1, 1, 3, 1, 0, 1, 1, 1, 1, 1, 0]
 };
 
-function runGame(kind, pol, seed, verbose){
-  var rng=mulberry(seed), s=newState('bot'), ctr={i:0}, rows=[];
+function runGame(kind, pol, seed, verbose, opts){
+  opts=opts||{};
+  var rng=mulberry(seed), s=newState('bot',{seed:'sim'+seed}), ctr={i:0}, rows=[];
+  applySetup(s,{shop:'Бот', talent:('talent' in opts)?opts.talent:(process.env.TALENT||null), diff:opts.diff||process.env.DIFF||'norm', code:''});
   for(var m=1;m<=TOTAL;m++){
     s.month=m; var prefs = pol==='random' ? null : POL[pol];
     if(prefs===null){ prefs=[]; for(var q=0;q<19;q++) prefs.push(Math.floor(rng()*3)); }
@@ -122,7 +129,7 @@ function runGame(kind, pol, seed, verbose){
     else if(kind==='bad'){ suggestPlan(s); PROD_IDS.forEach(function(id){ if(isAvailable(s,id)){ s.plan.price[id]=Math.round(refPrice(s,id)*1.5/5)*5; s.plan.qty[id]=maxQtyFor(s,s.plan,id); } }); }
     /* вклад лишних денег (эксперт) */
     if(kind==='expert' && s.unlock.deposit && s.cash>150000){ var a=Math.round((s.cash-120000)/1000)*1000; s.cash-=a; s.savings+=a; }
-    var r=runMonth(s,rng);
+    var r=runMonth(s);
     rows.push([m,Math.round(r.hours)+'/'+r.H,Math.round(r.revTot),Math.round(r.profit),ownerCapital(s)].join(' '));
   }
   if(verbose){ console.log(rows.join('\n')); console.log('buys',(s._buys||[]).join(', ')); console.log('flags',JSON.stringify(s.flags),'printers',s.printers.map(function(p){return p.t;}).join(','),'staff',JSON.stringify(s.staff)); }
