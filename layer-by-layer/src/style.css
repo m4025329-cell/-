@@ -420,7 +420,7 @@ input[type=range]:focus-visible{outline-offset:2px}
   .run .farm{grid-template-columns:repeat(auto-fit,minmax(120px,148px))}
 }
 @media (max-width:640px){
-  :root{--gut:14px}
+  :root{--gut:16px}
   .logo{font-size:18px} .logo small{display:none}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .stat>span{font-size:15px}
