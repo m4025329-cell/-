@@ -149,3 +149,27 @@ var FACTS = [
   'Некоторые принтеры печатают шоколадом, тестом и даже бетоном. Принцип тот же: слой за слоем.'
 ];
 function factFor(s, tag){ var f=FACTS; return f[Math.floor(rand01(s,'fact'+tag)*f.length)]; }
+
+/* ---------- достижения по ходу игры и вехи капитала ---------- */
+var ACH = [
+  {id:'sale100', name:'Сто продаж',        desc:'За игру продано 100 изделий',            icon:'box',    test:function(s,r){ return s.history.reduce(function(a,h){ return a+h.sold; },0)>=100; }},
+  {id:'sale1000',name:'Тысяча продаж',     desc:'За игру продано 1 000 изделий',          icon:'truck',  test:function(s,r){ return s.history.reduce(function(a,h){ return a+h.sold; },0)>=1000; }},
+  {id:'p3',      name:'Три принтера',      desc:'В мастерской работают три принтера',     icon:'printer',test:function(s,r){ return s.printers.length>=3; }},
+  {id:'team',    name:'Своя команда',      desc:'Нанят первый помощник',                  icon:'users',  test:function(s,r){ return s.staff.asst||s.staff.teen; }},
+  {id:'zero',    name:'Ни одного брака',   desc:'Месяц без бракованных изделий',          icon:'check',  test:function(s,r){ var d=0; PROD_IDS.forEach(function(id){ if(r.rows[id]) d+=r.rows[id].defects; }); return r.soldTot>20 && d<0.5; }},
+  {id:'full',    name:'Все часы заняты',   desc:'Загрузка принтеров 98% и выше',          icon:'clock',  test:function(s,r){ return r.H>0 && r.hours/r.H>=0.98; }},
+  {id:'rec',     name:'Рекорд месяца',     desc:'Прибыль за месяц больше 100 000 ₽',      icon:'up',     test:function(s,r){ return r.profit>=100000; }},
+  {id:'five',    name:'Пять звёзд',        desc:'Рейтинг мастерской 4,5 и выше',          icon:'star',   test:function(s,r){ var q=s.rate; return q && q.u>=200 && q.s/q.u>=4.5; }},
+  {id:'range',   name:'Широкий ассортимент',desc:'Продано четыре товара за месяц',        icon:'grid',   test:function(s,r){ return r.soldKinds>=4; }},
+  {id:'rep80',   name:'Имя в городе',      desc:'Репутация 70 и выше',                    icon:'heart',  test:function(s,r){ return s.rep>=70; }}
+];
+var MILES = [250000,500000,750000];
+/* новые награды и вехи после месяца; запоминает их в состоянии */
+function checkProgress(s, r){
+  s.ach=s.ach||{}; s.mile=s.mile||[];
+  var got=[], mil=[];
+  ACH.forEach(function(a){ if(!s.ach[a.id] && a.test(s,r)){ s.ach[a.id]=r.month; got.push(a); } });
+  var cap=ownerCapital(s);
+  MILES.forEach(function(m){ if(cap>=m && s.mile.indexOf(m)<0){ s.mile.push(m); mil.push(m); } });
+  return {ach:got, mile:mil};
+}

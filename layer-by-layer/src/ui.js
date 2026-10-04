@@ -140,7 +140,7 @@ function titleHTML(){
     '<div class="field"><label for="pname">Как тебя зовут?</label><input class="input" id="pname" type="text" maxlength="24" autocomplete="off" placeholder="Например, Алексей" value="'+esc(nm)+'"></div>'+
     '<div class="row"><button class="btn primary" data-act="start" id="startbtn">'+(U.confirmNew?'Стереть и начать заново':'Начать игру')+ico('right')+'</button>'+
     (cont?'<button class="btn" data-act="continue">Продолжить: месяц '+Math.min(sv.S.month,TOTAL)+'</button>':'')+
-    '<button class="btn ghost small" data-act="loadcode">'+ico('download')+' Загрузить код</button></div>'+
+    '<button class="btn ghost small" data-act="loadcode">'+ico('download')+' Загрузить код</button><button class="btn ghost small" data-act="teacher">'+ico('cap')+' Для учителя</button></div>'+
     (U.confirmNew?'<p class="loss-t">Прошлый прогресс будет удалён. Нажми ещё раз, чтобы подтвердить.</p>':(cont?'<p class="muted">На этом устройстве есть сохранённая игра.</p>':''))+
     '</div><div class="hero-art" aria-hidden="true">'+printerSVG({obj:'stand',working:true,label:'Принтер печатает подставку'})+'</div></section>'+
     '<section class="steps" aria-label="Как играть"><div class="card"><div class="step-n">1</div><h3>Реши</h3><p class="muted">В начале месяца случается сюжетная сцена. Выбери вариант и узнай, чему он учит.</p></div>'+
@@ -149,6 +149,29 @@ function titleHTML(){
     '<section class="acts"><div class="card flat"><div class="eyebrow">Урок 1 · месяцы 1–8</div><ul><li>Акт I «Нулевой слой»: цена, спрос, конкуренция</li><li>Акт II «Каркас»: аренда, налоги, оборудование, риск</li></ul></div>'+
     '<div class="card flat"><div class="eyebrow">Урок 2 · месяцы 9–16</div><ul><li>Акт III «Прочность»: кредит, инфляция, копии, валюта</li><li>Акт IV «Финальные слои»: пожар, гигант, кризис, добрые дела</li></ul></div></section>'+
     '<p class="muted">Игра сохраняется сама после каждого шага. На втором уроке открой её на том же компьютере и нажми «Продолжить».</p>';
+}
+
+/* ---------- табло класса (для учителя) ---------- */
+function parseResults(text){
+  return String(text||'').split(/\n+/).map(function(l){
+    var parts=l.split('|').map(function(x){ return x.trim(); }); if(parts.length<4) return null;
+    var cap=/капитал\s+([\d\s\u00a0\u202f]+)/.exec(l), q=/вопросы\s+(\d+)\/(\d+)/.exec(l); if(!cap) return null;
+    function f(k){ var m=new RegExp(k+'\\s+([^|]+)').exec(l); return m?m[1].trim():''; }
+    var shop=/мастерская\s+«([^»]*)»/.exec(l), title=/звание\s+«([^»]*)»/.exec(l), mo=/месяц\s+(\d+)/.exec(l);
+    return {name:parts[0], shop:shop?shop[1]:'', talent:f('талант'), diff:f('сложность'), month:mo?+mo[1]:0, cap:+cap[1].replace(/[^\d]/g,''), title:title?title[1]:'', q:q?+q[1]:0, qn:q?+q[2]:0};
+  }).filter(Boolean).sort(function(a,b){ return b.cap-a.cap; });
+}
+function teacherHTML(){
+  var rows=parseResults(U.board||lsGet('lbl-board')||''), top=rows.slice(0,3), mx=rows.length?Math.max(1,rows[0].cap):1;
+  var avg=rows.length?rows.reduce(function(a,r){ return a+r.cap; },0)/rows.length:0, win=rows.filter(function(r){ return r.cap>=GOAL; }).length;
+  var tal={}; rows.forEach(function(r){ if(r.talent&&r.talent!=='—') tal[r.talent]=(tal[r.talent]||0)+1; });
+  return '<section class="card lined stack-lg"><div class="eyebrow">Для учителя</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.4vw,42px)">Табло класса</h1>'+
+    '<p class="muted">Вставь строки «Результат для учителя», которые прислали ученики, по одной в строке. Табло сохраняется на этом компьютере.</p>'+
+    '<div class="field"><label for="boardtxt">Результаты учеников</label><textarea class="input" id="boardtxt" rows="6" placeholder="Алексей | мастерская «Слой&Слой» | талант Инженер | … | капитал 1 013 000 ₽ | …">'+esc(U.board||lsGet('lbl-board')||'')+'</textarea></div>'+
+    '<div class="row"><button class="btn primary" data-act="boardgo">Показать табло'+ico('right')+'</button><button class="btn ghost" data-act="boardclear">Очистить</button><button class="btn ghost" data-act="restart">'+ico('left')+' На заставку</button></div></section>'+
+    (rows.length?'<section class="card stack"><div class="chips"><span class="chip info">Учеников: '+rows.length+'</span><span class="chip brand">Средний капитал: '+rub(avg)+'</span><span class="chip gain">Дошли до цели: '+win+'</span>'+Object.keys(tal).map(function(k){ return '<span class="chip">'+esc(k)+': '+tal[k]+'</span>'; }).join('')+'</div>'+
+      '<div class="podium">'+top.map(function(r,i){ return '<div class="pod p'+(i+1)+'"><b>'+(['1','2','3'][i])+'</b><span>'+esc(r.name)+'</span><small>'+rub(r.cap)+'</small></div>'; }).join('')+'</div>'+
+      '<div class="board">'+rows.map(function(r,i){ return '<div class="brow"><span class="bn">'+(i+1)+'</span><span class="bw"><b>'+esc(r.name)+'</b><small>'+esc(r.shop)+(r.talent&&r.talent!=='—'?' · '+esc(r.talent):'')+(r.diff?' · '+esc(r.diff):'')+(r.title?' · '+esc(r.title):'')+'</small><i style="width:'+(r.cap/mx*100).toFixed(1)+'%"></i></span><span class="bv num">'+rub(r.cap)+'</span></div>'; }).join('')+'</div></section>':'');
 }
 
 /* ---------- вступление ---------- */
@@ -567,8 +590,14 @@ function reportHTML(){
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Как получилась прибыль</h2><div class="wf">'+rows+'<div class="wf-row sum"><span>Прибыль</span><b class="num '+(r.profit>=0?'gain-t':'loss-t')+'">'+rub(r.profit)+'</b></div></div></section>'+
     '<section class="card stack"><h2 style="font-size:20px">Твоя башня слоёв</h2><div class="tower-wrap">'+towerSVG(S.history,{animateLast:true})+'</div><p class="muted" style="font-size:14px">Каждый месяц это слой. Ширина слоя зависит от выручки, зелёный цвет значит прибыль, штриховка значит убыток.</p></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Что и как продавалось</h2><div class="prows">'+prods+'</div></section>';
+  var pg=r.progress||{ach:[],mile:[]};
+  if(pg.mile.length||pg.ach.length){
+    h+='<section class="card lined stack"><div class="eyebrow">Новое</div>'+pg.mile.map(function(m){ return '<div class="callout ok">'+ico('star')+'<div><b>Веха: капитал '+rub(m)+'!</b> Технопарк достроен на '+Math.round(m/GOAL*100)+'%. '+({250000:'Фил: «Четверть пути. Я посчитал слои: их уже больше, чем я помню».',500000:'Фил: «Половина! Мой датчик гордости зашкаливает».',750000:'Фил: «Осталось совсем чуть-чуть. Не сглазить бы».'}[m])+'</div></div>'; }).join('')+
+      '<div class="chips pop-in">'+pg.ach.map(function(a,i){ return '<span class="chip brand" style="--i:'+i+'">'+ico(a.icon)+' Награда: '+a.name+'</span>'; }).join('')+'</div></section>';
+  }
   h+=reviewsHTML(r);
   h+='<section class="card flat stack"><div class="row" style="align-items:flex-start;gap:14px">'+avatarSVG('phil',r.profit>=0?'happy':'worried',48)+'<div class="stack" style="flex:1;min-width:0"><div class="eyebrow">Разбор от Фила</div>'+ins.map(function(i){ return '<div class="callout '+(i.k==='info'?'':i.k)+'" style="padding:10px 14px">'+ico(i.k==='ok'?'check':(i.k==='info'?'info':'warn'))+'<div>'+i.t+'</div></div>'; }).join('')+'</div></div></section>';
+  if(r.fact) h+='<div class="callout">'+ico('sparkle')+'<div><b>Знаешь ли ты?</b> '+esc(r.fact)+'</div></div>';
   h+='<div><button class="btn primary" data-act="afterreport">'+(quizNext?'Проверить прошивку Фила (вопросы)':'Следующий месяц')+ico('right')+'</button></div>';
   return h;
 }
@@ -640,6 +669,7 @@ function stageHTML(){
     case 'title': return titleHTML();
     case 'intro': return introHTML();
     case 'setup': return setupHTML();
+    case 'teacher': return teacherHTML();
     case 'calib': return calibHTML();
     case 'scene': return sceneHTML();
     case 'plan': return planHTML();
@@ -784,13 +814,14 @@ var A={
  go:function(){
    var pv=previewMonth(S,S.plan,1); if(pv.cashNow>S.cash+0.5){ toast('Не хватает денег на закупку. Уменьши выпуск.'); return; }
    var before=S.cash, r=runMonth(S); r.cashBefore=before; r.cashAfter=S.cash;
-   r.reviews=makeReviews(S,r); S.rate=S.rate||{u:0,s:0}; S.rate.u+=r.reviews.units; S.rate.s+=r.reviews.avg*r.reviews.units;
+   r.progress=checkProgress(S,r); r.fact=factFor(S,'m'+r.month); r.reviews=makeReviews(S,r); S.rate=S.rate||{u:0,s:0}; S.rate.u+=r.reviews.units; S.rate.s+=r.reviews.avg*r.reviews.units;
    U.report=r; U.screen=reduced?'report':'run'; U.tab='biz';
    if(reduced){ render(); sfx(r.profit>=0?'good':'bad'); } else render();
  },
  runskip:function(){
    clearRunTimers(); var r=U.report; U.screen='report'; render();
    if(r.profit>0){ sfx('good'); burst(36); } else sfx('bad');
+   if(r.progress&&r.progress.mile.length){ sfx('win'); burst(90); }
  },
  afterreport:function(){
    var m=U.report.month;
@@ -818,6 +849,9 @@ var A={
  lessonnext:function(){ enterMonth(); },
  copysave:function(){ var e=$('#savecode'); copyText(e?e.value:'','#savecode'); },
  copyres:function(){ var e=$('#resline'); copyText(e?e.value:'','#resline'); },
+ teacher:function(){ U={screen:'teacher'}; render(); },
+ boardgo:function(){ var v=$('#boardtxt').value; U.board=v; lsSet('lbl-board',v); render(true); },
+ boardclear:function(){ U.board=''; lsSet('lbl-board',''); render(true); },
  restart:function(){ S=null; U={screen:'title'}; hudPrev={}; render(); },
  glossary:function(){ openModal('Словарик экономиста', glossaryHTML()); },
  closemodal:function(){ closeModal(); },
