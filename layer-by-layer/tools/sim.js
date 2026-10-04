@@ -64,12 +64,13 @@ function tryInvest(s, opts){
   acts.push({k:'market', cost:0, ok:function(c){ return !c.channel.market && c.month>=6; }, do:function(c){ c.channel.market=true; }});
   acts.push({k:'site', cost:15000, ok:function(c){ return !c.channel.site && c.month>=6; }, do:function(c){ c.cash-=15000; c.channel.site=true; }});
   acts.push({k:'service', cost:0, ok:function(c){ return !c.service; }, do:function(c){ c.service=true; }});
+  if(!process.env.NOLAB) RESEARCH.forEach(function(r){ acts.push({k:'r:'+r.id, cost:r.cost, delay:r.months, ok:function(c){ return canResearch(c,r.id).ok; }, do:function(c){ if(c.__eval){ c.cash-=r.cost; r.apply(c); } else startResearch(c,r.id); }}); });
   var again=true, guard=0;
   while(again && guard++<6){
     again=false; var bestAct=null;
     acts.forEach(function(a){
       if(!a.ok(s) || (a.cost>s.cash-(opts.reserve||15000))) return;
-      var c=clone(s); a.do(c); var np=profitNext(c); var gain=(np-base)*Math.min(remain-1,10)*0.8-(a.cost*0.75);
+      var c=clone(s); c.__eval=true; a.do(c); var np=profitNext(c); var gain=(np-base)*Math.min(remain-1-(a.delay||0),10)*0.8-(a.cost*0.75);
       if(gain>(opts.minGain||5000) && (!bestAct||gain>bestAct.gain)) bestAct={a:a,gain:gain,np:np};
     });
     if(bestAct){ bestAct.a.do(s); base=bestAct.np; again=true; s._buys=(s._buys||[]); s._buys.push(s.month+':'+bestAct.a.k); }

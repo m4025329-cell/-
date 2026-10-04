@@ -33,6 +33,10 @@ for(var sd=1; sd<=N; sd++){
       else if(x<0.75){ var ar=acceptOffer(s,o.id); if(ar.ok && rng()<0.2) dropOffer(s,o.id); }
       var e=orderEcon(s,o); ['hours','profit','perHour','total'].forEach(function(k){ if(bad(e[k])) fail('orderEcon NaN '+k,sd,m); });
     });
+    /* лаборатория и склад */
+    if(rng()<0.3){ var rid=RESEARCH[Math.floor(rng()*RESEARCH.length)].id; startResearch(s,rid); }
+    if(rng()<0.3){ var sup=['opt','std','eco'][Math.floor(rng()*3)]; buyFil(s,[5,10,20][Math.floor(rng()*3)],sup); }
+    if(rng()<0.1){ liquidate(s,PROD_IDS[Math.floor(rng()*PROD_IDS.length)]); }
     /* случайный план */
     var plan=s.plan; plan.mode=['draft','std','fine'][Math.floor(rng()*3)]; plan.ad=Math.floor(rng()*4); if(!modeFits(s,plan.mode)) plan.mode='std'; if(s.contracts.some(function(c){ return c.fine; })) plan.mode='fine';
     PROD_IDS.forEach(function(id){ var b=priceBounds(s,id,plan.mode); plan.price[id]=b.min+Math.floor(rng()*(b.max-b.min)/5)*5; plan.qty[id]=Math.floor(rng()*rng()*(isAvailable(s,id)?maxQtyFor(s,plan,id)*1.3:50)); });

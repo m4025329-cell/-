@@ -56,13 +56,16 @@ function richState(month) {
     let ob = await p.$('[data-act=oacc]:not([disabled])'); if (ob) { await ob.click(); await check('plan-orders-taken'); }
     const hb = await p.$('[data-act=ohag]'); if (hb) { await hb.click(); await check('plan-orders-haggle'); const hp = await p.$('[data-act=hagp]'); if (hp) { await hp.click(); await check('plan-orders-haggled'); } }
     await p.click('[data-t=market]'); await check('plan-market');
+    await p.click('[data-t=stock]'); await check('plan-stock');
+    await p.evaluate(() => { const S = window.__game.S; S.fil.kg = 24; S.inv.key = 30; S.invVal.key = 3000; S.filHist = [1,1.04,0.97,1.08,1.12,1.02]; window.__game.render(true); }); await check('plan-stock-full');
     await p.click('[data-t=biz]');
     await check('plan-biz');
     await p.click('[data-t=shop]'); await check('plan-shop');
     await p.click('[data-t=fin]'); await check('plan-fin');
     await p.click('[data-t=biz]');
     await p.evaluate(() => window.__game.A.glossary()); await check('glossary'); await p.click('#modal [data-act=closemodal]');
-    await p.click('#gobtn'); await check('run');
+    await p.evaluate(() => { const S = window.__game.S; S.contracts.push({oid:'z',client:'club',kind:'premium',prod:'key',qty:10,price:200,penalty:.3,repLoss:5,repGain:2,fine:true,claim:0,claimRep:0,label:'тест'}); S.plan.mode='fine'; });
+    await p.click('#gobtn'); await p.waitForTimeout(150); if (await p.$('[data-act=gosure]')) await p.click('[data-act=gosure]'); if (await p.$('[data-act=sltry]')) { await check('slicer'); await p.click('[data-act=sltry]'); await check('slicer-try'); await p.click('[data-act=slskip]'); } await check('run');
     await p.click('[data-act=runskip]'); await check('report');
     await p.click('[data-act=afterreport]');
     for (let i = 0; i < 20; i++) {
@@ -76,7 +79,7 @@ function richState(month) {
     }
     /* финал: месяц 16 с богатым состоянием */
     await p.evaluate(`window.__game.setState(window.__rich(16), {screen:'plan', tab:'biz', helpSeen:true});`);
-    await p.click('#gobtn'); await p.waitForTimeout(300); await p.click('[data-act=runskip]'); await p.click('[data-act=afterreport]');
+    await p.click('#gobtn'); await p.waitForTimeout(150); if (await p.$('[data-act=gosure]')) await p.click('[data-act=gosure]'); if (await p.$('[data-act=slskip]')) await p.click('[data-act=slskip]'); await p.waitForTimeout(300); await p.click('[data-act=runskip]'); await p.click('[data-act=afterreport]');
     for (let i = 0; i < 30; i++) {
       const s = await U();
       if (s === 'quiz') { const q = await p.evaluate(() => window.__game.U.quiz); if (q.picked == null) await p.click('.qopt'); else await p.click('[data-act=qnext]'); }

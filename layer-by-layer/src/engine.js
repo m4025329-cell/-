@@ -104,7 +104,7 @@ function newState(name, opts){
     contracts:[], mods:[], flags:{}, pdm:{key:1, stand:1, mini:1, part:1, proto:1},
     unlock:{deposit:false, fund:false, loan:false},
     plan:{mode:'std', ad:0, price:{}, qty:{}}, tAdd:{key:0, stand:0, mini:0, part:0, proto:0},
-    rate:{u:0, s:0}, history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
+    rate:{u:0, s:0}, filHist:[1], lab:{done:{}, active:[]}, history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
   PROD_IDS.forEach(function(id){ s.inv[id]=0; s.invVal[id]=0; s.plan.price[id]=PRODUCTS[id].ref; s.plan.qty[id]=0; });
   return s;
 }
@@ -349,11 +349,12 @@ function commitMonth(s, r, rng){
   s.lastMargin = r.revTot>0 ? r.profit/r.revTot : 0;
   s.lastProfitPerHour = r.hours>0 ? (r.revTot - r.cogs - 0)/Math.max(1,r.hours) : s.lastProfitPerHour;
   /* цены на пластик, возраст принтеров, модификаторы */
-  s.filIdx = clamp(s.filIdx*(1 + 0.004 + ((rng ? rng() : rand01(s,'fil'+s.month))-0.5)*0.024), 0.8, 2);
+  var fr=(rng ? rng() : rand01(s,'fil'+s.month)); s.filIdx = clamp(s.filIdx*(1 + 0.004 + (fr-0.5)*0.09) + 0.12*(1+0.006*s.month-s.filIdx), 0.8, 2);
   s.printers.forEach(function(p){ p.age++; });
   s.mods.forEach(function(m){ m.left--; });
   s.mods = s.mods.filter(function(m){ return m.left>0; });
   if(typeof applyOrderResults==='function') applyOrderResults(s, r);
+  if(typeof labTick==='function'){ labTick(s, r); stockTick(s, r); }
   s.contracts = [];
   var util = r.H>0 ? r.hours/r.H : 0; if(util>=0.9) s.utilMonths++;
   s.maxKinds = Math.max(s.maxKinds||0, r.soldKinds);

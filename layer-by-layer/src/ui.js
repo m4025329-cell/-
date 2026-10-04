@@ -15,7 +15,7 @@ function qTotal(){ return S.quizScore.reduce(function(a,b){ return a+b; },0); }
 
 /* ---------- сохранение ---------- */
 function snapshot(strip){
-  var u={screen:U.screen, slide:U.slide, stage:U.stage, res:U.res, tab:U.tab, quiz:U.quiz, chapterInfo:U.chapterInfo, calib:U.calib, helpSeen:U.helpSeen, view:U.view, setup:U.setup, seen:U.seen};
+  var u={screen:U.screen, slide:U.slide, stage:U.stage, res:U.res, tab:U.tab, quiz:U.quiz, chapterInfo:U.chapterInfo, calib:U.calib, helpSeen:U.helpSeen, view:U.view, setup:U.setup, seen:U.seen, slicer:U.slicer, slicerDone:U.slicerDone, myq:U.myq};
   if(!strip){ u.report=U.report; u.run=U.run; }
   return {v:1, S:S, U:u};
 }
@@ -28,6 +28,7 @@ function applySave(d){
   if((U.screen==='report'||U.screen==='run') && !U.report){ U.screen='scene'; U.stage=0; U.res=[]; }
   if(U.screen==='scene' && !U.res) U.res=[];
   if(U.screen==='qc'){ U.screen='scene'; U.stage=0; U.res=[]; U.view=null; }
+  if(U.screen==='slicer' && !U.slicer) U.screen='plan';
 }
 function exportCode(){ try{ return btoa(unescape(encodeURIComponent(JSON.stringify(snapshot(true))))); }catch(e){ return ''; } }
 function importCode(code){ try{ var d=JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/\s+/g,''))))); if(d&&d.S&&typeof d.S.month==='number'&&d.S.printers){ applySave(d); return true; } }catch(e){} return false; }
@@ -343,7 +344,7 @@ function prepareMonth(){
     var b=priceBounds(S,id,plan.mode), p=S.month===1||!plan.price[id]?refPrice(S,id):plan.price[id];
     plan.price[id]=clamp(Math.round(p/5)*5,b.min,b.max);
   });
-  suggestPlan(S,true);
+  PROD_IDS.forEach(function(id){ plan.qty[id]=lockQty(S,id); });
   fitCash();
 }
 function goWarnings(){
@@ -377,13 +378,13 @@ function modsHTML(){
 }
 function planHTML(){
   var ch=CHAPTERS[chapterOf(S.month)], t=U.tab||'orders', open=openOffers().length;
-  var tabs=[['orders','Заказы','doc',open],['biz','Печать','printer',0],['market','Рынок','chart',0],['shop','Покупки','wrench',0],['fin','Финансы','safe',0]];
+  var tabs=[['orders','Заказы','doc',open],['biz','Печать','printer',0],['stock','Склад','box',0],['market','Рынок','chart',0],['shop','Развитие','wrench',0],['fin','Финансы','safe',0]];
   var mods=modsHTML();
   var h='<section class="card flat lined stack"><div class="row between"><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · акт «'+ch.name+'»</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(26px,4vw,36px)">Планирование месяца</h1></div><button class="btn small" data-act="help">'+ico('info')+' Как это работает</button></div>'+(mods?mods:'')+
     stepsHTML()+'<div class="goals" id="goals-box">'+goalsInner()+'</div></section>';
   h+='<div class="tabs" role="tablist" aria-label="Разделы планирования">'+tabs.map(function(x){ return '<button class="tab" role="tab" data-act="tab" data-t="'+x[0]+'" aria-selected="'+(t===x[0])+'">'+ico(x[2])+'<span>'+x[1]+'</span>'+(x[3]?'<i class="tbadge" aria-hidden="true">'+x[3]+'</i><span class="sr-only"> (новых заказов: '+x[3]+')</span>':'')+'</button>'; }).join('')+'</div>';
   h+=coachHTML(t);
-  h+= t==='orders'?ordersHTML():(t==='biz'?bizHTML():(t==='market'?marketHTML():(t==='shop'?shopHTML():finHTML())));
+  h+= t==='orders'?ordersHTML():(t==='biz'?bizHTML():(t==='market'?marketHTML():(t==='stock'?stockHTML():(t==='shop'?shopHTML():finHTML()))));
   return h;
 }
 /* ---------- заказы, рынок, цели месяца ---------- */
@@ -442,7 +443,8 @@ function coachHTML(t){
     orders:'<b>Здесь клиенты приходят с готовой сделкой:</b> сколько штук и по какой цене. Деньги получишь наверняка, но напечатать нужно всё, иначе штраф и потеря репутации. Сравни «прибыль за час» заказа с обычной печатью и бери то, что выгоднее. Потом переходи во вкладку «Печать».',
     biz:'<b>Здесь решаешь, что печатать.</b> Для каждого товара выбери цену и количество. Часы печати ограничены, смотри на полоску справа. Принятые заказы уже вписаны, их меньше напечатать нельзя. Когда всё готово, жми «Запустить печать».',
     market:'<b>Здесь видно, как меняется спрос в течение года.</b> Перед праздниками покупают больше, летом меньше. Планируй печать заранее, а не когда спрос уже упал.',
-    shop:'<b>Здесь покупают принтеры, нанимают помощников и меняют помещение.</b> Каждая покупка должна окупиться: смотри на подсказки «окупится за».',
+    stock:'<b>Здесь склад.</b> Пластик можно закупать заранее, когда он дешёвый, но большой запас отсыреет. Готовые изделия, которые не продались, лежат здесь и дешевеют: их можно распродать оптом.',
+    shop:'<b>Здесь развитие мастерской:</b> лаборатория с исследованиями, принтеры, помощники и помещение. Каждая покупка должна окупиться: смотри на подсказки «окупится за».',
     fin:'<b>Здесь деньги работают на тебя:</b> налоги, вклады и кредиты. Пока можно ничего не трогать, но к середине игры эти настройки сильно влияют на итог.'}[t];
   if(!txt || m>(t==='orders'||t==='biz'?3:2)) return '';
   return '<div class="callout coach">'+avatarSVG('phil','happy',40)+'<div>'+txt+'</div></div>';
@@ -503,13 +505,128 @@ function goalsInner(){
     '<ul class="goals-l">'+l.map(function(x){ return '<li class="'+(x.ok?'ok':'')+'"><span class="gbox" aria-hidden="true">'+(x.ok?ico('check'):'')+'</span><span>'+esc(x.text)+(x.ok?' <span class="sr-only">(по прогнозу выполнена)</span>':'')+'</span></li>'; }).join('')+'</ul>'+
     '<p class="muted" style="font-size:13px">Отмечено то, что выполняется при текущем плане. Итог будет после печати.</p>';
 }
-function stepsHTML(){
+function stepsInner(){
+  var tu=tutorialState();
+  if(tu.active){
+    var cur=-1; tu.steps.forEach(function(x,i){ if(cur<0&&!x.done) cur=i; });
+    return '<div class="tut"><div class="eyebrow">Обучение · первый месяц</div><ol>'+tu.steps.map(function(x,i){ return '<li class="'+(x.done?'done':(i===cur?'now':''))+'"><span class="tn">'+(x.done?ico('check'):(i+1))+'</span><span>'+x.t+'</span></li>'; }).join('')+'</ol></div>';
+  }
   if(S.month>4) return '';
   var b=makeBoard(S), resolved=b.offers.every(function(o){ return o.state!=='open'; }), seen=U.seen||{};
-  var st=[['orders','Заказы',resolved||!!seen.deal],['biz','Печать',!!seen.biz],['go','Запуск',false]], cur=-1;
-  st.forEach(function(x,i){ if(cur<0 && !x[2]) cur=i; });
-  return '<ol class="track" aria-label="Порядок действий в месяце">'+st.map(function(x,i){ return '<li class="'+(x[2]?'done':(i===cur?'now':''))+'"><span class="tn">'+(x[2]?ico('check'):(i+1))+'</span>'+x[1]+'</li>'; }).join('')+'</ol>';
+  var st=[['orders','Заказы',resolved||!!seen.deal],['biz','Печать',!!seen.biz],['go','Запуск',false]], cur2=-1;
+  st.forEach(function(x,i){ if(cur2<0 && !x[2]) cur2=i; });
+  return '<ol class="track" aria-label="Порядок действий в месяце">'+st.map(function(x,i){ return '<li class="'+(x[2]?'done':(i===cur2?'now':''))+'"><span class="tn">'+(x[2]?ico('check'):(i+1))+'</span>'+x[1]+'</li>'; }).join('')+'</ol>';
 }
+function stepsHTML(){ return '<div id="steps-box">'+stepsInner()+'</div>'; }
+/* ---------- склад и лаборатория ---------- */
+function filChartSVG(){
+  var h=S.filHist||[1], n=h.length, mn=Math.min.apply(null,h.concat([0.9])), mx=Math.max.apply(null,h.concat([1.2])), W=300, H=90, pad=8;
+  function X(i){ return pad+(n>1?i*(W-2*pad)/(n-1):0); } function Y(v){ return H-pad-(v-mn)/(mx-mn)*(H-2*pad); }
+  var pts=h.map(function(v,i){ return X(i).toFixed(1)+','+Y(v).toFixed(1); }).join(' '), avg=h.reduce(function(a,b){ return a+b; },0)/n;
+  return '<svg class="fchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Цена пластика по месяцам: сейчас '+rub(filMarket(S))+' за кг"><line x1="'+pad+'" x2="'+(W-pad)+'" y1="'+Y(avg).toFixed(1)+'" y2="'+Y(avg).toFixed(1)+'" stroke="var(--edge-strong)" stroke-dasharray="4 4"/><polyline points="'+pts+'" fill="none" stroke="var(--c-cyan)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="'+X(n-1).toFixed(1)+'" cy="'+Y(h[n-1]).toFixed(1)+'" r="5.5" fill="var(--brand)" stroke="var(--surface)" stroke-width="2"/></svg>';
+}
+function stockHTML(){
+  var pv=previewMonth(S,S.plan,1), tr=filTrend(S), avgp=S.fil.kg>0?S.fil.val/S.fil.kg:0, mk=filMarket(S);
+  var msg = tr.rel<0.97 ? 'Пластик сейчас дешевле обычного: хороший момент купить впрок.' : (tr.rel>1.04 ? 'Пластик дороже обычного: закупай только то, что нужно в этом месяце.' : 'Цена близка к обычной: можно брать по потребности.');
+  var h='<section class="card lined stack"><div class="row between"><div><div class="eyebrow">Сырьё</div><h2 style="font-size:22px">Склад пластика</h2></div><span class="chip '+(S.fil.kg>FIL_WET?'warn':'info')+'">'+ico('box')+' '+f1d(S.fil.kg)+' из '+FIL_MAX+' кг</span></div>'+
+    '<div class="two" style="gap:14px"><div class="stack"><div class="pstats"><div class="pstat"><b>Цена сейчас</b><span class="num">'+rub(mk)+' за кг</span></div><div class="pstat"><b>Твой запас обошёлся</b><span class="num">'+(S.fil.kg>0?rub(avgp)+' за кг':'—')+'</span></div><div class="pstat"><b>Нужно в этом месяце</b><span class="num">'+f1d(pv.kg)+' кг</span></div><div class="pstat"><b>Докупится само</b><span class="num">'+(pv.buyKg>0.05?f1d(pv.buyKg)+' кг по '+rub(mk):'не нужно')+'</span></div></div></div>'+
+    '<div class="stack"><div class="ctl-head"><span class="muted">Цена пластика по месяцам</span></div>'+filChartSVG()+'<p class="muted" style="font-size:14px">'+msg+'</p></div></div>'+
+    (S.fil.kg>FIL_WET?'<div class="callout warn">'+ico('warn')+'<div><b>Запас больше '+FIL_WET+' кг.</b> Пластик впитывает влагу из воздуха, и печать получается хуже. В конце месяца брак вырастет на 2 п.п.</div></div>':'')+'</section>';
+  h+='<section class="stack"><div class="row between"><h2 style="font-size:22px">Закупка пластика</h2><span class="muted" style="font-size:14px">Деньги спишутся сразу, а килограммы пойдут в печать</span></div><div class="grid-auto">';
+  Object.keys(SUPPLIERS).forEach(function(k){
+    var sp=SUPPLIERS[k], pr=filPrice(S,k);
+    h+='<article class="card upg"><header><span class="cbadge" style="--cc:var(--c-'+(k==='opt'?'orange':(k==='eco'?'lime':'cyan'))+')">'+ico(sp.icon)+'</span><div><h3>'+sp.name+'</h3><p class="muted">'+sp.about+'</p></div></header><div class="chips"><span class="chip">'+rub(pr)+' за кг</span></div><div class="row">'+
+      [5,10,20].map(function(kg){ var c=canBuyFil(S,kg,k); return '<button class="btn small" data-act="fbuy" data-sup="'+k+'" data-kg="'+kg+'"'+(c.ok?'':' disabled title="'+esc(c.why)+'"')+'>+'+kg+' кг · '+rub(kg*pr)+'</button>'; }).join('')+'</div></article>';
+  });
+  h+='</div></section>';
+  var rows=PROD_IDS.filter(function(id){ return S.unlocked[id]; }).map(function(id){
+    var n=Math.round(S.inv[id]), v=S.invVal[id], keep=v*(STORAGE_RATE+OBSOLETE_RATE);
+    return '<div class="srow"><div class="mprod">'+productSVG(id,34)+'<div><b>'+PRODUCTS[id].short+'</b><span class="k">'+(n?n+' шт. · на '+rub(v):'склад пуст')+'</span></div></div><div class="k">'+(n?'хранение и устаревание ≈ '+rub(keep)+' в месяц':'')+'</div><div>'+(n?'<button class="btn small" data-act="liq" data-id="'+id+'">Распродать оптом за '+rub(liquidateValue(S,id))+'</button>':'')+'</div></div>';
+  }).join('');
+  h+='<section class="card stack"><div><div class="eyebrow">Готовая продукция</div><h2 style="font-size:22px">Склад изделий</h2></div><p class="muted">Всё, что напечатано, но не продано, лежит здесь и каждый месяц теряет в цене. Оптовик заберёт остатки сразу, но заплатит '+Math.round(LIQ_RATE*100)+'% от их стоимости.</p><div class="srows">'+rows+'</div></section>';
+  h+='<div class="row"><button class="btn primary" data-act="tab" data-t="biz">К печати'+ico('right')+'</button></div>';
+  return h;
+}
+function labHTML(){
+  var L=labOf(S), slots=labSlots(S), h='<section class="stack"><div class="row between"><div><div class="eyebrow">Долгая игра</div><h2 style="font-size:22px">Лаборатория</h2></div><span class="chip '+(L.active.length>=slots?'warn':'info')+'">'+ico('wrench')+' идёт '+L.active.length+' из '+slots+'</span></div>'+
+    '<div class="callout">'+ico('info')+'<div>Исследование стоит денег сейчас, а выгоду даёт через несколько месяцев и потом остаётся навсегда. Это вложение в будущее: чем раньше, тем дольше окупается. В лаборатории идёт одно исследование, в гараже можно два.</div></div>';
+  if(L.active.length) h+='<div class="grid-auto">'+L.active.map(function(a){ var r=RESEARCH_BY_ID[a.id]; return '<article class="card upg owned"><div><h3>'+ico(r.icon)+' '+r.name+'</h3><p class="muted">Идёт исследование</p></div><div class="hbar" role="img" aria-label="Готово на '+Math.round((a.total-a.left)/a.total*100)+'%"><i style="width:'+((a.total-a.left)/a.total*100)+'%;background:var(--brand)"></i></div><span class="chip brand">осталось '+a.left+' '+plural(a.left,'месяц','месяца','месяцев')+'</span></article>'; }).join('')+'</div>';
+  h+='<div class="grid-auto">'+RESEARCH.map(function(r){
+    var done=L.done[r.id], act=L.active.some(function(a){ return a.id===r.id; }), c=canResearch(S,r.id);
+    if(done||act) return '';
+    return '<article class="card upg"><header><span class="cbadge" style="--cc:var(--c-violet)">'+ico(r.icon)+'</span><div><h3>'+r.name+'</h3><p class="muted">'+r.text+'</p></div></header><div class="chips"><span class="chip gain">'+r.effect+'</span><span class="chip">'+rub(r.cost)+'</span><span class="chip info">'+ico('clock')+' '+r.months+' '+plural(r.months,'месяц','месяца','месяцев')+'</span></div>'+
+      '<button class="btn small" data-act="research" data-id="'+r.id+'"'+(c.ok?'':' disabled')+'>Начать исследование</button>'+(c.ok?'':'<span class="loss-t" style="font-size:13.5px;font-weight:600">'+c.why+'</span>')+'</article>';
+  }).join('')+'</div>';
+  var d=RESEARCH.filter(function(r){ return L.done[r.id]; });
+  if(d.length) h+='<div class="chips">'+d.map(function(r){ return '<span class="chip gain">'+ico('check')+' '+r.name+': '+r.effect+'</span>'; }).join('')+'</div>';
+  return h+'</section>';
+}
+/* ---------- мини-игра «Слайсер» ---------- */
+function slicerSVG(set, tg, tiny){
+  var res=slicerCheck(tg,set), T=res[0], V=res[1], F=res[2], W=200, H=170, out='', i, y;
+  function tower(x0, wob){
+    var s='';
+    for(i=0;i<16;i++){ y=148-i*6.4; var o=wob?Math.sin(i*1.7+x0)*wob:0; s+='<rect x="'+(x0+o).toFixed(1)+'" y="'+y.toFixed(1)+'" width="38" height="6.6" rx="1.5" fill="var(--c-cyan)" stroke="var(--surface)" stroke-width="0.8" opacity="'+(0.78+0.22*(i%2)).toFixed(2)+'"/>'; }
+    return s;
+  }
+  out+='<rect x="10" y="148" width="180" height="8" rx="3" fill="var(--p-plate)"/>';
+  var wob = V.dir>0 && !V.ok ? 1+V.power*4 : 0;
+  out+=tower(34,wob)+tower(128,wob);
+  /* горячо: нити между башнями */
+  if(T.dir>0 && !T.ok){ var n=Math.round(2+T.power*5); for(i=0;i<n;i++){ var yy=60+i*(80/n); out+='<path d="M72 '+yy.toFixed(1)+' Q100 '+(yy+8+(i%3)*4).toFixed(1)+' 128 '+(yy+(i%2)*3).toFixed(1)+'" stroke="var(--ink-2)" stroke-width="1.2" fill="none" opacity=".7"/>'; } }
+  /* холодно: тёмные щели в слоях */
+  if(T.dir<0 && !T.ok){ var g=Math.round(2+T.power*5); for(i=0;i<g;i++){ var gy=62+((i*37)%80); out+='<rect x="'+(i%2?34:128)+'" y="'+gy+'" width="38" height="2.2" fill="var(--surface)"/><rect x="'+(i%2?128:34)+'" y="'+(gy+14)+'" width="38" height="2.2" fill="var(--surface)"/>'; } }
+  /* медленно: капли */
+  if(V.dir<0 && !V.ok){ var b=Math.round(3+V.power*6); for(i=0;i<b;i++){ out+='<circle cx="'+((i%2?34:128)+((i*17)%38)).toFixed(1)+'" cy="'+(60+((i*29)%80))+'" r="'+(2+(i%3)).toFixed(1)+'" fill="var(--brand)" opacity=".85"/>'; } }
+  /* редкое заполнение: провалы сверху; плотное: ничего, только подпись */
+  if(F.dir<0 && !F.ok){ var d=3+F.power*8; out+='<path d="M34 52 Q53 '+(52+d).toFixed(1)+' 72 52" stroke="var(--surface)" stroke-width="3" fill="none"/><path d="M128 52 Q147 '+(52+d).toFixed(1)+' 166 52" stroke="var(--surface)" stroke-width="3" fill="none"/>'; }
+  var perfect=res.every(function(x){ return x.ok; });
+  if(perfect) out+='<path d="M92 24l5 9 10 1-7.500 7 2 10-9.500-5-9.500 5 2-10-7.500-7 10-1 5-9Z" fill="var(--brand)" transform="translate(-3 -6)"/>';
+  return '<svg class="slsvg'+(tiny?' tiny':'')+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Результат пробной печати: '+res.map(slicerWord).join(' ')+'">'+out+'</svg>';
+}
+function slicerHTML(){
+  var Z=U.slicer, tg=Z.target, order=S.contracts.filter(function(c){ return c.fine||c.kind==='rush'; })[0];
+  var h='<section class="card lined stack-lg"><div class="row" style="align-items:flex-start;gap:14px">'+avatarSVG('phil','excited',56)+'<div class="stack" style="flex:1;min-width:0"><div class="eyebrow">Настройка слайсера</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(26px,4vw,38px)">Подбери настройки печати</h1>'+
+    '<p class="muted">Для заказа «'+esc(order?order.label:'')+'» нужна аккуратная печать. У каждой детали свои идеальные настройки. Сделай пробную печать и посмотри, что получилось. Пробных печатей: '+SLICER_TRIES+'.</p></div></div>';
+  h+='<div class="two" style="align-items:start"><div class="stack"><div class="slbox">'+(Z.tries.length?slicerSVG(Z.tries[Z.tries.length-1].set,tg):'<div class="slempty">'+ico('printer')+'<span>Пока ничего не напечатано. Выбери настройки и нажми «Пробная печать».</span></div>')+'</div>'+
+    (Z.tries.length?'<ul class="slres">'+slicerCheck(tg,Z.tries[Z.tries.length-1].set).map(function(x){ return '<li class="'+(x.ok?'ok':'bad')+'">'+ico(x.ok?'check':'warn')+'<span>'+slicerWord(x)+'</span></li>'; }).join('')+'</ul>':'')+'</div>';
+  h+='<div class="stack">';
+  ['t','v','f'].forEach(function(k){
+    var R=SLICER_RANGE[k];
+    h+='<div class="ctl"><div class="ctl-head"><label for="sl-'+k+'">'+R.name+'</label><span class="ctl-val num" id="slv-'+k+'">'+Z[k]+' '+R.unit+'</span></div><div class="ctl-row"><button class="step-btn" data-act="slstep" data-k="'+k+'" data-d="-'+R.step+'" aria-label="'+R.name+': меньше">'+ico('minus')+'</button>'+
+      '<input type="range" id="sl-'+k+'" data-sl="'+k+'" min="'+R.min+'" max="'+R.max+'" step="'+R.step+'" value="'+Z[k]+'" aria-valuetext="'+Z[k]+' '+R.unit+'"><button class="step-btn" data-act="slstep" data-k="'+k+'" data-d="'+R.step+'" aria-label="'+R.name+': больше">'+ico('plus')+'</button></div><div class="scale num"><span>'+R.min+'</span><span>'+R.max+' '+R.unit+'</span></div></div>';
+  });
+  h+='<div class="callout">'+ico('info')+'<div>Температура влияет на текучесть пластика, скорость на ровность стенок, заполнение на прочность и расход. Ошибка в одном параметре портит всю деталь.</div></div>'+
+    '<div class="row"><button class="btn" data-act="sltry"'+(Z.left>0?'':' disabled')+'>'+ico('printer')+' Пробная печать (осталось '+Z.left+')</button><button class="btn primary" data-act="slfinal">Печатать заказ с этими настройками'+ico('right')+'</button></div>'+
+    '<button class="btn ghost small" data-act="slskip" style="justify-self:start">Пропустить: настройки по умолчанию</button></div></div>';
+  if(Z.tries.length>1) h+='<div class="stack"><h3 style="font-size:16px">Прошлые попытки</h3><div class="sltries">'+Z.tries.slice(0,-1).map(function(x,i){ return '<figure>'+slicerSVG(x.set,tg,true)+'<figcaption class="num">'+x.set.t+' °C · '+x.set.v+' мм/с · '+x.set.f+'%</figcaption></figure>'; }).join('')+'</div></div>';
+  return h+'</section>';
+}
+/* ---------- вопрос на цифрах месяца ---------- */
+function myqBuild(r){
+  var soldTot=Math.max(1,r.soldTot), q=0, left=0, lost=0, defects=0;
+  PROD_IDS.forEach(function(id){ var x=r.rows[id]; if(!x) return; q+=x.q; left+=Math.max(0,x.left-x.invBefore); lost+=x.lost; defects+=x.defects; });
+  var exp=r.revTot-r.profit, list=[];
+  if(r.hours>5 && r.revTot>0) list.push({q:'Сколько рублей выручки пришлось в среднем на один час печати?', ans:Math.round(r.revTot/r.hours/10)*10, unit:'₽', why:'Выручка '+rub(r.revTot)+' делим на '+Math.round(r.hours)+' ч печати. Часов печати мало, поэтому важно, сколько приносит каждый.'});
+  if(r.revTot>0) list.push({q:'Какая доля выручки ушла на расходы (всё, кроме прибыли)?', ans:Math.round(exp/r.revTot*100/5)*5, unit:'%', why:'Расходы '+rub(exp)+' делим на выручку '+rub(r.revTot)+' и получаем долю.'});
+  if(r.soldTot>0 && r.revTot>0) list.push({q:'Сколько рублей выручки пришлось в среднем на одну проданную штуку?', ans:Math.round(r.revTot/soldTot/5)*5, unit:'₽', why:'Выручка '+rub(r.revTot)+' делим на '+Math.round(r.soldTot)+' проданных штук.'});
+  if(defects>=3) list.push({q:'Сколько изделий за месяц ушло в брак?', ans:Math.round(defects), unit:'шт.', why:'Для '+q+' хороших изделий пришлось напечатать больше попыток. Разница это брак.'});
+  if(!list.length) return null;
+  var pick=list[(r.month*7+Math.round(r.revTot))%list.length], ans=pick.ans;
+  var step=Math.max(pick.unit==='%'?5:(pick.unit==='шт.'?2:10), Math.round(ans*0.2/5)*5||5), set=[ans], k=1;
+  while(set.length<3 && k<12){ var c=(k%2? ans+step*Math.ceil(k/2) : Math.max(0,ans-step*Math.ceil(k/2))); if(set.indexOf(c)<0) set.push(c); k++; }
+  var seed=(r.month*13+Math.round(r.profit))%6, ord=[[0,1,2],[1,2,0],[2,0,1],[0,2,1],[1,0,2],[2,1,0]][seed];
+  return {q:pick.q, unit:pick.unit, why:pick.why, opts:ord.map(function(i){ return set[i]; }), ans:ans, picked:null};
+}
+function myqHTML(){
+  var Q=U.myq; if(!Q) return '';
+  var fmt=function(v){ return Q.unit==='₽'?rub(v):(v+' '+Q.unit); };
+  return '<section class="card flat stack"><div class="eyebrow">Проверь себя на цифрах месяца · награда '+rub(MYQ_REWARD)+'</div><p style="font-weight:600;font-size:17px">'+Q.q+'</p><div class="myq">'+Q.opts.map(function(v,i){
+    var cls=''; if(Q.picked!=null) cls=v===Q.ans?'right':(Q.picked===i?'wrong':'dim');
+    return '<button class="qopt '+cls+'" data-act="myq" data-i="'+i+'"'+(Q.picked!=null?' disabled':'')+'><span>'+fmt(v)+'</span></button>'; }).join('')+'</div>'+
+    (Q.picked!=null?'<div class="callout '+(Q.opts[Q.picked]===Q.ans?'ok':'bad')+'" role="status">'+ico(Q.opts[Q.picked]===Q.ans?'check':'info')+'<div><b>'+(Q.opts[Q.picked]===Q.ans?'Верно, +'+rub(MYQ_REWARD)+'. ':'Правильный ответ: '+fmt(Q.ans)+'. ')+'</b>'+Q.why+'</div></div>':'')+'</section>';
+}
+var MYQ_REWARD = 300;
 function sliderCtl(opt){
   return '<div class="ctl"><div class="ctl-head"><label for="'+opt.id+'">'+opt.label+'</label><span class="ctl-val num" id="'+opt.vid+'">'+opt.val+'</span></div>'+
     '<div class="ctl-row"><button class="step-btn" data-act="step" data-k="'+opt.k+'" data-id="'+opt.pid+'" data-d="-'+opt.step+'" aria-label="'+opt.label+': меньше"'+(opt.minusOff?' disabled':'')+'>'+ico('minus')+'</button>'+
@@ -540,6 +657,7 @@ function productCard(id, pv, lo, hi, bestId){
   return '<article class="card pcard" id="pc-'+id+'" aria-label="'+P.name+'"><div class="pcard-top"><div class="pcard-art">'+productSVG(id,40)+'</div><div><h3>'+P.name+'</h3><div class="pcard-sub">'+f1d(hpu)+' ч печати на штуку · пластика '+Math.round(gramsPerUnit(S,id,plan.mode))+' г</div></div><div class="curve-box" id="cv-'+id+'" role="img" aria-label="Кривая спроса: чем выше цена, тем меньше покупателей">'+curveSVG(S,id,plan)+'</div></div>'+
     '<div class="ctls">'+sliderCtl({id:'pr-'+id,vid:'pv-'+id,pid:id,k:'price',label:'Цена',val:rub(plan.price[id]),v:plan.price[id],min:b.min,max:b.max,step:5,lo:rub(b.min),mid:'рынок ≈ '+rub(ref),hi:rub(b.max)})+
     sliderCtl({id:'qr-'+id,vid:'qv-'+id,pid:id,k:'qty',label:'Сколько напечатать',val:pcs(plan.qty[id]),v:plan.qty[id],min:lock,max:Math.max(lock,maxQ),step:1,lo:pcs(lock),mid:'на складе '+pcs(S.inv[id]),hi:pcs(maxQ)+' по часам'})+'</div>'+
+    '<div class="qf" role="group" aria-label="Быстрый выбор количества: '+P.short+'"><button class="btn small ghost" data-act="qfdem" data-id="'+id+'">Под спрос</button><button class="btn small ghost" data-act="qffill" data-id="'+id+'">Все свободные часы</button><button class="btn small ghost" data-act="qfzero" data-id="'+id+'">Не печатать</button></div>'+
     (lock?'<div class="lockrow">'+ico('lock')+' По заказу нужно напечатать не меньше '+pcs(lock)+'</div>':'')+
     '<div class="pstats" id="ps-'+id+'">'+pstatsHTML(id,pv,lo,hi,bestId)+'</div></article>';
 }
@@ -581,10 +699,43 @@ function forecastHTML(pv, lo, hi){
   return '<div class="forecast"><div class="fbox"><b>Выручка</b><span class="num">≈ '+rub(pv.revTot)+'</span></div><div class="fbox"><b>Расходы</b><span class="num">≈ '+rub(exp)+'</span></div><div class="fbox"><b>Прибыль</b><span class="num '+(pv.profit>=0?'gain-t':'loss-t')+'">≈ '+rub(pv.profit)+'</span></div></div>'+
     '<p class="muted" style="font-size:14px;margin-top:10px">'+(Math.abs(hi.profit-lo.profit)<Math.max(600,Math.abs(pv.profit)*0.012)?'Весь напечатанный товар разойдётся, поэтому прибыль почти не зависит от случайного спроса.':'С учётом случайности спроса: от '+rub(lo.profit)+' до '+rub(hi.profit)+'.')+' Деньги на счету в конце месяца ≈ <b class="num">'+rub(endCash)+'</b>.</p>';
 }
+/* ---------- схема «откуда → куда» ---------- */
+var FLOW_INFO={
+  plastic:['Пластик (сырьё)','Пластик это катушки, из которых печатаются изделия. Он лежит на складе. Если запаса не хватает, недостающее докупается по рыночной цене, и деньги уходят сразу при запуске печати.'],
+  printers:['Принтеры','Принтеры превращают пластик в изделия. У них ограничено время: часы печати. Часть попыток получается бракованной: брак тоже съедает и часы, и пластик.'],
+  stock:['Готовые изделия','Всё, что напечатано и не продано, лежит на складе. Склад стоит денег (хранение, устаревание), поэтому много печатать «на всякий случай» невыгодно.'],
+  buyers:['Покупатели и заказы','Часть изделий уйдёт по заказам клиентов (цена оговорена заранее), остальное купят на рынке. Сколько купят, зависит от цены, сезона и репутации.'],
+  money:['Деньги','Выручка от продаж минус все расходы (пластик, печать, аренда, налоги, износ) даёт прибыль. Прибыль увеличивает капитал, а капитал это твой путь к цели.']
+};
+function flowHTML(r, actual){
+  var q=0, left=0, before=0, sold=0, contract=0, lost=0;
+  PROD_IDS.forEach(function(id){ var x=r.rows[id]; if(!x) return; q+=x.q; left+=x.left; before+=x.invBefore; sold+=x.sold; contract+=x.contractUnits; lost+=x.lost; });
+  var exp=r.revTot-r.profit, util=r.H>0?Math.round(r.hours/r.H*100):0;
+  var nodes=[
+   ['plastic','box','Пластик',['на складе было '+f1d(actual?(S.fil.kg+r.kg-r.buyKg):S.fil.kg)+' кг','пошло в печать '+f1d(r.kg)+' кг',r.buyKg>0.05?'докупили '+f1d(r.buyKg)+' кг за '+rub(r.buyCost):'запаса хватило']],
+   ['printers','printer','Принтеры',[Math.round(r.hours)+' из '+r.H+' ч (занято '+util+'%)','брак ≈ '+Math.round(r.fail*100)+'%','напечатано '+q+' шт.']],
+   ['stock','layers','Склад',['было '+before+' шт.','осталось '+Math.round(left)+' шт.',left>q*0.35&&left>10?'много лежит: товар дешевеет':'запас в порядке']],
+   ['buyers','users','Покупатели',['заказы: '+Math.round(contract)+' шт.','рынок: '+Math.round(sold)+' шт.',lost>2?'не хватило товара: '+Math.round(lost)+' шт.':'спрос закрыт']],
+   ['money','coin','Деньги',['выручка '+rub(r.revTot),'расходы '+rub(exp),'прибыль '+rub(r.profit)]]
+  ];
+  return '<div class="flow" role="group" aria-label="Схема месяца: откуда что берётся и куда уходит">'+nodes.map(function(n,i){
+    return '<button class="fnode" data-act="fnote" data-k="'+n[0]+'"'+(i===4?' data-end="1"':'')+'><span class="fico">'+ico(n[1])+'</span><b>'+n[2]+'</b>'+n[3].map(function(x){ return '<span class="num">'+x+'</span>'; }).join('')+'</button>';
+  }).join('')+'</div>';
+}
+function tutorialState(){
+  if(S.month!==1) return {active:false, ok:true, steps:[]};
+  var b=makeBoard(S), seen=U.seen||{};
+  var s1=b.offers.some(function(o){ return o.state==='taken'; }), s2=!!seen.qty, s3=s1&&s2&&!!seen.biz;
+  return {active:true, ok:s1&&s2, steps:[
+    {t:'Прими заказ на вкладке «Заказы»: клиент заранее заплатит, и продажа гарантирована.', done:s1},
+    {t:'На вкладке «Печать» реши, сколько штук делать: двигай ползунок «Сколько напечатать» у любого товара.', done:s2},
+    {t:'Посмотри схему «откуда → куда» и прогноз справа, потом нажми «Запустить печать».', done:s3}]};
+}
 function bizHTML(){
   var plan=S.plan, pv=previewMonth(S,plan,1), lo=previewMonth(S,plan,0.92), hi=previewMonth(S,plan,1.08), best=bestHourId(pv);
   var modes=['draft','std','fine'], mdesc={draft:'печать на 30% быстрее · качество ниже · брак +3 п.п.',std:'золотая середина',fine:'печать на 55% дольше · качество выше · спрос растёт'};
-  var h='<div class="plan"><div class="plan-main">';
+  var h='<section class="card stack"><div class="row between"><h3>Как идёт месяц: откуда → куда</h3><span class="muted" style="font-size:13.5px">Нажми на блок, чтобы узнать подробнее</span></div><div id="flow-box">'+flowHTML(pv,false)+'</div></section>';
+  h+='<div class="plan"><div class="plan-main">';
   h+='<section class="card"><div class="ctl-head"><h3 id="modetitle">Режим печати</h3><span class="chip info">слой <span id="layerval">'+MODES[plan.mode].layer+'</span></span></div><div class="seg" role="radiogroup" aria-labelledby="modetitle" style="margin-top:12px">'+
     modes.map(function(m){ return '<button role="radio" aria-checked="'+(plan.mode===m)+'" data-act="mode" data-m="'+m+'"><b>'+MODES[m].name+' · '+MODES[m].layer+'</b><span>'+mdesc[m]+'</span></button>'; }).join('')+'</div></section>';
   PROD_IDS.forEach(function(id){ h+=productCard(id,pv,lo,hi,best); });
@@ -593,6 +744,7 @@ function bizHTML(){
     '<div class="callout tip">'+avatarSVG('phil','happy',40)+'<div><b>Совет Фила.</b> '+HINTS[S.month-1]+'<div style="margin-top:8px"><button class="btn small" data-act="suggest">'+ico('sparkle')+' Предложи план</button></div></div></div></aside></div>';
   return h;
 }
+function markQty(){ U.seen=U.seen||{}; U.seen.qty=true; fitCash(); liveUpdate(); }
 function liveUpdate(){
   if(U.screen!=='plan' || (U.tab||'orders')!=='biz') { renderActionBar(); return; }
   var plan=S.plan, pv=previewMonth(S,plan,1), lo=previewMonth(S,plan,0.92), hi=previewMonth(S,plan,1.08), best=bestHourId(pv), act=document.activeElement;
@@ -606,6 +758,8 @@ function liveUpdate(){
     if(pr){ if(pr!==act) pr.value=plan.price[id]; pr.setAttribute('aria-valuetext',rub(plan.price[id])); }
   });
   var gb=$('#goals-box'); if(gb) gb.innerHTML=goalsInner();
+  var fb2=$('#flow-box'); if(fb2) fb2.innerHTML=flowHTML(pv,false);
+  var st2=$('#steps-box'); if(st2) st2.innerHTML=stepsInner();
   var hb=$('#hours-box'); if(hb) hb.innerHTML=hoursHTML(pv);
   var fb=$('#fc-box'); if(fb) fb.innerHTML='<h3>Прогноз месяца</h3>'+forecastHTML(pv,lo,hi);
   renderActionBar(pv);
@@ -614,10 +768,10 @@ function renderActionBar(pv){
   var bar=$('#actionbar'); if(!bar) return;
   if(U.screen!=='plan'){ bar.hidden=true; bar.innerHTML=''; return; }
   pv = pv || previewMonth(S,S.plan,1);
-  var left=S.cash-pv.cashNow, ok=left>=-0.5;
+  var left=S.cash-pv.cashNow, ok=left>=-0.5, tu=tutorialState(), gate=tu.active&&!tu.ok;
   bar.hidden=false;
-  bar.innerHTML='<div class="actionbar-in"><div class="sum"><span>Потратишь сейчас: <b class="num">'+rub(pv.cashNow)+'</b><span class="hide-s muted"> (пластик '+rub(pv.buyCost)+', печать '+rub(pv.runCost)+(pv.adCost?', реклама '+rub(pv.adCost):'')+')</span></span><span>Прибыль месяца ≈ <b class="num '+(pv.profit>=0?'gain-t':'loss-t')+'" style="font-size:15px">'+rub(pv.profit)+'</b><span class="hide-s"> · платежи в конце месяца '+rub(pv.fixed+loanPayment(S))+'</span></span>'+(ok?'':'<span class="loss-t">Не хватает '+rub(-left)+': уменьши выпуск</span>')+'</div>'+
-    '<button class="btn primary" data-act="go" id="gobtn"'+(ok?'':' disabled')+'>Запустить печать'+ico('play')+'</button></div>';
+  bar.innerHTML='<div class="actionbar-in"><div class="sum">'+(gate?'<span><b>Обучение:</b> сначала выполни шаги вверху страницы.</span>':'')+'<span'+(gate?' hidden':'')+'>Потратишь сейчас: <b class="num">'+rub(pv.cashNow)+'</b><span class="hide-s muted"> (пластик '+rub(pv.buyCost)+', печать '+rub(pv.runCost)+(pv.adCost?', реклама '+rub(pv.adCost):'')+')</span></span><span>Прибыль месяца ≈ <b class="num '+(pv.profit>=0?'gain-t':'loss-t')+'" style="font-size:15px">'+rub(pv.profit)+'</b><span class="hide-s"> · платежи в конце месяца '+rub(pv.fixed+loanPayment(S))+'</span></span>'+(ok?'':'<span class="loss-t">Не хватает '+rub(-left)+': уменьши выпуск</span>')+'</div>'+
+    '<button class="btn primary" data-act="go" id="gobtn"'+((ok&&!gate)?'':' disabled')+(gate?' title="Сначала выполни шаги обучения"':'')+'>Запустить печать'+ico('play')+'</button></div>';
 }
 
 /* ---------- мастерская (покупки) ---------- */
@@ -632,6 +786,7 @@ function printerCard(type, owned){
 function shopHTML(){
   var sp=SPACES[S.space], h='';
   h+=wsCard('Твоя мастерская', esc(sp.name));
+  h+=labHTML();
   h+='<div class="callout">'+ico('info')+'<div>Оборудование и люди дают <b>часы печати</b>, но не покупателей. Покупай, когда часов не хватает, а товар раскупают. Все покупки видны в «Капитале» по остаточной стоимости.</div></div>';
   h+='<section class="stack"><div class="row between"><h2 style="font-size:22px">Принтеры</h2><span class="chip info">'+S.printers.length+' из '+sp.limit+' мест · «'+sp.name+'»</span></div><div class="grid-auto">';
   S.printers.forEach(function(p,i){ var d=PRINTERS[p.t]; h+='<article class="card upg owned"><header>'+printerSVG({obj:'stand',layers:6,state:'on',label:d.name,cls:'art'})+'<div><h3>'+(p.t==='old'?'Фил':d.name)+'</h3><p class="muted">'+d.hours+' ч · брак '+Math.round(d.fail*100)+'%</p></div></header><div class="chips"><span class="chip gain">'+ico('check')+' в работе</span>'+(p.t==='old'?'':'<span class="chip">остаточная стоимость '+rub(d.price*Math.max(0,1-p.age/DEPR_MONTHS))+'</span>')+'</div></article>'; });
@@ -780,16 +935,20 @@ function reportHTML(){
   var m=r.month, quizNext=(m%4===0);
   var h='<section class="card lined"><div class="row between" style="align-items:flex-end"><div><div class="eyebrow">'+MONTH_NAMES[m-1]+': итоги месяца</div><h1 id="pagetitle" tabindex="-1" class="profit num '+(r.profit>=0?'gain-t':'loss-t')+'" style="margin-top:6px"><span id="profitnum" data-v="'+Math.round(r.profit)+'">'+(r.profit>=0?'+':'')+rub(r.profit)+'</span></h1><p class="muted">чистая прибыль за месяц</p></div>'+
     '<div class="chips">'+(bestM?'<span class="chip brand">'+ico('star')+' лучший месяц</span>':'')+'<span class="chip info">'+ico('clock')+' часы: '+Math.round(r.hours)+' из '+r.H+'</span><span class="chip">Капитал: '+rub(r.cap)+'</span>'+(ratingNow()>0?'<span class="chip">Рейтинг мастерской: '+ratingText(ratingNow())+'</span>':'')+'</div></div></section>';
+  h+='<section class="card stack"><h2 style="font-size:20px">Путь месяца: откуда → куда</h2>'+flowHTML(r,true)+'</section>';
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Как получилась прибыль</h2><div class="wf">'+rows+'<div class="wf-row sum"><span>Прибыль</span><b class="num '+(r.profit>=0?'gain-t':'loss-t')+'">'+rub(r.profit)+'</b></div></div></section>'+
     '<section class="card stack"><h2 style="font-size:20px">Твоя башня слоёв</h2><div class="tower-wrap">'+towerSVG(S.history,{animateLast:true})+'</div><p class="muted" style="font-size:14px">Каждый месяц это слой. Ширина слоя зависит от выручки, зелёный цвет значит прибыль, штриховка значит убыток.</p></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Что и как продавалось</h2><div class="prows">'+prods+'</div></section>';
   h+=ordersReportHTML(r); h+=goalsReportHTML(r);
+  (r.labDone||[]).forEach(function(x){ h+='<div class="callout ok">'+ico('check')+'<div><b>Исследование завершено: '+x.name+'.</b> Эффект: '+x.effect+'.</div></div>'; });
+  if(r.wet) h+='<div class="callout warn">'+ico('warn')+'<div><b>Пластик отсыревает.</b> Запас больше '+FIL_WET+' кг впитывает влагу, и в следующем месяце брак выше на 2 п.п.</div></div>';
   var pg=r.progress||{ach:[],mile:[]};
   if(pg.mile.length||pg.ach.length){
     h+='<section class="card lined stack"><div class="eyebrow">Новое</div>'+pg.mile.map(function(m){ return '<div class="callout ok">'+ico('star')+'<div><b>Веха: капитал '+rub(m)+'!</b> Технопарк достроен на '+Math.round(m/GOAL*100)+'%. '+({250000:'Фил: «Четверть пути. Я посчитал слои: их уже больше, чем я помню».',500000:'Фил: «Половина! Мой датчик гордости зашкаливает».',750000:'Фил: «Осталось совсем чуть-чуть. Не сглазить бы».'}[m])+'</div></div>'; }).join('')+
       '<div class="chips pop-in">'+pg.ach.map(function(a,i){ return '<span class="chip brand" style="--i:'+i+'">'+ico(a.icon)+' Награда: '+a.name+'</span>'; }).join('')+'</div></section>';
   }
   h+=reviewsHTML(r);
+  h+=myqHTML();
   h+='<section class="card flat stack"><div class="row" style="align-items:flex-start;gap:14px">'+avatarSVG('phil',r.profit>=0?'happy':'worried',48)+'<div class="stack" style="flex:1;min-width:0"><div class="eyebrow">Разбор от Фила</div>'+ins.map(function(i){ return '<div class="callout '+(i.k==='info'?'':i.k)+'" style="padding:10px 14px">'+ico(i.k==='ok'?'check':(i.k==='info'?'info':'warn'))+'<div>'+i.t+'</div></div>'; }).join('')+'</div></div></section>';
   if(r.fact) h+='<div class="callout">'+ico('sparkle')+'<div><b>Знаешь ли ты?</b> '+esc(r.fact)+'</div></div>';
   h+='<div><button class="btn primary" data-act="afterreport">'+(quizNext?'Проверить прошивку Фила (вопросы)':'Следующий месяц')+ico('right')+'</button></div>';
@@ -851,8 +1010,12 @@ function finalHTML(){
   h+='<div class="row"><button class="btn primary" data-act="restart">'+ico('refresh')+' Сыграть ещё раз</button><button class="btn" data-act="glossary">'+ico('book')+' Открыть словарик</button></div>';
   return h;
 }
+function monthMapHTML(){
+  var nodes=[['news','Сцена','случается событие, ты выбираешь вариант'],['doc','Заказы','клиенты предлагают сделки с готовой ценой'],['printer','Планирование','что печатать, цены, склад, развитие'],['play','Печать','месяц проходит, считаются продажи'],['coin','Итоги','прибыль, отзывы, цели и вопросы']];
+  return '<div class="flow v" aria-label="Схема одного месяца">'+nodes.map(function(n,i){ return '<div class="fnode"'+(i===4?' data-end="1"':'')+'><span class="fico">'+ico(n[0])+'</span><b>'+(i+1)+'. '+n[1]+'</b><span>'+n[2]+'</span></div>'; }).join('')+'</div>';
+}
 function helpHTML(){
-  return '<div class="stack"><div class="lesson">'+avatarSVG('phil','happy',44)+'<div><b>Как это работает.</b> У тебя ограниченное число <b>часов печати</b>. Каждый товар занимает разное время и приносит разную прибыль.</div></div>'+
+  return '<div class="stack"><div class="eyebrow">Как проходит каждый месяц</div>'+monthMapHTML()+'<div class="lesson">'+avatarSVG('phil','happy',44)+'<div><b>Как это работает.</b> У тебя ограниченное число <b>часов печати</b>. Каждый товар занимает разное время и приносит разную прибыль.</div></div>'+
     '<ol class="stack" style="padding-left:1.3em;margin:0"><li><b>Цена.</b> Чем выше, тем меньше покупателей. Кривая рядом с товаром показывает спрос. Оранжевая точка это твоя цена.</li><li><b>Сколько напечатать.</b> Не больше, чем купят: остатки дешевеют. Не меньше, чем нужно: иначе покупатели уйдут.</li><li><b>Прибыль за час.</b> Показывает, какой товар выгоднее печатать, когда часов мало. Лучший отмечен звездой.</li><li><b>Вкладки.</b> «Заказы»: клиенты с готовой сделкой. «Печать»: цены и количество. «Рынок»: сезонный спрос. «Покупки»: принтеры и помощники. «Финансы»: налоги и вклады. Начинай с заказов.</li><li><b>Режим печати.</b> «Быстро» экономит часы, «Тонко» делает изделия лучше и дороже в глазах покупателей.</li><li><b>Мастерская и финансы.</b> Там можно купить принтеры, нанять людей, оформить вклад и страховку.</li></ol>'+
     '<p class="muted">Прогноз приблизительный: спрос колеблется на несколько процентов, как в жизни.</p><div><button class="btn primary" data-act="closemodal">Понятно</button></div></div>';
 }
@@ -865,6 +1028,7 @@ function stageHTML(){
     case 'setup': return setupHTML();
     case 'teacher': return teacherHTML();
     case 'qc': return qcHTML();
+    case 'slicer': return slicerHTML();
     case 'calib': return calibHTML();
     case 'scene': return sceneHTML();
     case 'plan': return planHTML();
@@ -895,6 +1059,7 @@ function render(keep){
   }
   if(U.screen==='run') startRun();
   startPrinterLoop();
+  var at=$('.tab[aria-selected="true"]'), tb=$('.tabs'); if(at && tb && tb.scrollWidth>tb.clientWidth) tb.scrollLeft=at.offsetLeft-(tb.clientWidth-at.offsetWidth)/2;
   if(U.screen==='report'){ var pn=$('#profitnum'); if(pn && !keep){ var v=+pn.getAttribute('data-v'); animateNumber(pn,0,v,900,function(x){ return (x>=0?'+':'')+rub(x); }); } }
   if(S && U.screen!=='title') persist();
 }
@@ -1001,10 +1166,17 @@ var A={
  step:function(el){
    var k=el.getAttribute('data-k'), id=el.getAttribute('data-id'), d=+el.getAttribute('data-d');
    if(k==='price'){ var b=priceBounds(S,id,S.plan.mode); S.plan.price[id]=clamp(S.plan.price[id]+d,b.min,b.max); }
-   else { S.plan.qty[id]=clamp(S.plan.qty[id]+d,lockQty(S,id),Math.max(lockQty(S,id),maxQtyFor(S,S.plan,id))); }
+   else { S.plan.qty[id]=clamp(S.plan.qty[id]+d,lockQty(S,id),Math.max(lockQty(S,id),maxQtyFor(S,S.plan,id))); U.seen=U.seen||{}; U.seen.qty=true; }
    liveUpdate();
  },
- suggest:function(){ suggestPlan(S,false); fitCash(); toast('Фил предложил план'); render(true); },
+ qfdem:function(el){ var id=el.getAttribute('data-id'), pv=previewMonth(S,S.plan,1), r=pv.rows[id]; if(!r) return; S.plan.qty[id]=clamp(Math.round(r.demand)-S.inv[id]+contractQty(S,id),lockQty(S,id),Math.max(lockQty(S,id),maxQtyFor(S,S.plan,id))); markQty(); },
+ qffill:function(el){ var id=el.getAttribute('data-id'); S.plan.qty[id]=Math.max(lockQty(S,id),maxQtyFor(S,S.plan,id)); markQty(); },
+ qfzero:function(el){ var id=el.getAttribute('data-id'); S.plan.qty[id]=lockQty(S,id); markQty(); },
+ fnote:function(el){ var k=el.getAttribute('data-k'), f=FLOW_INFO[k]; openModal(f[0],'<div class="stack"><p>'+f[1]+'</p><div><button class="btn primary" data-act="closemodal">Понятно</button></div></div>'); },
+ fbuy:function(el){ var kg=+el.getAttribute('data-kg'), k=el.getAttribute('data-sup'), r=buyFil(S,kg,k); if(r.ok){ sfx('coin'); toast('Куплено '+kg+' кг: '+SUPPLIERS[k].name); fitCash(); } else toast(r.why); render(true); },
+ liq:function(el){ var id=el.getAttribute('data-id'), r=liquidate(S,id); if(r.ok){ sfx('coin'); addTerm('sunk'); toast('Продано оптом '+r.n+' шт. за '+rub(r.got)+'. Недополучено '+rub(r.lost)); fitCash(); } render(true); },
+ research:function(el){ var id=el.getAttribute('data-id'), r=startResearch(S,id); if(r.ok){ sfx('coin'); addTerm('rd'); toast('Исследование начато: '+RESEARCH_BY_ID[id].name); fitCash(); } else toast(r.why); render(true); },
+ suggest:function(){ U.seen=U.seen||{}; U.seen.qty=true; suggestPlan(S,false); fitCash(); toast('Фил предложил план'); render(true); },
  buyp:function(el){ var t=el.getAttribute('data-t'), r=buyPrinter(S,t); if(r.ok){ sfx('coin'); toast('Куплено: '+PRINTERS[t].name); fitCash(); } else toast(r.why); render(true); },
  hire:function(el){ var k=el.getAttribute('data-k'); if(hireStaff(S,k)){ sfx('coin'); toast('Нанят: '+STAFF[k].name); } render(true); },
  fire:function(el){ var k=el.getAttribute('data-k'); fireStaff(S,k); toast('Сотрудник уволен'); S.plan.qty=sanitizePlan(S,S.plan).qty; render(true); },
@@ -1031,14 +1203,22 @@ var A={
  },
  go:function(){
    var pv=previewMonth(S,S.plan,1); if(pv.cashNow>S.cash+0.5){ toast('Не хватает денег на закупку. Уменьши выпуск.'); return; }
-   var w=U.goOk?[]:goWarnings(); U.goOk=false;
+   var w=U.goOk?[]:goWarnings(); var viaOk=U.goOk; U.goOk=false;
    if(w.length){ openModal('Перед печатью','<div class="stack">'+w.map(function(x){ return '<div class="callout warn">'+ico('warn')+'<div>'+x+'</div></div>'; }).join('')+'<div class="row"><button class="btn primary" data-act="gosure">Всё равно печатать</button><button class="btn" data-act="closemodal">Вернуться к плану</button></div></div>'); return; }
+   if(slicerNeeded(S) && !U.slicerDone){ U.slicer={t:215,v:60,f:30,tries:[],left:SLICER_TRIES,target:slicerTarget(S)}; U.screen='slicer'; render(); return; }
+   U.slicerDone=false;
    var before=S.cash, r=runMonth(S); r.cashBefore=before; r.cashAfter=S.cash;
    settleGoals(S,r); if(r.goals&&r.goals.list.length) addTerm('kpi'); if((r.orders||[]).some(function(o){ return o.trust>=1; })) addTerm('trust');
    r.progress=checkProgress(S,r); r.fact=factFor(S,'m'+r.month); r.reviews=makeReviews(S,r); S.rate=S.rate||{u:0,s:0}; S.rate.u+=r.reviews.units; S.rate.s+=r.reviews.avg*r.reviews.units;
+   r.slicerGrade=U.slicerGrade||null; U.slicerGrade=null; U.myq=myqBuild(r);
    U.report=r; U.screen=reduced?'report':'run'; U.tab='biz';
    if(reduced){ render(); sfx(r.profit>=0?'good':'bad'); } else render();
  },
+ slstep:function(el){ var k=el.getAttribute('data-k'), R=SLICER_RANGE[k], Z=U.slicer; Z[k]=clamp(Z[k]+(+el.getAttribute('data-d')),R.min,R.max); render(true); },
+ sltry:function(){ var Z=U.slicer; if(Z.left<=0) return; Z.left--; Z.tries.push({set:{t:Z.t,v:Z.v,f:Z.f}}); var ok=slicerGrade(slicerCheck(Z.target,Z)); sfx(ok==='gold'?'good':'click'); if(ok==='gold') burst(24); render(true); },
+ slfinal:function(){ var Z=U.slicer, g=slicerGrade(slicerCheck(Z.target,Z)); slicerApply(S,g); U.slicerGrade=g; U.slicerDone=true; U.slicer=null; sfx(g==='gold'?'win':(g==='bronze'?'bad':'good')); toast(g==='gold'?'Идеальные настройки: брак ниже, репутация +1':(g==='silver'?'Настройки неплохие':'Неточные настройки: брак выше')); U.screen='plan'; U.goOk=true; A.go(); },
+ slskip:function(){ U.slicerDone=true; U.slicer=null; U.screen='plan'; U.goOk=true; A.go(); },
+ myq:function(el){ var Q=U.myq; if(!Q||Q.picked!=null) return; var i=+el.getAttribute('data-i'); Q.picked=i; if(Q.opts[i]===Q.ans){ S.cash+=MYQ_REWARD; sfx('good'); if(U.report) U.report.cashAfter=S.cash; } else sfx('bad'); render(true); },
  gosure:function(){ closeModal(); U.goOk=true; A.go(); },
  runskip:function(){
    clearRunTimers(); var r=U.report; U.screen='report'; render();
@@ -1098,10 +1278,11 @@ document.addEventListener('input',function(e){
   var t=e.target; if(!S) return;
   if(t.id==='calibrange' && U.calib){ U.calib.v=+t.value; calibLive(); return; }
   if(t.id==='shopname' && U.setup){ U.setup.shop=t.value; var sg=$('#signart'); if(sg) sg.innerHTML=signSVG(cleanShopName(t.value)||'Слой за слоем'); return; }
+  if(t.getAttribute && t.getAttribute('data-sl') && U.slicer){ var kk=t.getAttribute('data-sl'); U.slicer[kk]=+t.value; var vl=document.getElementById('slv-'+kk); if(vl) vl.textContent=t.value+' '+SLICER_RANGE[kk].unit; return; }
   if(t.id==='classcode' && U.setup){ U.setup.code=t.value; return; }
   if(U.screen==='plan' && t.type==='range' && t.getAttribute('data-k')){
     var id=t.getAttribute('data-id'), k=t.getAttribute('data-k'), val=+t.value;
-    if(k==='price') S.plan.price[id]=val; else S.plan.qty[id]=clamp(val,lockQty(S,id),Math.max(lockQty(S,id),maxQtyFor(S,S.plan,id)));
+    if(k==='price') S.plan.price[id]=val; else { S.plan.qty[id]=clamp(val,lockQty(S,id),Math.max(lockQty(S,id),maxQtyFor(S,S.plan,id))); U.seen=U.seen||{}; U.seen.qty=true; }
     liveUpdate();
   }
 });

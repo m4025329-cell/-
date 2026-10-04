@@ -16,7 +16,7 @@ module.exports=`(() => {
   const bad = [];
   for (let i = 0; i < items.length; i++) {
     const a = items[i];
-    if (a.r > innerWidth + 1 || a.l < -1) bad.push('вне экрана: «' + a.tx + '»');
+    if ((a.r > innerWidth + 1 || a.l < -1) && !a.el.closest('.tabs')) bad.push('вне экрана: «' + a.tx + '»');
     for (let j = i + 1; j < items.length; j++) {
       const b = items[j]; if (a.el === b.el) continue;
       const iw = Math.min(a.r, b.r) - Math.max(a.l, b.l), ih = Math.min(a.b, b.b) - Math.max(a.t, b.t);

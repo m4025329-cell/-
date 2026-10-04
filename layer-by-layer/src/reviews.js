@@ -166,6 +166,9 @@ var ACH = [
   {id:'haggle', name:'Дипломат',          desc:'Удачный торг: цена выросла',             icon:'percent',test:function(s,r){ return s.orderStats && s.orderStats.haggleWins>=1; }},
   {id:'princ',  name:'Принципиальный',    desc:'Отказ от заказа с чужими моделями',      icon:'shield', test:function(s,r){ return s.orderStats && s.orderStats.trapNo>=1; }},
   {id:'plans',  name:'Мастер планов',     desc:'Выполнены все цели месяца',              icon:'target', test:function(s,r){ return !!(r.goals && r.goals.bonus>0); }},
+  {id:'invent', name:'Изобретатель',     desc:'Завершены три исследования',             icon:'bolt',   test:function(s,r){ return Object.keys((s.lab&&s.lab.done)||{}).length>=3; }},
+  {id:'tuner',  name:'Настройщик',        desc:'Золотая настройка слайсера',             icon:'wrench', test:function(s,r){ return (s.slicerGold||0)>=1; }},
+  {id:'stocker',name:'Запасливый',        desc:'Закуплено впрок 50 кг пластика',         icon:'box',    test:function(s,r){ return (s.filBought||0)>=50; }},
   {id:'rep80',   name:'Имя в городе',      desc:'Репутация 70 и выше',                    icon:'heart',  test:function(s,r){ return s.rep>=70; }}
 ];
 var MILES = [250000,500000,750000];

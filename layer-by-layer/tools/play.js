@@ -13,3 +13,15 @@ exports.skipIntro = async function (p, o) {
   await exports.setup(p, o);
   await p.click('[data-act=skipcalib]');
 };
+/* Выполняет обучающие шаги первого месяца и просит Фила составить план: так тесты не упираются в блокировку кнопки «Запустить» */
+exports.ready = async function (p) {
+  await p.evaluate(() => {
+    const g = window.__game, S = g.S;
+    if (g.U.screen !== 'plan') return;
+    makeBoard(S);
+    if (S.month === 1) { const o = S.board.offers.find(x => x.state === 'open'); if (o) acceptOffer(S, o.id); }
+    g.U.seen = Object.assign(g.U.seen || {}, { qty: true, biz: true, deal: true });
+    g.A.suggest();
+  });
+  await p.waitForTimeout(80);
+};
