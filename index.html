@@ -457,12 +457,12 @@ var TERMS = {
   risk:     ['Риск и доходность', 'Чем выше возможная прибыль, тем выше шанс потерять деньги. Безопасные вложения приносят меньше.'],
   credit:   ['Кредит и процент', 'Деньги, взятые у банка в долг. Вернуть нужно больше, чем взяли. Разница называется переплатой.'],
   inflation:['Инфляция', 'Рост цен в стране. Из-за неё на одни и те же деньги можно купить меньше, чем раньше.'],
-  deposit:  ['Вклад и сложный процент', 'Банк платит тебе за то, что ты оставил деньги у него. Проценты начисляются и на проценты.'],
+  deposit:  ['Вклад и сложный процент', 'Банк платит за то, что деньги лежат у него на вкладе. Проценты начисляются и на проценты.'],
   fx:       ['Валютный курс', 'Цена одной валюты в другой. Если рубль слабеет, импортные товары и материалы дорожают.'],
   diversify:['Диверсификация', 'Не класть все яйца в одну корзину. Деньги в разных активах: если один упадёт, другие смягчат удар.'],
   scale:    ['Эффект масштаба', 'Крупная компания делает одну вещь дешевле, потому что делает их миллионы. Малому бизнесу выигрывать нужно иначе.'],
   cycle:    ['Экономический цикл', 'Экономика то растёт, то замедляется. В спад спрос падает, и выживают те, у кого есть запас денег.'],
-  capital:  ['Капитал', 'Всё, что у тебя есть (деньги, вклады, товар на складе), минус всё, что ты должен. Это главный результат игры.']
+  capital:  ['Капитал', 'Всё, что у тебя есть (деньги, вклады, товар на складе), минус все долги. Это главный результат игры.']
 };
 
 var HINTS = [
@@ -528,7 +528,7 @@ var EVENTS = [
   {label:'Пока не оформляться', sub:'штраф 20 000 ₽ и принудительный режим 6%', apply:function(s){s.taxMode='rev';return [cash(s,-20000,'штраф'),modChip('налог 6% с выручки',false)];}}],
  lesson:'Режим 15% с прибыли выгоднее, если прибыль меньше 40% выручки (тогда 15% от прибыли меньше, чем 6% от выручки). Работать без оформления нельзя: это нарушение и штраф. Налоги идут на школы, дороги и больницы.'},
 /* 7 */ {icon:'user', tag:'Труд', term:'labor', title:'Нужен помощник',
- text:function(){return 'К 8 Марта заказов втрое больше. Ты сам печатаешь, пакуешь и отвечаешь в чате и не успеваешь. Продавец-помощник стоит 25 000 ₽ в месяц.';},
+ text:function(){return 'К 8 Марта заказов втрое больше. Печатать, паковать и отвечать в чате в одиночку уже не получается. Продавец-помощник стоит 25 000 ₽ в месяц.';},
  choices:[
   {label:'Нанять помощника', sub:'−25 000 ₽ в месяц, +60 мощность, спрос ×1,08', apply:function(s){s.staffPro=1;return [modChip('зарплата 25 000 ₽/мес',false),modChip('+60 футболок в месяц',true),modChip('спрос ×1,08',true)];}},
   {label:'Нанять подростка на подработку', sub:'−10 000 ₽ в месяц, +20 мощность', apply:function(s){s.staffTeen=1;return [modChip('зарплата 10 000 ₽/мес',false),modChip('+20 футболок в месяц',true)];}},
@@ -540,7 +540,7 @@ var EVENTS = [
   {label:'Блогер', sub:'−15 000 ₽, 55% шанс: спрос ×1,6 на 2 месяца', apply:function(s,rng){s.tookRisk=true;var win=rng()<0.55;if(win){s.riskWon=true;mod(s,'dem',1.6,2,'Блогер');return [cash(s,-15000),modChip('ролик выстрелил! спрос ×1,6 на 2 мес.',true),addBrand(s,12)];}mod(s,'dem',1.05,2,'Блогер');return [cash(s,-15000),modChip('ролик не взлетел: спрос ×1,05',false),addBrand(s,2)];}},
   {label:'Таргет в соцсетях', sub:'−6 000 ₽, точно: спрос ×1,18 на 2 месяца', apply:function(s){mod(s,'dem',1.18,2,'Таргет');return [cash(s,-6000),modChip('спрос ×1,18 на 2 мес.',true),addBrand(s,4)];}},
   {label:'Пропустить', sub:'ничего не меняется', apply:function(s){return [modChip('без изменений',true)];}}],
- lesson:'Высокая награда всегда связана с высоким риском. Блогер выигрывает в среднем, но может подвести. Таргет надёжнее, но даёт меньше. Выбор зависит от того, сколько ты готов потерять.'},
+ lesson:'Высокая награда всегда связана с высоким риском. Блогер выигрывает в среднем, но может подвести. Таргет надёжнее, но даёт меньше. Выбор зависит от того, сколько денег можно потерять.'},
 /* 9 */ {icon:'bank', tag:'Кредит', term:'credit', title:'Кредит на расширение',
  text:function(){return 'Банк предлагает кредит на 12 месяцев под 1,5% в месяц. Каждый месяц нужно возвращать часть долга и проценты. Например, для 200 000 ₽ переплата составит около 19 500 ₽. Новое оборудование (Швейный цех, 150 000 ₽) окупится, если ты сможешь продавать больше.';},
  choices:[
@@ -591,7 +591,7 @@ var EVENTS = [
   {label:'Ничего не делать', sub:'спрос ×0,78 на 3 месяца', apply:function(s){mod(s,'dem',0.78,3,'Спад');return [modChip('спрос ×0,78 на 3 мес.',false)];}}],
  lesson:'Экономика движется по циклу: рост, спад, снова рост. В спад люди покупают меньше. Выживают компании с финансовой подушкой и разными источниками дохода.'},
 /* 16 */ {icon:'doc', tag:'Капитал', term:'capital', title:'Последний рывок',
- text:function(s){return 'Год подходит к концу. Новогодний спрос — самый высокий. Бухгалтер напоминает: капитал = всё, что у тебя есть, минус всё, что ты должен. Сейчас он равен '+rub(netWorth(s))+'.';},
+ text:function(s){return 'Год подходит к концу. Новогодний спрос — самый высокий. Бухгалтер напоминает: капитал = всё, что у тебя есть, минус все долги. Сейчас он равен '+rub(netWorth(s))+'.';},
  choices:[
   {label:'Новогодняя кампания', sub:'−30 000 ₽, спрос ×1,4 в этом месяце', apply:function(s){mod(s,'dem',1.4,1,'Кампания');return [cash(s,-30000),modChip('спрос ×1,4',true)];}},
   {label:'Подарочные наборы', sub:'себестоимость +40 ₽, рыночная цена ×1,2 в этом месяце', apply:function(s){mod(s,'cost',1+40/Math.max(1,unitCost(s)),1,'Наборы');mod(s,'ref',1.2,1,'Наборы');return [modChip('себестоимость +40 ₽',false),modChip('покупатели платят больше',true)];}},
@@ -608,7 +608,7 @@ var QUIZ = [
    {q:'Чем конкуренция полезна покупателям?', a:['Цены растут','Выбор меньше','Цены ниже, качество выше','Ничем'], c:2, e:'Продавцы борются за покупателей, снижают цены и улучшают товар.'} ],
  [ {q:'Что из этого относится к постоянным расходам?', a:['Ткань для футболок','Краска для печати','Аренда магазина','Упаковка'], c:2, e:'Аренду нужно платить каждый месяц независимо от количества проданных футболок.'},
    {q:'Выручка 100 000 ₽, расходы 70 000 ₽. Чему равна прибыль?', a:['170 000 ₽','30 000 ₽','70 000 ₽','100 000 ₽'], c:1, e:'Прибыль = выручка − расходы = 100 000 − 70 000 = 30 000 ₽.'},
-   {q:'Что означает «высокий риск — высокая доходность»?', a:['Любой риск приносит прибыль','Больше возможная прибыль, больше и шанс потерь','Рисковать выгодно всегда','Риска можно избежать'], c:1, e:'Чем выше возможная награда, тем выше вероятность потерь. Поэтому важно считать, сколько ты готов потерять.'} ],
+   {q:'Что означает «высокий риск — высокая доходность»?', a:['Любой риск приносит прибыль','Больше возможная прибыль, больше и шанс потерь','Рисковать выгодно всегда','Риска можно избежать'], c:1, e:'Чем выше возможная награда, тем выше вероятность потерь. Поэтому важно считать, сколько денег можно потерять.'} ],
  [ {q:'Кредит 100 000 ₽ под 2% в месяц. Сколько процентов за первый месяц?', a:['200 ₽','2 000 ₽','20 000 ₽','100 000 ₽'], c:1, e:'2% от 100 000 ₽ = 2 000 ₽.'},
    {q:'Что делает инфляция с деньгами, которые просто лежат дома?', a:['Они становятся ценнее','Они покупают всё меньше','Ничего','Они удваиваются'], c:1, e:'Из-за роста цен на те же деньги можно купить меньше, чем раньше.'},
    {q:'Что такое ликвидность?', a:['Размер прибыли','Как быстро актив можно превратить в деньги','Размер налога','Вид кредита'], c:1, e:'Наличные и вклад очень ликвидны. Станок или склад продать быстро труднее.'} ],
@@ -631,7 +631,7 @@ function titleOf(nw){ for(var i=0;i<TITLES.length;i++){ if(nw>=TITLES[i][0]) ret
 (function(){
 'use strict';
 var KEY='merch-empire-v1', THEME_KEY='merch-empire-theme';
-var S=null, U={screen:'title'}, soundOn=true, actx=null;
+var S=null, U={screen:'title'}, soundOn=false, actx=null;
 
 var IC={
  shirt:'<path d="M9 3 3.5 6 5 10l3-1v12h8V9l3 1 1.5-4L15 3c-.5 1.3-1.7 2-3 2s-2.5-.7-3-2Z"/>',
@@ -854,7 +854,7 @@ function finHTML(){
   var h='<div class="plan"><div class="card"><h3>Баланс: из чего состоит капитал</h3><table class="bal num"><tbody>'+
     '<tr><td>Деньги на счету</td><td>'+rub(S.cash)+'</td></tr><tr><td>Вклад</td><td>'+rub(S.savings)+'</td></tr><tr><td>Индексный фонд</td><td>'+rub(S.fund)+'</td></tr><tr><td>Акции</td><td>'+rub(S.stock)+'</td></tr><tr><td>Товар на складе (по себестоимости)</td><td>'+rub(S.invValue)+'</td></tr>'+
     '<tr><td>Долги</td><td class="loss-t">'+rub(-S.loanLeft)+'</td></tr><tr class="total"><td>Капитал</td><td>'+rub(assets-S.loanLeft)+'</td></tr></tbody></table>'+
-    '<p class="ctl-note">Капитал = всё, что у тебя есть, минус всё, что ты должен.</p></div>';
+    '<p class="ctl-note">Капитал = всё, что у тебя есть, минус все долги.</p></div>';
   h+='<div class="col">'+(S.loanLeft>0 ?
     '<div class="card"><h3>Кредит</h3><p class="ctl-note">Ставка 1,5% в месяц. Платёж в конце месяца: часть долга плюс проценты.</p><div class="big num loss-t" style="margin-top:10px">'+rub(S.loanLeft)+'</div><p class="ctl-note">Ближайший платёж: <b class="num">'+rub(loanPayment(S))+'</b></p><div class="mv"><button class="btn small" data-act="repay" data-d="50000"'+(S.cash<1?' disabled':'')+'>Погасить 50 000</button><button class="btn small" data-act="repay" data-d="all"'+(S.cash<1?' disabled':'')+'>Погасить всё, что можно</button></div></div>' :
     '<div class="card"><h3>Кредит</h3><p class="ctl-note">'+(S.unlock.loan?'Долгов нет. Это хорошо: переплачивать банку не нужно.':'Банк предложит кредит в одной из глав.')+'</p></div>')+'</div></div>';
@@ -987,7 +987,7 @@ function chapterHTML(){
 }
 function lessonEndHTML(){
   var code=exportCode();
-  return '<div class="card"><div class="eyebrow">Урок 1 завершён</div><h2 style="margin-top:4px">Ты прошёл половину пути</h2>'+
+  return '<div class="card"><div class="eyebrow">Урок 1 завершён</div><h2 style="margin-top:4px">Половина пути пройдена</h2>'+
    '<p style="margin-top:12px;max-width:60ch">Капитал: <b class="num">'+rub(netWorth(S))+'</b>. Игра сохранена на этом устройстве. На втором уроке открой её на этом же компьютере и нажми «Продолжить». Если компьютер другой, скопируй код ниже и загрузи его на заставке.</p>'+
    '<div class="chips" style="margin-top:14px"><span class="chip gain">'+ico('check')+' Главы 1–2 пройдены</span><span class="chip info">Ответов верно: '+S.quizScore.reduce(function(a,b){return a+b;},0)+' из '+S.quizTotal+'</span></div>'+
    '<h3 style="margin-top:18px">Код сохранения</h3><textarea class="code" id="savecode" readonly>'+code+'</textarea>'+
@@ -1024,7 +1024,7 @@ function finalHTML(){
    '<div>'+lineChart(S.history,520,230)+'</div></div></div>';
   h+='<div class="card"><h3>Награды</h3><div class="badges" style="margin-top:12px">'+badgeList().map(function(b){ return '<div class="bdg '+(b.on?'on':'off')+'">'+ico(b.ic)+'<div><b>'+b.n+'</b><small>'+b.d+'</small></div></div>'; }).join('')+'</div></div>';
   h+='<div class="card"><h3>Результат для учителя</h3><textarea class="code" id="resline" readonly>'+esc(resultLine())+'</textarea><div class="row" style="margin-top:10px"><button class="btn small" data-act="copyres">Скопировать</button></div></div>';
-  h+='<div class="lesson"><b>Главный вывод.</b> Бизнес — это постоянный выбор между риском и выгодой, расходами и доходами, сегодня и завтра. Ты управлял ценой и спросом, платил налоги, брал кредит, защищался от инфляции и пережил кризис. Это те же решения, что принимают настоящие предприниматели.</div>';
+  h+='<div class="lesson"><b>Главный вывод.</b> Бизнес — это постоянный выбор между риском и выгодой, расходами и доходами, сегодня и завтра. Игра учила управлять ценой и спросом, платить налоги, брать кредит, защищаться от инфляции и переживать кризис. Это те же решения, что принимают настоящие предприниматели.</div>';
   h+='<div class="row"><button class="btn primary" data-act="restart">Сыграть ещё раз</button><button class="btn" data-act="glossary">Открыть словарик</button></div>';
   return h;
 }
@@ -1040,7 +1040,7 @@ function glossaryHTML(){
 }
 function loadHTML(){
   return '<div class="modal-head"><h2>Загрузить игру</h2><button class="btn small" data-act="closemodal">Закрыть</button></div>'+
-   '<p class="ctl-note">Вставь код сохранения, который ты скопировал на прошлом уроке.</p><textarea class="code" id="loadcode" placeholder="Вставь код сюда"></textarea><div class="row"><button class="btn primary" data-act="doload">Загрузить</button></div><p class="ctl-note loss-t" id="loaderr"></p>';
+   '<p class="ctl-note">Вставь код сохранения, который был показан в конце прошлого урока.</p><textarea class="code" id="loadcode" placeholder="Вставь код сюда"></textarea><div class="row"><button class="btn primary" data-act="doload">Загрузить</button></div><p class="ctl-note loss-t" id="loaderr"></p>';
 }
 
 /* ---------- отрисовка ---------- */
@@ -1143,7 +1143,7 @@ var A={
  glossary:function(){ openModal(glossaryHTML()); },
  closemodal:function(){ closeModal(); },
  theme:function(){ var d=!isDark(); document.documentElement.setAttribute('data-theme',d?'dark':'light'); try{ localStorage.setItem(THEME_KEY,d?'dark':'light'); }catch(e){} render(true); },
- sound:function(){ soundOn=!soundOn; render(true); sfx('click'); }
+ sound:function(){ soundOn=!soundOn; try{ localStorage.setItem('merch-empire-sound',soundOn?'1':'0'); }catch(e){} render(true); sfx('click'); }
 };
 function copyText(t,sel){
   var done=function(){ toast('Скопировано'); };
@@ -1165,7 +1165,7 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal
 
 /* ---------- запуск ---------- */
 function boot(){
-  try{ var th=localStorage.getItem(THEME_KEY); if(th) document.documentElement.setAttribute('data-theme',th); }catch(e){}
+  try{ var th=localStorage.getItem(THEME_KEY); if(th) document.documentElement.setAttribute('data-theme',th); soundOn=localStorage.getItem('merch-empire-sound')==='1'; }catch(e){}
   $('#app-tools').innerHTML=
    '<button class="iconbtn" data-act="glossary" title="Словарик" aria-label="Словарик">'+ico('book')+'</button>'+
    '<button class="iconbtn" id="soundbtn" data-act="sound" title="Звук" aria-label="Звук"></button>'+

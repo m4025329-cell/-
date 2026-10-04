@@ -1,0 +1,23 @@
+<title>Слой за слоем</title>
+<style>
+/*STYLE*/
+</style>
+<a class="skip" href="#stage" data-act="skipnav">К содержимому игры</a>
+<div id="app">
+  <div class="wrap">
+    <header class="topbar">
+      <div class="logo"><span id="logo"></span><span>Слой за слоем<small>экономика 3D-печати</small></span></div>
+      <div class="tools" id="tools" role="toolbar" aria-label="Настройки"></div>
+    </header>
+    <div class="hud" id="hud"></div>
+    <main class="stage" id="stage" tabindex="-1" aria-live="polite"></main>
+  </div>
+</div>
+<div id="actionbar" class="actionbar" hidden></div>
+<div id="modal"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script>
+/*SCRIPTS*/
+document.getElementById('logo').innerHTML = logoSVG(36);
+</script>

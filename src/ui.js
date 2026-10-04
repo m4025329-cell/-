@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 var KEY='merch-empire-v1', THEME_KEY='merch-empire-theme';
-var S=null, U={screen:'title'}, soundOn=true, actx=null;
+var S=null, U={screen:'title'}, soundOn=false, actx=null;
 
 var IC={
  shirt:'<path d="M9 3 3.5 6 5 10l3-1v12h8V9l3 1 1.5-4L15 3c-.5 1.3-1.7 2-3 2s-2.5-.7-3-2Z"/>',
@@ -225,7 +225,7 @@ function finHTML(){
   var h='<div class="plan"><div class="card"><h3>Баланс: из чего состоит капитал</h3><table class="bal num"><tbody>'+
     '<tr><td>Деньги на счету</td><td>'+rub(S.cash)+'</td></tr><tr><td>Вклад</td><td>'+rub(S.savings)+'</td></tr><tr><td>Индексный фонд</td><td>'+rub(S.fund)+'</td></tr><tr><td>Акции</td><td>'+rub(S.stock)+'</td></tr><tr><td>Товар на складе (по себестоимости)</td><td>'+rub(S.invValue)+'</td></tr>'+
     '<tr><td>Долги</td><td class="loss-t">'+rub(-S.loanLeft)+'</td></tr><tr class="total"><td>Капитал</td><td>'+rub(assets-S.loanLeft)+'</td></tr></tbody></table>'+
-    '<p class="ctl-note">Капитал = всё, что у тебя есть, минус всё, что ты должен.</p></div>';
+    '<p class="ctl-note">Капитал = всё, что у тебя есть, минус все долги.</p></div>';
   h+='<div class="col">'+(S.loanLeft>0 ?
     '<div class="card"><h3>Кредит</h3><p class="ctl-note">Ставка 1,5% в месяц. Платёж в конце месяца: часть долга плюс проценты.</p><div class="big num loss-t" style="margin-top:10px">'+rub(S.loanLeft)+'</div><p class="ctl-note">Ближайший платёж: <b class="num">'+rub(loanPayment(S))+'</b></p><div class="mv"><button class="btn small" data-act="repay" data-d="50000"'+(S.cash<1?' disabled':'')+'>Погасить 50 000</button><button class="btn small" data-act="repay" data-d="all"'+(S.cash<1?' disabled':'')+'>Погасить всё, что можно</button></div></div>' :
     '<div class="card"><h3>Кредит</h3><p class="ctl-note">'+(S.unlock.loan?'Долгов нет. Это хорошо: переплачивать банку не нужно.':'Банк предложит кредит в одной из глав.')+'</p></div>')+'</div></div>';
@@ -358,7 +358,7 @@ function chapterHTML(){
 }
 function lessonEndHTML(){
   var code=exportCode();
-  return '<div class="card"><div class="eyebrow">Урок 1 завершён</div><h2 style="margin-top:4px">Ты прошёл половину пути</h2>'+
+  return '<div class="card"><div class="eyebrow">Урок 1 завершён</div><h2 style="margin-top:4px">Половина пути пройдена</h2>'+
    '<p style="margin-top:12px;max-width:60ch">Капитал: <b class="num">'+rub(netWorth(S))+'</b>. Игра сохранена на этом устройстве. На втором уроке открой её на этом же компьютере и нажми «Продолжить». Если компьютер другой, скопируй код ниже и загрузи его на заставке.</p>'+
    '<div class="chips" style="margin-top:14px"><span class="chip gain">'+ico('check')+' Главы 1–2 пройдены</span><span class="chip info">Ответов верно: '+S.quizScore.reduce(function(a,b){return a+b;},0)+' из '+S.quizTotal+'</span></div>'+
    '<h3 style="margin-top:18px">Код сохранения</h3><textarea class="code" id="savecode" readonly>'+code+'</textarea>'+
@@ -395,7 +395,7 @@ function finalHTML(){
    '<div>'+lineChart(S.history,520,230)+'</div></div></div>';
   h+='<div class="card"><h3>Награды</h3><div class="badges" style="margin-top:12px">'+badgeList().map(function(b){ return '<div class="bdg '+(b.on?'on':'off')+'">'+ico(b.ic)+'<div><b>'+b.n+'</b><small>'+b.d+'</small></div></div>'; }).join('')+'</div></div>';
   h+='<div class="card"><h3>Результат для учителя</h3><textarea class="code" id="resline" readonly>'+esc(resultLine())+'</textarea><div class="row" style="margin-top:10px"><button class="btn small" data-act="copyres">Скопировать</button></div></div>';
-  h+='<div class="lesson"><b>Главный вывод.</b> Бизнес — это постоянный выбор между риском и выгодой, расходами и доходами, сегодня и завтра. Ты управлял ценой и спросом, платил налоги, брал кредит, защищался от инфляции и пережил кризис. Это те же решения, что принимают настоящие предприниматели.</div>';
+  h+='<div class="lesson"><b>Главный вывод.</b> Бизнес — это постоянный выбор между риском и выгодой, расходами и доходами, сегодня и завтра. Игра учила управлять ценой и спросом, платить налоги, брать кредит, защищаться от инфляции и переживать кризис. Это те же решения, что принимают настоящие предприниматели.</div>';
   h+='<div class="row"><button class="btn primary" data-act="restart">Сыграть ещё раз</button><button class="btn" data-act="glossary">Открыть словарик</button></div>';
   return h;
 }
@@ -411,7 +411,7 @@ function glossaryHTML(){
 }
 function loadHTML(){
   return '<div class="modal-head"><h2>Загрузить игру</h2><button class="btn small" data-act="closemodal">Закрыть</button></div>'+
-   '<p class="ctl-note">Вставь код сохранения, который ты скопировал на прошлом уроке.</p><textarea class="code" id="loadcode" placeholder="Вставь код сюда"></textarea><div class="row"><button class="btn primary" data-act="doload">Загрузить</button></div><p class="ctl-note loss-t" id="loaderr"></p>';
+   '<p class="ctl-note">Вставь код сохранения, который был показан в конце прошлого урока.</p><textarea class="code" id="loadcode" placeholder="Вставь код сюда"></textarea><div class="row"><button class="btn primary" data-act="doload">Загрузить</button></div><p class="ctl-note loss-t" id="loaderr"></p>';
 }
 
 /* ---------- отрисовка ---------- */
@@ -514,7 +514,7 @@ var A={
  glossary:function(){ openModal(glossaryHTML()); },
  closemodal:function(){ closeModal(); },
  theme:function(){ var d=!isDark(); document.documentElement.setAttribute('data-theme',d?'dark':'light'); try{ localStorage.setItem(THEME_KEY,d?'dark':'light'); }catch(e){} render(true); },
- sound:function(){ soundOn=!soundOn; render(true); sfx('click'); }
+ sound:function(){ soundOn=!soundOn; try{ localStorage.setItem('merch-empire-sound',soundOn?'1':'0'); }catch(e){} render(true); sfx('click'); }
 };
 function copyText(t,sel){
   var done=function(){ toast('Скопировано'); };
@@ -536,7 +536,7 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal
 
 /* ---------- запуск ---------- */
 function boot(){
-  try{ var th=localStorage.getItem(THEME_KEY); if(th) document.documentElement.setAttribute('data-theme',th); }catch(e){}
+  try{ var th=localStorage.getItem(THEME_KEY); if(th) document.documentElement.setAttribute('data-theme',th); soundOn=localStorage.getItem('merch-empire-sound')==='1'; }catch(e){}
   $('#app-tools').innerHTML=
    '<button class="iconbtn" data-act="glossary" title="Словарик" aria-label="Словарик">'+ico('book')+'</button>'+
    '<button class="iconbtn" id="soundbtn" data-act="sound" title="Звук" aria-label="Звук"></button>'+
