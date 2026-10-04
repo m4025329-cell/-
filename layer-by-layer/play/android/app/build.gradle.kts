@@ -18,8 +18,8 @@ android {
         applicationId = "ru.sloyzasloem.game"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1          // при каждой новой загрузке в Google Play увеличивай на 1
-        versionName = "4.0.0"
+        versionCode = 2          // при каждой новой загрузке в Google Play увеличивай на 1
+        versionName = "4.1.0"
     }
 
     signingConfigs {

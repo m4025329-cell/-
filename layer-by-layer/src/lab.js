@@ -34,6 +34,24 @@ var RESEARCH = [
   {id:'led',    name:'Подсветка и электроника', icon:'bolt',    cost:16000, months:2, from:4,
    text:'Учишься встраивать светодиоды и платы: открывается новый товар, ночники и светильники.', effect:'открывает ночники и светильники',
    apply:function(s){ s.unlocked.lamp=true; s.rep=clamp(s.rep+2,0,100); }},
+  {id:'spare',  name:'Набор запчастей для принтеров', icon:'wrench', cost:7000, months:1, from:3,
+   text:'Ремни, подшипники и сопла всегда под рукой: принтеры реже простаивают.', effect:'брак меньше на 1,5 п.п., +2% часов печати',
+   apply:function(s){ addMod(s,'fail',-0.015,99,'Запас запчастей'); addMod(s,'hours',1.02,99,'Запас запчастей'); }},
+  {id:'dry',    name:'Сушилка для пластика',    icon:'sun',     cost:11000, months:2, from:4,
+   text:'Катушки сушатся перед печатью: влага больше не портит изделия, и пластик можно закупать впрок.', effect:'пластик не отсыревает, брак меньше на 1 п.п.',
+   apply:function(s){ s.dry=true; addMod(s,'fail',-0.01,99,'Сушилка пластика'); }},
+  {id:'batch',  name:'Партионная печать',        icon:'layers',  cost:15000, months:2, from:5,
+   text:'Одинаковые детали печатаются сразу столами, а не по одной: меньше возни и простоев.', effect:'+4% часов печати, брак меньше на 1 п.п.',
+   apply:function(s){ addMod(s,'hours',1.04,99,'Партионная печать'); addMod(s,'fail',-0.01,99,'Партионная печать'); }},
+  {id:'web',    name:'Интернет-магазин',          icon:'globe',   cost:17000, months:2, from:6,
+   text:'Своя страница с корзиной и оплатой: покупателям проще заказывать.', effect:'спрос на брелоки, подставки, фигурки, ночники и игрушки +4%, репутация +2',
+   apply:function(s){ addModB2C(s,1.04,99,'Интернет-магазин'); s.rep=clamp(s.rep+2,0,100); }},
+  {id:'multi',  name:'Мультицветная печать',      icon:'sparkle', cost:22000, months:3, from:6,
+   text:'Многоцветные изделия: фигурки и игрушки выглядят ярче, и за них платят больше.', effect:'спрос на фигурки, игрушки и ночники +7%, фигурки дороже на 5%',
+   apply:function(s){ ['mini','toy','lamp'].forEach(function(id){ addMod(s,'dem',1.07,99,'Мультицвет',id); }); addMod(s,'ref',1.05,99,'Мультицвет','mini'); }},
+  {id:'param',  name:'Параметрическое моделирование', icon:'cap', cost:20000, months:3, from:7,
+   text:'Детали проектируются по формулам: можно быстро подгонять размеры под заказ.', effect:'запчасти и прототипы печатаются на 10% быстрее, спрос на запчасти +5%',
+   apply:function(s){ s.tAdd.part=(s.tAdd.part||0)-PRODUCTS.part.t*0.1; s.tAdd.proto=(s.tAdd.proto||0)-PRODUCTS.proto.t*0.1; addMod(s,'dem',1.05,99,'Параметрическое моделирование','part'); }},
   {id:'farm',   name:'Умная ферма',             icon:'safe',    cost:42000, months:3, from:8,
    text:'Камеры и датчики следят за печатью: остановка при ошибке, меньше брака и простоя.', effect:'+5% часов печати, брак меньше на 2 п.п.',
    apply:function(s){ addMod(s,'hours',1.05,99,'Умная ферма'); addMod(s,'fail',-0.02,99,'Умная ферма'); }}
@@ -102,7 +120,7 @@ function liquidate(s, id){
 /* в конце месяца: сырой пластик отсыревает, если его слишком много; запоминаем историю цены */
 function stockTick(s, r){
   s.filHist=s.filHist||[1];
-  if(s.fil.kg>FIL_WET){ addMod(s,'fail',0.02,1,'Отсыревший пластик'); if(r) r.wet=true; }
+  if(s.fil.kg>FIL_WET && !s.dry){ addMod(s,'fail',0.02,1,'Отсыревший пластик'); if(r) r.wet=true; }
   s.filHist.push(Math.round(s.filIdx*1000)/1000);
   if(s.filHist.length>17) s.filHist.shift();
 }

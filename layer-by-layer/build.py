@@ -16,7 +16,7 @@ def js(name):
     t = (src / name).read_text(encoding='utf-8')
     return t.replace("if(typeof module!=='undefined') module.exports = {};", '')
 
-scripts = '\n'.join(js(n) for n in ['engine.js', 'content.js', 'orders.js', 'lab.js', 'team.js', 'modes.js', 'events.js', 'minievents.js', 'minievents2.js', 'minievents3.js', 'reviews.js', 'ending.js', 'art.js', 'workshop.js', 'ui.js'])
+scripts = '\n'.join(js(n) for n in ['engine.js', 'content.js', 'orders.js', 'lab.js', 'team.js', 'modes.js', 'news.js', 'events.js', 'minievents.js', 'minievents2.js', 'minievents3.js', 'minievents4.js', 'reviews.js', 'ending.js', 'art.js', 'workshop.js', 'ui.js'])
 css = (src / 'style.css').read_text(encoding='utf-8').replace('/*FONTS*/', fonts_css())
 frag = (src / 'body.html').read_text(encoding='utf-8').replace('/*STYLE*/', css).replace('/*SCRIPTS*/', scripts)
 (root / 'dist').mkdir(exist_ok=True)
@@ -28,7 +28,7 @@ doc = ('<!doctype html>\n<html lang="ru">\n<head>\n<meta charset="utf-8">\n'
        '<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>\n'
        '</head>\n<body>\n' + frag.replace(head_title, '', 1) + '\n</body>\n</html>\n')
 # --- версия для установки как приложение (PWA) и для Google Play ---
-APP_VERSION = '4.0.0'
+APP_VERSION = '4.1.0'
 pwa_head = ('<meta name="theme-color" content="#0C1024">\n<meta name="description" content="Экономическая игра про бизнес на 3D-принтерах">\n'
             '<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">\n'
             '<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">\n')

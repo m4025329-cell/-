@@ -1,7 +1,7 @@
 /* ===== Интерфейс «Слоя за слоем»: экраны, действия, сохранение ===== */
 (function(){
 'use strict';
-var KEY='lbl-save-v1', THEME_KEY='lbl-theme', SND_KEY='lbl-sound', APP_VERSION='4.0.0';
+var KEY='lbl-save-v1', THEME_KEY='lbl-theme', SND_KEY='lbl-sound', APP_VERSION='4.1.0';
 var S=null, U={screen:'title'}, soundOn=false, actx=null, reduced=false, lastFocus=null;
 try{ reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
 function $(s,r){ return (r||document).querySelector(s); }
@@ -91,6 +91,11 @@ function openModal(title, html, id){
 }
 function closeModal(){ $('#modal').innerHTML=''; if(lastFocus && lastFocus.focus){ try{ lastFocus.focus({preventScroll:true}); }catch(e){} } }
 function addTerm(k){ if(k && S.terms.indexOf(k)<0) S.terms.push(k); }
+function awardsHTML(){
+  var got=(S&&S.ach)||{}, n=ACH.filter(function(a){ return got[a.id]; }).length;
+  return '<p class="muted">Получено наград: <b>'+n+'</b> из '+ACH.length+'. Награды открываются сами, когда выполняешь условие в обычной игре.</p><div class="awards">'+ACH.map(function(a){
+    var on=!!got[a.id]; return '<div class="award '+(on?'on':'off')+'"><span class="fico">'+ico(on?a.icon:'lock')+'</span><div><b>'+esc(a.name)+'</b><small>'+esc(a.desc)+(on?' · месяц '+got[a.id]:'')+'</small></div></div>'; }).join('')+'</div>';
+}
 function glossaryHTML(){
   var keys=Object.keys(TERMS), got=S?S.terms:[], open=keys.filter(function(k){ return got.indexOf(k)>=0; }), shut=keys.length-open.length, locks='', i;
   for(i=0;i<shut;i++) locks+='<i aria-hidden="true">'+ico('lock')+'</i>';
@@ -129,13 +134,26 @@ function hudHTML(){
     '<div><div class="fil" role="progressbar" aria-label="Путь к цели" aria-valuemin="0" aria-valuemax="'+GOAL+'" aria-valuenow="'+Math.max(0,cap)+'"><i style="width:'+(p*100).toFixed(1)+'%"></i><svg viewBox="0 0 20 24" style="left:'+Math.max(2,p*100).toFixed(1)+'%"><path d="M3 2h14v11l-4 4v5h-6v-5l-4-4z" fill="var(--p-body)"/><path d="M7 17h6v2H7z" fill="var(--p-nozzle)"/><path d="M5 5h10" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"/></svg></div>'+
     '<div class="fil-row"><span>Цель: капитал '+rub(GOAL)+((S.scenario&&S.scenario!=='story')?' · '+scenarioOf(S).name:' для технопарка')+'</span><span class="num">'+Math.round(p*100)+'%</span></div>'+share+'</div></div>';
 }
+function setHudVar(){ var h=$('#hud'); if(h) document.documentElement.style.setProperty('--hud-h',(h.offsetHeight||0)+'px'); }
 function renderHud(){
   var hud=$('#hud'); if(!hud) return;
   hud.innerHTML = (S && U.screen!=='title' && U.screen!=='intro' && U.screen!=='calib' && U.screen!=='setup') ? hudHTML() : '';
   $$('[data-k]',hud).forEach(function(el){ var k=el.getAttribute('data-k'), to=+el.getAttribute('data-v'), from=hudPrev[k]; if(from!=null && from!==to) animateNumber(el, from, to, 700); hudPrev[k]=to; });
+  setHudVar();
 }
 
 /* ---------- заставка ---------- */
+function bestRecords(){ try{ return JSON.parse(lsGet('lbl-best')||'{}')||{}; }catch(e){ return {}; } }
+function saveRecord(){
+  if(!S) return; var b=bestRecords(), id=S.scenario||'story', cap=ownerCapital(S);
+  if(!b[id] || cap>b[id].cap){ b[id]={cap:cap, title:titleOf(cap), shop:S.shop||'', goal:GOAL}; lsSet('lbl-best',JSON.stringify(b)); return true; }
+  return false;
+}
+function recordsHTML(){
+  var b=bestRecords(), ids=Object.keys(b).filter(function(k){ return SCENARIOS[k]; });
+  if(!ids.length) return '';
+  return '<div class="chips" aria-label="Рекорды">'+ids.map(function(k){ var x=b[k]; return '<span class="chip brand">'+ico('star')+' '+SCENARIOS[k].name+': '+rub(x.cap)+' · '+esc(x.title)+'</span>'; }).join('')+'</div>';
+}
 function titleHTML(){
   var sv=readSave(), cont=!!sv;
   var nm = (S && S.name && S.name!=='Мастер') ? S.name : '';
@@ -144,6 +162,7 @@ function titleHTML(){
     '<div class="row"><button class="btn primary" data-act="start" id="startbtn">'+(U.confirmNew?'Стереть и начать заново':'Начать игру')+ico('right')+'</button>'+
     (cont?'<button class="btn" data-act="continue">Продолжить: месяц '+Math.min(sv.S.month,TOTAL)+'</button>':'')+
     '<button class="btn ghost small" data-act="loadcode">'+ico('download')+' Загрузить код</button><button class="btn ghost small" data-act="teacher">'+ico('cap')+' Для учителя</button><button class="btn ghost small" data-act="about">'+ico('info')+' О игре</button></div>'+
+    recordsHTML()+
     (U.confirmNew?'<p class="loss-t">Прошлый прогресс будет удалён. Нажми ещё раз, чтобы подтвердить.</p>':(cont?'<p class="muted">На этом устройстве есть сохранённая игра.</p>':''))+
     '</div><div class="hero-art" aria-hidden="true">'+printerSVG({obj:'stand',working:true,label:'Принтер печатает подставку'})+'</div></section>'+
     '<section class="steps" aria-label="Как играть"><div class="card"><div class="step-n">1</div><h3>Реши</h3><p class="muted">В начале месяца случается сюжетная сцена. Выбери вариант и узнай, чему он учит.</p></div>'+
@@ -395,6 +414,7 @@ function tabDot(id){
   if(id==='orders'){ var n=openOffers().length; return n?{n:n,k:'n'}:null; }
   if(id==='stock'){ var tr=filTrend(S); if(S.fil.kg>FIL_WET) return {n:'!',k:'w'}; if(!seen.stock && tr.rel<0.96 && S.month>1) return {n:'↓',k:'n'}; return null; }
   if(id==='shop'){ var L=labOf(S); if(!seen.shop && L.active.length<labSlots(S) && S.month>=2 && RESEARCH.some(function(r){ return canResearch(S,r.id).ok; })) return {n:'!',k:'n'}; return null; }
+  if(id==='market'){ var nu=newsUpcoming(S).filter(function(x){ return x.announced===S.month; }); return (!seen.market && nu.length)?{n:'!',k:'n'}:null; }
   if(id==='quests'){ var qa=questsAvailable(S).length; return (!seen.quests && qa)?{n:qa,k:'n'}:null; }
   if(id==='team'){ return (!seen.team && S.month>=3 && SPEC_IDS.some(function(k){ return canHire(S,k).ok; }))?{n:'!',k:'n'}:null; }
   return null;
@@ -403,6 +423,7 @@ function tabDot(id){
 function nextStep(){
   var seen=U.seen||{}, b=makeBoard(S), open=b.offers.filter(function(o){ return o.state==='open'; }).length, pv=previewMonth(S,S.plan,1), free=pv.H-pv.hours;
   if(open && !seen.deal) return {text:'Загляни в «Заказы»: есть '+open+' '+plural(open,'предложение','предложения','предложений')+' от клиентов', tab:'orders'};
+  var nw=newsUpcoming(S).filter(function(x){ return x.announced===S.month; })[0]; if(nw && !seen.market){ var NN=MARKET_NEWS_BY_ID[nw.id], dd=nw.start-S.month; return {text:'Новость рынка: «'+NN.name+'» через '+dd+' '+plural(dd,'месяц','месяца','месяцев'), tab:'market'}; }
   var q=questStep(); if(q) return q;
   if(!seen.biz) return {text:'Реши, что и сколько печатать', tab:'biz'};
   if(S.month>=2 && !seen.shop && labOf(S).active.length<labSlots(S) && RESEARCH.some(function(r){ return canResearch(S,r.id).ok; })) return {text:'Лаборатория свободна: можно начать исследование', tab:'shop'};
@@ -412,7 +433,7 @@ function nextStep(){
 }
 function navHTML(){
   var n=nextStep();
-  return '<div class="nav"><span class="nav-l">'+ico('target')+'<b>Что дальше:</b> '+n.text+'</span>'+(n.go?'<button class="btn small primary" data-act="go">Запустить печать'+ico('play')+'</button>':'<button class="btn small" data-act="tab" data-t="'+n.tab+'">Перейти'+ico('right')+'</button>')+'</div>';
+  return '<div class="nav"><span class="nav-l">'+ico('target')+'<span><b>Что дальше:</b> '+n.text+'</span></span>'+(n.go?'<button class="btn small primary" data-act="go">Запустить печать'+ico('play')+'</button>':'<button class="btn small" data-act="tab" data-t="'+n.tab+'">Перейти'+ico('right')+'</button>')+'</div>';
 }
 function mapHTML(){
   return '<div class="stack"><p class="muted">Всё, что нужно в месяце, находится на этих вкладках. Нажми на название, чтобы открыть.</p><div class="maplist">'+allTabs().map(function(x){
@@ -423,7 +444,7 @@ function planHTML(){
   var ch=CHAPTERS[chapterOf(S.month)], t=U.tab||'orders', tabs=allTabs();
   var mods=modsHTML();
   var cur=tabs.filter(function(x){ return x.id===t; })[0]||tabs[0];
-  var h='<section class="card flat lined stack"><div class="row between"><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · акт «'+ch.name+'»</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(26px,4vw,36px)">Планирование месяца</h1></div><div class="row" style="gap:8px"><button class="btn small" data-act="mapopen">'+ico('grid')+' Где что?</button><button class="btn small" data-act="help">'+ico('info')+' Как это работает</button></div></div>'+(mods?mods:'')+
+  var h='<section class="card flat lined stack"><div class="row between"><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · акт «'+ch.name+'»</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(21px,4vw,36px)">Планирование месяца</h1></div><div class="row hdr-btns" style="gap:8px"><button class="btn small" data-act="mapopen" aria-label="Где что находится">'+ico('grid')+'<span class="hide-s"> Где что?</span></button><button class="btn small" data-act="help" aria-label="Как это работает">'+ico('info')+'<span class="hide-s"> Как это работает</span></button></div></div>'+(mods?mods:'')+
     stepsHTML()+'<div id="nav-box">'+navHTML()+'</div><div class="goals" id="goals-box">'+goalsInner()+'</div></section>';
   h+='<div class="tabs" role="tablist" aria-label="Разделы планирования">'+tabs.map(function(x){ var d=tabDot(x.id); return '<button class="tab" role="tab" data-act="tab" data-t="'+x.id+'" aria-selected="'+(t===x.id)+'">'+ico(x.icon)+'<span>'+x.name+'</span>'+(d?'<i class="tbadge'+(d.k==='w'?' warn':'')+'" aria-hidden="true">'+d.n+'</i><span class="sr-only"> (есть новое)</span>':'')+'</button>'; }).join('')+'</div>';
   h+='<p class="tabnote"><b>'+cur.name+'.</b> '+cur.what+' <span class="muted">'+cur.use+'</span></p>';
@@ -497,9 +518,11 @@ function coachHTML(t){
     market:'<b>Здесь видно, как меняется спрос в течение года.</b> Перед праздниками покупают больше, летом меньше. Планируй печать заранее, а не когда спрос уже упал.',
     stock:'<b>Здесь склад.</b> Пластик можно закупать заранее, когда он дешёвый, но большой запас отсыреет. Готовые изделия, которые не продались, лежат здесь и дешевеют: их можно распродать оптом.',
     shop:'<b>Здесь развитие мастерской:</b> лаборатория с исследованиями, принтеры, помощники и помещение. Каждая покупка должна окупиться: смотри на подсказки «окупится за».',
+    quests:'<b>Здесь длинные цели.</b> Каждое задание это цепочка шагов на несколько месяцев: за каждый шаг платят сразу, за всё задание ещё бонус. Одновременно можно вести три, поэтому выбирай те, что подходят твоей мастерской.',
+    team:'<b>Здесь люди.</b> Специалист получает зарплату каждый месяц, даже когда заказов мало, зато даёт постоянный бонус. Нанимай того, кто решает твою главную проблему.',
     fin:'<b>Здесь деньги работают на тебя:</b> налоги, вклады и кредиты. Пока можно ничего не трогать, но к середине игры эти настройки сильно влияют на итог.'}[t];
-  if(!txt || m>(t==='orders'||t==='biz'?3:2)) return '';
-  return '<div class="callout coach">'+avatarSVG('phil','happy',40)+'<div>'+txt+'</div></div>';
+  S.coach=S.coach||{}; if(!txt || S.coach[t]) return '';
+  return '<div class="callout coach">'+avatarSVG('phil','happy',40)+'<div>'+txt+'<div style="margin-top:8px"><button class="btn small" data-act="coachok" data-t="'+t+'">Понятно, не показывать</button></div></div></div>';
 }
 function ordersHTML(){
   var b=makeBoard(S), pv=previewMonth(S,S.plan,1), mph=bestPerHour(pv), L=lockLoad(S), H=printerHours(S), ev=S.contracts.filter(function(c){ return !c.oid; });
@@ -522,6 +545,16 @@ function ordersHTML(){
   h+='<div class="row"><button class="btn primary" data-act="tab" data-t="biz">Дальше: спланировать печать'+ico('right')+'</button></div>';
   return h;
 }
+function newsCardHTML(){
+  var up=newsUpcoming(S), act=newsActive(S);
+  function eff(N){ var pr=newsProds(N); return (N.k==='fil'?'пластик':(N.k==='run'?'печать':'спрос'))+' ×'+f1(N.m)+(pr?' · '+pr.map(function(p){ return PRODUCTS[p].short.toLowerCase(); }).join(', '):''); }
+  function row(x,when){ var N=MARKET_NEWS_BY_ID[x.id]; return '<div class="nrow '+(N.good?'good':'bad')+'"><span class="cbadge" style="--cc:var(--c-'+(N.good?'lime':'rose')+')">'+ico(N.good?'up':'down')+'</span><div class="ostat"><b>'+esc(N.name)+'</b><span class="k">'+esc(N.text)+'</span><span class="chips"><span class="chip '+(N.good?'gain':'loss')+'">'+eff(N)+'</span><span class="chip">'+N.dur+' '+plural(N.dur,'месяц','месяца','месяцев')+'</span></span></div><span class="chip brand">'+when+'</span></div>'; }
+  var h='<section class="card lined stack"><div><div class="eyebrow">Планирование на шаг вперёд</div><h2 style="font-size:22px">Новости рынка</h2></div>';
+  if(!up.length && !act.length) h+='<p class="muted">Пока тихо. Свежие новости появляются за месяц-два до событий: следи за этим разделом, чтобы успеть подготовить запас.</p>';
+  act.forEach(function(x){ h+=row(x,'сейчас'); });
+  up.forEach(function(x){ var d=x.start-S.month; h+=row(x,'через '+d+' '+plural(d,'месяц','месяца','месяцев')); });
+  return h+'</section>';
+}
 function marketHTML(){
   var m=S.month, plan=S.plan, rows='', top=null, up=null, down=null;
   PROD_IDS.forEach(function(id){
@@ -539,7 +572,7 @@ function marketHTML(){
   if(down && down.v<-0.04) adv.push('Спрос на «'+PRODUCTS[down.id].short.toLowerCase()+'» просядет: не печатай больше, чем продашь сейчас.');
   var repM=1+S.rep*0.010, adM=adMult(S,plan.ad), qM=Math.pow(MODES[plan.mode].q,PRODUCTS.key.qs), chM=channelMult(S), evM=modProd(S,'dem','key')*S.pdm.key;
   function fac(name,v,why){ return '<div class="fac"><b>'+name+'</b><span class="num '+(v>1.005?'gain-t':(v<0.995?'loss-t':''))+'">×'+f1(v)+'</span><small class="muted">'+why+'</small></div>'; }
-  var h='<section class="card stack"><div><div class="eyebrow">Сезонность</div><h2 style="font-size:22px">Спрос по месяцам</h2></div><p class="muted">Линия показывает, как спрос меняется за 16 месяцев. Оранжевая точка это текущий месяц, множитель — на сколько спрос выше или ниже обычного.</p><div class="mrows">'+rows+'</div>'+
+  var h=newsCardHTML()+'<section class="card stack"><div><div class="eyebrow">Сезонность</div><h2 style="font-size:22px">Спрос по месяцам</h2></div><p class="muted">Линия показывает, как спрос меняется за 16 месяцев. Оранжевая точка это текущий месяц, множитель — на сколько спрос выше или ниже обычного.</p><div class="mrows">'+rows+'</div>'+
     (adv.length?'<div class="callout tip">'+avatarSVG('phil','happy',40)+'<div><b>Совет Фила.</b> '+adv.join(' ')+'</div></div>':'')+'</section>';
   var hist=S.compHist||[], crow=PROD_IDS.filter(function(id){ return isAvailable(S,id); }).map(function(id){
     var cp=compPrice(S,id), my=plan.price[id], d=Math.round((my/cp-1)*100);
@@ -557,9 +590,12 @@ function goalsList(){
   var gs=goalsFor(S), pv=previewMonth(S,S.plan,1);
   return gs.list.map(function(g){ var G=GOAL_BY_ID[g.id], ok=false; try{ ok=!!G.test(S,pv,g); }catch(e){} return {text:G.text(g), ok:ok, hint:G.hint}; });
 }
+function goalsOpen(){ return U.goalsOpen==null ? (window.innerWidth>700) : !!U.goalsOpen; }
 function goalsInner(){
-  var l=goalsList(), n=l.filter(function(x){ return x.ok; }).length;
-  return '<div class="row between"><b class="goals-h">'+ico('target')+' Цели месяца</b><span class="chip brand">+'+rub(GOAL_REWARD)+' за каждую, +'+rub(GOAL_BONUS)+' за все</span></div>'+
+  var l=goalsList(), n=l.filter(function(x){ return x.ok; }).length, open=goalsOpen();
+  var head='<div class="row between"><button class="goals-h gbtn" data-act="goalstoggle" aria-expanded="'+open+'">'+ico('target')+'<span>Цели месяца: <span class="num">'+n+' из '+l.length+'</span> по прогнозу</span>'+ico(open?'up':'down')+'</button><span class="chip brand hide-s">+'+rub(GOAL_REWARD)+' за каждую, +'+rub(GOAL_BONUS)+' за все</span></div>';
+  if(!open) return head;
+  return head+
     '<ul class="goals-l">'+l.map(function(x){ return '<li class="'+(x.ok?'ok':'')+'"><span class="gbox" aria-hidden="true">'+(x.ok?ico('check'):'')+'</span><span>'+esc(x.text)+(x.ok?' <span class="sr-only">(по прогнозу выполнена)</span>':'')+'</span></li>'; }).join('')+'</ul>'+
     '<p class="muted" style="font-size:13px">Отмечено то, что выполняется при текущем плане. Итог будет после печати.</p>';
 }
@@ -567,7 +603,7 @@ function stepsInner(){
   var tu=tutorialState();
   if(tu.active){
     var cur=-1; tu.steps.forEach(function(x,i){ if(cur<0&&!x.done) cur=i; });
-    return '<div class="tut"><div class="eyebrow">Обучение · первый месяц</div><ol>'+tu.steps.map(function(x,i){ return '<li class="'+(x.done?'done':(i===cur?'now':''))+'"><span class="tn">'+(x.done?ico('check'):(i+1))+'</span><span>'+x.t+'</span></li>'; }).join('')+'</ol></div>';
+    var curN=cur<0?tu.steps.length:cur+1; return '<div class="tut"><div class="eyebrow">Обучение · первый месяц · шаг '+curN+' из '+tu.steps.length+'</div><ol>'+tu.steps.map(function(x,i){ return '<li class="'+(x.done?'done':(i===cur?'now':''))+((cur<0?i===tu.steps.length-1:i===cur)?' show':'')+'"><span class="tn">'+(x.done?ico('check'):(i+1))+'</span><span>'+x.t+'</span></li>'; }).join('')+'</ol></div>';
   }
   if(S.month>4) return '';
   var b=makeBoard(S), resolved=b.offers.every(function(o){ return o.state!=='open'; }), seen=U.seen||{};
@@ -670,10 +706,10 @@ function myqBuild(r){
   if(r.soldTot>0 && r.revTot>0) list.push({q:'Сколько рублей выручки пришлось в среднем на одну проданную штуку?', ans:Math.round(r.revTot/soldTot/5)*5, unit:'₽', why:'Выручка '+rub(r.revTot)+' делим на '+Math.round(r.soldTot)+' проданных штук.'});
   if(defects>=3) list.push({q:'Сколько изделий за месяц ушло в брак?', ans:Math.round(defects), unit:'шт.', why:'Для '+q+' хороших изделий пришлось напечатать больше попыток. Разница это брак.'});
   if(!list.length) return null;
-  var pick=list[(r.month*7+Math.round(r.revTot))%list.length], ans=pick.ans;
+  var pick=list[((r.month*7+Math.round(Math.abs(r.revTot)))%list.length+list.length)%list.length], ans=pick.ans;
   var step=Math.max(pick.unit==='%'?5:(pick.unit==='шт.'?2:10), Math.round(ans*0.2/5)*5||5), set=[ans], k=1;
   while(set.length<3 && k<12){ var c=(k%2? ans+step*Math.ceil(k/2) : Math.max(0,ans-step*Math.ceil(k/2))); if(set.indexOf(c)<0) set.push(c); k++; }
-  var seed=(r.month*13+Math.round(r.profit))%6, ord=[[0,1,2],[1,2,0],[2,0,1],[0,2,1],[1,0,2],[2,1,0]][seed];
+  var seed=(((r.month*13+Math.round(r.profit))%6)+6)%6, ord=[[0,1,2],[1,2,0],[2,0,1],[0,2,1],[1,0,2],[2,1,0]][seed];
   return {q:pick.q, unit:pick.unit, why:pick.why, opts:ord.map(function(i){ return set[i]; }), ans:ans, picked:null};
 }
 function myqHTML(){
@@ -830,9 +866,9 @@ function flowHTML(r, actual){
 function tutorialState(){
   if(S.month!==1) return {active:false, ok:true, steps:[]};
   var b=makeBoard(S), seen=U.seen||{};
-  var s1=b.offers.some(function(o){ return o.state==='taken'; }), s2=!!seen.qty, s3=s1&&s2&&!!seen.biz;
+  var s1=b.offers.some(function(o){ return o.state==='taken'; }) || !b.offers.some(function(o){ return o.state==='open'; }), s2=!!seen.qty, s3=s1&&s2&&!!seen.biz;
   return {active:true, ok:s1&&s2, steps:[
-    {t:'Прими заказ на вкладке «Заказы»: клиент заранее заплатит, и продажа гарантирована.', done:s1},
+    {t:'Реши, брать ли заказ на вкладке «Заказы»: клиент заранее заплатит, и продажа гарантирована. Попробуй принять хотя бы один.', done:s1},
     {t:'На вкладке «Печать» реши, сколько штук делать: двигай ползунок «Сколько напечатать» у любого товара.', done:s2},
     {t:'Посмотри схему «откуда → куда» и прогноз справа, потом нажми «Запустить печать».', done:s3}]};
 }
@@ -876,8 +912,8 @@ function renderActionBar(pv){
   pv = pv || previewMonth(S,S.plan,1);
   var left=S.cash-pv.cashNow, ok=left>=-0.5, tu=tutorialState(), gate=tu.active&&!tu.ok;
   bar.hidden=false;
-  bar.innerHTML='<div class="actionbar-in"><div class="sum">'+(gate?'<span><b>Обучение:</b> сначала выполни шаги вверху страницы.</span>':'')+'<span'+(gate?' hidden':'')+'>Потратишь сейчас: <b class="num">'+rub(pv.cashNow)+'</b><span class="hide-s muted"> (пластик '+rub(pv.buyCost)+', печать '+rub(pv.runCost)+(pv.adCost?', реклама '+rub(pv.adCost):'')+')</span></span><span>Прибыль месяца ≈ <b class="num '+(pv.profit>=0?'gain-t':'loss-t')+'" style="font-size:15px">'+rub(pv.profit)+'</b><span class="hide-s"> · платежи в конце месяца '+rub(pv.fixed+loanPayment(S))+'</span></span>'+(ok?'':'<span class="loss-t">Не хватает '+rub(-left)+': уменьши выпуск</span>')+'</div>'+
-    '<button class="btn primary" data-act="go" id="gobtn"'+((ok&&!gate)?'':' disabled')+(gate?' title="Сначала выполни шаги обучения"':'')+'>Запустить печать'+ico('play')+'</button></div>';
+  bar.innerHTML='<div class="actionbar-in"><div class="sum">'+(gate?'<span class="gate-t"><b>Обучение:</b> выполни шаги вверху страницы</span>':'')+'<span'+(gate?' hidden':'')+'>Потратишь: <b class="num">'+rub(pv.cashNow)+'</b><span class="hide-s muted"> (пластик '+rub(pv.buyCost)+', печать '+rub(pv.runCost)+(pv.adCost?', реклама '+rub(pv.adCost):'')+')</span></span><span'+(gate?' hidden':'')+'>Прибыль ≈ <b class="num '+(pv.profit>=0?'gain-t':'loss-t')+'" style="font-size:15px">'+rub(pv.profit)+'</b><span class="hide-s"> · платежи в конце месяца '+rub(pv.fixed+loanPayment(S))+'</span></span>'+(ok?'':'<span class="loss-t">Не хватает '+rub(-left)+': уменьши выпуск</span>')+'</div>'+
+    '<button class="btn primary" data-act="go" id="gobtn"'+((ok&&!gate)?'':' disabled')+(gate?' title="Сначала выполни шаги обучения"':'')+'>Запустить<span class="hide-s"> печать</span>'+ico('play')+'</button></div>';
 }
 
 /* ---------- мастерская (покупки) ---------- */
@@ -1050,7 +1086,7 @@ function reportHTML(){
   if(r.wet) h+='<div class="callout warn">'+ico('warn')+'<div><b>Пластик отсыревает.</b> Запас больше '+FIL_WET+' кг впитывает влагу, и в следующем месяце брак выше на 2 п.п.</div></div>';
   var pg=r.progress||{ach:[],mile:[]};
   if(pg.mile.length||pg.ach.length){
-    h+='<section class="card lined stack"><div class="eyebrow">Новое</div>'+pg.mile.map(function(m){ return '<div class="callout ok">'+ico('star')+'<div><b>Веха: капитал '+rub(m)+'!</b> Технопарк достроен на '+Math.round(m/GOAL*100)+'%. '+({250000:'Фил: «Четверть пути. Я посчитал слои: их уже больше, чем я помню».',500000:'Фил: «Половина! Мой датчик гордости зашкаливает».',750000:'Фил: «Осталось совсем чуть-чуть. Не сглазить бы».'}[m])+'</div></div>'; }).join('')+
+    h+='<section class="card lined stack"><div class="eyebrow">Новое</div>'+pg.mile.map(function(m){ var mk=Math.round(m*1000000/GOAL/250000)*250000; return '<div class="callout ok">'+ico('star')+'<div><b>Веха: капитал '+rub(m)+'!</b> Технопарк достроен на '+Math.round(m/GOAL*100)+'%. '+({250000:'Фил: «Четверть пути. Я посчитал слои: их уже больше, чем я помню».',500000:'Фил: «Половина! Мой датчик гордости зашкаливает».',750000:'Фил: «Осталось совсем чуть-чуть. Не сглазить бы».'}[mk])+'</div></div>'; }).join('')+
       '<div class="chips pop-in">'+pg.ach.map(function(a,i){ return '<span class="chip brand" style="--i:'+i+'">'+ico(a.icon)+' Награда: '+a.name+'</span>'; }).join('')+'</div></section>';
   }
   h+=reviewsHTML(r);
@@ -1109,6 +1145,7 @@ function finalHTML(){
     '<div class="chips"><span class="chip info">Вопросы: '+qTotal()+' из '+S.quizTotal+'</span><span class="chip info">'+ico('doc')+' Заказы: '+((S.orderStats&&S.orderStats.done)||0)+' из '+((S.orderStats&&S.orderStats.taken)||0)+'</span><span class="chip info">'+ico('target')+' Цели месяцев: '+(S.goalStars||0)+' из '+(S.goalTotal||0)+'</span><span class="chip">Выручка за игру: '+rub(S.totalRevenue)+'</span>'+(bestM?'<span class="chip brand">Лучший месяц: '+MONTH_NAMES[bestM.m-1]+', '+rub(bestM.profit)+'</span>':'')+'<span class="chip gain">Наград: '+got+' из '+BADGES.length+'</span></div></div>'+
     '<div class="tower-wrap">'+towerSVG(S.history,{h:300,w:380})+'</div></div></section>';
   h+=wsCard('Мастерская на финише', S.printers.length+' '+plural(S.printers.length,'принтер','принтера','принтеров'));
+  h+='<section class="card stack"><div><div class="eyebrow">Разбор партии</div><h2 style="font-size:22px">Что получилось и что улучшить</h2></div><div class="insights">'+gameInsights(S).map(function(x){ return '<div class="insight '+x.tone+'"><span class="fico">'+ico(x.icon)+'</span><div><b>'+esc(x.title)+'</b><span>'+esc(x.text)+'</span></div></div>'; }).join('')+'</div></section>';
   h+='<section class="card stack-lg"><h2 style="font-size:22px">Что было дальше</h2><div class="dialog">'+bubble(say('sem','happy',T.sem),0)+bubble(say('phil',ti<=2?'excited':'happy',T.phil),1)+epi.map(function(e,i){ return bubble(say(e.who,'happy',e.t),i+2); }).join('')+'</div></section>';
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Капитал по месяцам</h2>'+capChartSVG(S.history,{})+'</section><section class="card stack"><h2 style="font-size:20px">Награды</h2><div class="badges">'+badges.map(function(x){ return '<div class="bdg '+(x.on?'on':'off')+'">'+ico(x.b.icon)+'<div><b>'+x.b.name+'</b><small>'+x.b.desc+'</small></div></div>'; }).join('')+'</div></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Результат для учителя</h2><div class="field"><label for="resline" class="sr-only">Результат</label><textarea class="input" id="resline" readonly rows="2">'+esc(resultLine())+'</textarea></div><div class="row"><button class="btn small" data-act="copyres">'+ico('copy')+' Скопировать</button></div></section>';
@@ -1155,7 +1192,7 @@ function stageHTML(){
 }
 function renderTools(){
   var d=isDark();
-  $('#tools').innerHTML='<button class="iconbtn" data-act="glossary" aria-label="Словарик терминов" title="Словарик">'+ico('book')+'</button>'+
+  $('#tools').innerHTML='<button class="iconbtn" data-act="awards" aria-label="Награды" title="Награды">'+ico('star')+'</button><button class="iconbtn" data-act="glossary" aria-label="Словарик терминов" title="Словарик">'+ico('book')+'</button>'+
     '<button class="iconbtn" data-act="sound" aria-label="Звук" aria-pressed="'+soundOn+'" title="'+(soundOn?'Звук включён':'Звук выключен')+'">'+ico(soundOn?'vol':'mute')+'</button>'+
     '<button class="iconbtn" data-act="theme" aria-label="Сменить тему" title="Сменить тему">'+ico(d?'sun':'moon')+'</button>';
 }
@@ -1246,10 +1283,13 @@ var A={
    var n=$('.lesson'); if(n && n.scrollIntoView && !reduced) n.scrollIntoView({behavior:'smooth',block:'center'});
  },
  scenenext:function(){ var v=sceneView(); if((U.stage||0)<v.n-1){ U.stage=(U.stage||0)+1; U.view=null; render(); } else toPlan(); },
+ awards:function(){ openModal('Награды',awardsHTML()); },
  about:function(){ openModal('О игре',aboutHTML()); },
  wipe:function(){ if(!U.wipeAsk){ U.wipeAsk=true; var b=$('[data-act=wipe]'); if(b) b.textContent='Нажми ещё раз, чтобы стереть'; return; } U.wipeAsk=false; try{ localStorage.removeItem(KEY); localStorage.removeItem('lbl-board'); }catch(e){} closeModal(); S=null; U={screen:'title'}; hudPrev={}; render(); toast('Сохранение стёрто'); },
  help:function(){ openModal('Как это работает', helpHTML()); },
+ goalstoggle:function(){ U.goalsOpen=!goalsOpen(); var gb=$('#goals-box'); if(gb) gb.innerHTML=goalsInner(); },
  mapopen:function(){ openModal('Где что находится',mapHTML()); },
+ coachok:function(el){ S.coach=S.coach||{}; S.coach[el.getAttribute('data-t')]=1; render(true); },
  qtake:function(el){ var r=takeQuest(S,el.getAttribute('data-id')); if(r.ok){ sfx('coin'); toast('Задание взято'); addTerm('kpi'); } else toast(r.why); render(true); },
  shire:function(el){ var id=el.getAttribute('data-id'), r=hireSpec(S,id); if(r.ok){ sfx('coin'); toast('В команде: '+SPECS[id].name); addTerm('labor'); fitCash(); } else toast(r.why); render(true); },
  sfire:function(el){ fireSpec(S,el.getAttribute('data-id')); toast('Сотрудник уволен'); S.plan.qty=sanitizePlan(S,S.plan).qty; fitCash(); render(true); },
@@ -1337,10 +1377,10 @@ var A={
    U.report=r; U.screen=reduced?'report':'run'; U.tab='biz';
    if(reduced){ render(); sfx(r.profit>=0?'good':'bad'); } else render();
  },
- slstep:function(el){ var k=el.getAttribute('data-k'), R=SLICER_RANGE[k], Z=U.slicer; Z[k]=clamp(Z[k]+(+el.getAttribute('data-d')),R.min,R.max); render(true); },
- sltry:function(){ var Z=U.slicer; if(Z.left<=0) return; Z.left--; Z.tries.push({set:{t:Z.t,v:Z.v,f:Z.f}}); var ok=slicerGrade(slicerCheck(Z.target,Z)); sfx(ok==='gold'?'good':'click'); if(ok==='gold') burst(24); render(true); },
- slfinal:function(){ var Z=U.slicer, g=slicerGrade(slicerCheck(Z.target,Z)); slicerApply(S,g); U.slicerGrade=g; U.slicerDone=true; U.slicer=null; sfx(g==='gold'?'win':(g==='bronze'?'bad':'good')); toast(g==='gold'?'Идеальные настройки: брак ниже, репутация +1':(g==='silver'?'Настройки неплохие':'Неточные настройки: брак выше')); U.screen='plan'; U.goOk=true; A.go(); },
- slskip:function(){ U.slicerDone=true; U.slicer=null; U.screen='plan'; U.goOk=true; A.go(); },
+ slstep:function(el){ var k=el.getAttribute('data-k'), R=SLICER_RANGE[k], Z=U.slicer; if(!Z) return; Z[k]=clamp(Z[k]+(+el.getAttribute('data-d')),R.min,R.max); render(true); },
+ sltry:function(){ var Z=U.slicer; if(!Z||Z.left<=0) return; Z.left--; Z.tries.push({set:{t:Z.t,v:Z.v,f:Z.f}}); var ok=slicerGrade(slicerCheck(Z.target,Z)); sfx(ok==='gold'?'good':'click'); if(ok==='gold') burst(24); render(true); },
+ slfinal:function(){ var Z=U.slicer; if(!Z) return; var g=slicerGrade(slicerCheck(Z.target,Z)); slicerApply(S,g); U.slicerGrade=g; U.slicerDone=true; U.slicer=null; sfx(g==='gold'?'win':(g==='bronze'?'bad':'good')); toast(g==='gold'?'Идеальные настройки: брак ниже, репутация +1':(g==='silver'?'Настройки неплохие':'Неточные настройки: брак выше')); U.screen='plan'; render(); U.goOk=true; A.go(); },
+ slskip:function(){ U.slicerDone=true; U.slicer=null; U.screen='plan'; render(); U.goOk=true; A.go(); },
  myq:function(el){ var Q=U.myq; if(!Q||Q.picked!=null) return; var i=+el.getAttribute('data-i'); Q.picked=i; if(Q.opts[i]===Q.ans){ S.cash+=MYQ_REWARD; sfx('good'); if(U.report) U.report.cashAfter=S.cash; } else sfx('bad'); render(true); },
  gosure:function(){ closeModal(); U.goOk=true; A.go(); },
  runskip:function(){
@@ -1367,7 +1407,7 @@ var A={
  },
  chapternext:function(){
    var ch=U.chapterInfo.ch;
-   if(ch===3){ U.screen='final'; var good=ownerCapital(S)>=GOAL*0.5; render(); if(good){ sfx('win'); burst(ownerCapital(S)>=GOAL?190:90); } }
+   if(ch===3){ saveRecord(); U.screen='final'; var good=ownerCapital(S)>=GOAL*0.5; render(); if(good){ sfx('win'); burst(ownerCapital(S)>=GOAL?190:90); } }
    else if(ch===1){ U.screen='lessonend'; render(); }
    else enterMonth();
  },
@@ -1428,6 +1468,12 @@ function boot(){
   soundOn = lsGet(SND_KEY)==='1';
   U={screen:'title'}; S=null; render();
   window.__game={get S(){ return S; }, get U(){ return U; }, A:A, render:render, setState:function(s,u){ S=s; U=u; render(); }};
+  /* на телефоне шапка с деньгами прячется при прокрутке вниз и возвращается при прокрутке вверх */
+  (function(){ var lastY=0, ticking=false;
+    window.addEventListener('scroll',function(){ if(ticking) return; ticking=true; window.requestAnimationFrame(function(){ ticking=false;
+      if(window.innerWidth>900){ document.body.classList.remove('hud-away'); lastY=window.scrollY; return; }
+      var y=window.scrollY; if(y>lastY+10 && y>220) document.body.classList.add('hud-away'); else if(y<lastY-10 || y<120) document.body.classList.remove('hud-away'); lastY=y; }); },{passive:true});
+  })();
   /* кнопка «Назад» в приложении Android: true — нажатие обработано игрой, false — можно закрывать приложение */
   window.__appBack=function(){
     if($('#modal .modal')){ closeModal(); return true; }

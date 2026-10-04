@@ -121,11 +121,11 @@ function ensureState(s){
     if(s.inv[id]==null) s.inv[id]=0; if(s.invVal[id]==null) s.invVal[id]=0; if(s.pdm[id]==null) s.pdm[id]=1; if(s.tAdd[id]==null) s.tAdd[id]=0;
     if(s.unlocked[id]==null) s.unlocked[id]=false; if(s.plan.price[id]==null) s.plan.price[id]=PRODUCTS[id].ref; if(s.plan.qty[id]==null) s.plan.qty[id]=0;
   });
-  if(!s.comp) s.comp={max:1, mega:1}; if(!s.compHist) s.compHist=[]; if(!s.team) s.team={}; if(!s.quests) s.quests={}; if(!s.filHist) s.filHist=[1]; if(!s.lab) s.lab={done:{}, active:[]}; if(!s.clients) s.clients={}; if(!s.orderStats) s.orderStats={}; if(!s.flagsMonth) s.flagsMonth={};
+  if(!s.news) s.news=[]; if(!s.comp) s.comp={max:1, mega:1}; if(!s.compHist) s.compHist=[]; if(!s.team) s.team={}; if(!s.quests) s.quests={}; if(!s.filHist) s.filHist=[1]; if(!s.lab) s.lab={done:{}, active:[]}; if(!s.clients) s.clients={}; if(!s.orderStats) s.orderStats={}; if(!s.flagsMonth) s.flagsMonth={};
   return s;
 }
 /* товары, которые открываются сами по времени */
-function refreshUnlocks(s){ if(s.month>=3) s.unlocked.toy=true; return s; }
+function refreshUnlocks(s){ if(s.month>=3) s.unlocked.toy=true; if(typeof stepNews==='function') stepNews(s); return s; }
 
 /* ---------- модификаторы ---------- */
 /* настройка мастерской: делается один раз после пролога */
@@ -377,12 +377,14 @@ function commitMonth(s, r, rng){
   s.printers.forEach(function(p){ p.age++; });
   s.mods.forEach(function(m){ m.left--; });
   s.mods = s.mods.filter(function(m){ return m.left>0; });
+  s.tot=s.tot||{}; (function(){ var t=s.tot, d=0; PROD_IDS.forEach(function(id){ var x=r.rows[id]; if(x) d+=x.defects||0; });
+    t.writeoff=(t.writeoff||0)+(r.writeTot||0); t.penalty=(t.penalty||0)+(r.penalty||0); t.interest=(t.interest||0)+(r.interest||0); t.idleH=(t.idleH||0)+Math.max(0,r.H-r.hours); t.defects=(t.defects||0)+d; t.cashShare=(t.cashShare||0)+(companyCapital(s)>0?Math.max(0,s.cash)/Math.max(1,companyCapital(s)):0); t.months=(t.months||0)+1; t.salary=(t.salary||0)+(r.fixedParts?r.fixedParts.team||0:0); })();
   if(typeof applyOrderResults==='function') applyOrderResults(s, r);
   if(typeof labTick==='function'){ labTick(s, r); stockTick(s, r); compTick(s, r); }
   s.contracts = [];
   var util = r.H>0 ? r.hours/r.H : 0; if(util>=0.9) s.utilMonths++; s.utilStreak = util>=0.85 ? (s.utilStreak||0)+1 : 0;
   s.maxKinds = Math.max(s.maxKinds||0, r.soldKinds);
-  s.history.push({m:s.month, revenue:r.revTot, profit:r.profit, cap:ownerCapital(s), cash:s.cash, sold:r.soldTot, util:util, hours:r.hours, H:r.H});
+  s.history.push({m:s.month, revenue:r.revTot, profit:r.profit, cap:ownerCapital(s), cash:s.cash, sold:r.soldTot, util:util, hours:r.hours, H:r.H, toy:(r.rows.toy?r.rows.toy.sold+r.rows.toy.contractUnits:0)});
   r.cap = ownerCapital(s); r.cashAfter = s.cash;
   s.month++;
   return r;

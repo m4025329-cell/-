@@ -14,7 +14,7 @@ function richState(month) {
   s.printers = [{ t: 'old', age: 99 }, { t: 'std', age: 3 }, { t: 'std', age: 3 }];
   s.unlocked = { key: true, stand: true, mini: true, part: true, proto: true };
   s.unlock = { deposit: true, fund: true, loan: true }; s.tax = 'profit'; s.staff.asst = 1; s.space = 'garage';
-  s.fil.kg = 12; s.fil.val = 12 * 1400;
+  s.fil.kg = 12; s.fil.val = 12 * 1400; s.team = {sonya: 1};
   PROD_IDS.forEach(function (id) { s.inv[id] = 40; s.invVal[id] = 40 * 90; });
   for (var m = 1; m < month; m++) s.history.push({ m: m, revenue: 80000, profit: 20000, cap: 100000, cash: 50000, sold: 200, util: 0.95, hours: 300, H: 320 });
   return s;

@@ -189,8 +189,36 @@ var ACH = [
   {id:'invent', name:'Изобретатель',     desc:'Завершены три исследования',             icon:'bolt',   test:function(s,r){ return Object.keys((s.lab&&s.lab.done)||{}).length>=3; }},
   {id:'tuner',  name:'Настройщик',        desc:'Золотая настройка слайсера',             icon:'wrench', test:function(s,r){ return (s.slicerGold||0)>=1; }},
   {id:'stocker',name:'Запасливый',        desc:'Закуплено впрок 50 кг пластика',         icon:'box',    test:function(s,r){ return (s.filBought||0)>=50; }},
+  {id:'team3',  name:'Дружная команда',   desc:'В команде три специалиста',               icon:'users',  test:function(s,r){ return teamCount(s)>=3; }},
+  {id:'lab6',   name:'Лаборатория на ходу',desc:'Завершено шесть исследований',            icon:'wrench', test:function(s,r){ return Object.keys((s.lab&&s.lab.done)||{}).length>=6; }},
+  {id:'quest3', name:'Мастер заданий',    desc:'Выполнено три задания целиком',           icon:'target', test:function(s,r){ return (s.questsDone||0)>=3; }},
+  {id:'toy200', name:'Ёлка в каждом доме',desc:'Продано 200 ёлочных игрушек за игру',     icon:'star',   test:function(s,r){ return s.history.reduce(function(a,h){ return a+(h.toy||0); },0)>=200; }},
+  {id:'neg3',   name:'Дипломат-стратег',  desc:'Три удачных торга или переговоров',       icon:'percent',test:function(s,r){ return s.orderStats && s.orderStats.haggleWins>=3; }},
+  {id:'news',   name:'На шаг впереди',    desc:'Выполнено 3 заказа, пока действует хорошая новость', icon:'up', test:function(s,r){ return newsActive(s).length>0 && (r.orders||[]).filter(function(o){ return o.miss<=0; }).length>=3; }},
   {id:'rep80',   name:'Имя в городе',      desc:'Репутация 70 и выше',                    icon:'heart',  test:function(s,r){ return s.rep>=70; }}
 ];
+
+/* ---------- разбор партии на финише: что получилось и что можно улучшить ---------- */
+function gameInsights(s){
+  var out=[], H=s.history||[], n=Math.max(1,H.length), tot=s.tot||{}, st=s.orderStats||{};
+  var avgUtil=H.reduce(function(a,h){ return a+(h.util||0); },0)/n;
+  if(avgUtil<0.75) out.push({icon:'clock', tone:'warn', title:'Принтеры простаивали', text:'В среднем они были заняты '+Math.round(avgUtil*100)+'% времени. Свободные часы это потерянная прибыль: их можно было занять заказами, запасом или рекламой.'});
+  else out.push({icon:'clock', tone:'good', title:'Принтеры работали', text:'Загрузка в среднем '+Math.round(avgUtil*100)+'%. Часы печати использованы хорошо.'});
+  if((tot.defects||0)>40) out.push({icon:'warn', tone:'warn', title:'Много брака', text:'За игру в брак ушло около '+Math.round(tot.defects)+' изделий. Профилактика, хороший пластик и исследования («Сопло с обдувом», «Умная ферма») снижают брак.'});
+  if((tot.writeoff||0)>Math.max(4000,s.totalRevenue*0.03)) out.push({icon:'box', tone:'warn', title:'Склад съедал деньги', text:'Остатки дешевели и списывались на '+rub(tot.writeoff)+'. Печатай ближе к спросу и распродавай залежи вовремя.'});
+  if((tot.penalty||0)>0.5) out.push({icon:'doc', tone:'warn', title:'Штрафы и компенсации', text:'По заказам ушло '+rub(tot.penalty)+'. Берись только за то, на что хватает часов, денег и режима печати.'});
+  if((tot.interest||0)>6000) out.push({icon:'bank', tone:'warn', title:'Проценты по долгу', text:'Проценты за игру составили '+rub(tot.interest)+'. Долг оправдан, если приносит больше, чем стоит.'});
+  var avgCash=(tot.cashShare||0)/Math.max(1,tot.months||n);
+  if(avgCash>0.6 && (s.savings+s.fund)<20000 && s.month>8) out.push({icon:'safe', tone:'info', title:'Деньги лежали без дела', text:'Больше половины капитала в среднем лежало на счёте. Часть денег можно было вложить во вклад, фонд или лабораторию.'});
+  var labN=Object.keys((s.lab&&s.lab.done)||{}).length;
+  if(labN===0) out.push({icon:'wrench', tone:'info', title:'Лаборатория не использовалась', text:'Вложения в исследования окупаются на длинной дистанции. В следующий раз попробуй начать хотя бы одно уже в первой половине игры.'});
+  else out.push({icon:'wrench', tone:'good', title:'Лаборатория', text:'Завершено исследований: '+labN+'. Вложения в знания работают на тебя до конца игры.'});
+  if(st.taken>0) out.push({icon:'doc', tone:(st.failed||0)?'warn':'good', title:'Заказы', text:'Принято '+st.taken+', выполнено '+(st.done||0)+(st.failed?', сорвано '+st.failed:'')+(st.haggleWins?'; удачных торгов и переговоров: '+st.haggleWins:'')+'.'});
+  else out.push({icon:'doc', tone:'info', title:'Заказы почти не брали', text:'Заказы дают уверенную продажу и постоянных клиентов. Попробуй брать их в следующей партии.'});
+  if(H.length){ var best=H.reduce(function(a,b){ return b.profit>a.profit?b:a; },H[0]), worst=H.reduce(function(a,b){ return b.profit<a.profit?b:a; },H[0]);
+    out.push({icon:'chart', tone:'info', title:'Лучший и худший месяц', text:'Лучший: '+MONTH_NAMES[best.m-1].toLowerCase()+' ('+rub(best.profit)+'), худший: '+MONTH_NAMES[worst.m-1].toLowerCase()+' ('+rub(worst.profit)+'). Посмотри, чем они отличались, и повтори лучшее.'}); }
+  return out;
+}
 var MILES = [250000,500000,750000];
 /* новые награды и вехи после месяца; запоминает их в состоянии */
 function checkProgress(s, r){
