@@ -104,7 +104,7 @@ function newState(name, opts){
     contracts:[], mods:[], flags:{}, pdm:{key:1, stand:1, mini:1, part:1, proto:1},
     unlock:{deposit:false, fund:false, loan:false},
     plan:{mode:'std', ad:0, price:{}, qty:{}}, tAdd:{key:0, stand:0, mini:0, part:0, proto:0},
-    history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
+    rate:{u:0, s:0}, history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
   PROD_IDS.forEach(function(id){ s.inv[id]=0; s.invVal[id]=0; s.plan.price[id]=PRODUCTS[id].ref; s.plan.qty[id]=0; });
   return s;
 }

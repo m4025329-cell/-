@@ -33,6 +33,7 @@
   --p-body:#2A3566; --p-rail:#434F8A; --p-plate:#C9D2EE; --p-line:#8F9CC6; --p-screen:#121A36; --p-nozzle:#FFB020;
   --led-on:#35E08B; --led-idle:#FFB020; --led-off:#6B7399;
   --shadow-soft:rgba(18,26,54,.14); --scrim:rgba(14,18,40,.62);
+  --sky-autumn:#F6D8B5; --sky-winter:#CFE0F5; --sky-spring:#CDEFD6; --sky-summer:#C9ECFF;
   --font-display:'Tektur','Russo One','Arial Black',system-ui,sans-serif;
   --font-body:'Golos Text','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
@@ -52,6 +53,7 @@
     --layer-gain:#34B47E; --layer-gain-edge:#6FE7A8;
     --p-body:#3A4687; --p-rail:#566399; --p-plate:#3A4577; --p-line:#6C79B0; --p-screen:#0A0E20; --p-nozzle:#FFB020;
     --shadow-soft:rgba(0,0,0,.4); --scrim:rgba(4,6,18,.74); color-scheme:dark;
+    --sky-autumn:#5A4632; --sky-winter:#3B4C70; --sky-spring:#36563F; --sky-summer:#3A6288;
   }
 }
 :root[data-theme="dark"]{
@@ -65,6 +67,7 @@
   --layer-gain:#34B47E; --layer-gain-edge:#6FE7A8;
   --p-body:#3A4687; --p-rail:#566399; --p-plate:#3A4577; --p-line:#6C79B0; --p-screen:#0A0E20; --p-nozzle:#FFB020;
   --shadow-soft:rgba(0,0,0,.4); --scrim:rgba(4,6,18,.74); color-scheme:dark;
+    --sky-autumn:#5A4632; --sky-winter:#3B4C70; --sky-spring:#36563F; --sky-summer:#3A6288;
 }
 *,*::before,*::after{box-sizing:border-box}
 html{height:100%;-webkit-text-size-adjust:100%;scroll-behavior:auto}
@@ -214,6 +217,7 @@ textarea.input{padding:12px 16px;min-height:96px;font-family:var(--font-mono);fo
 .scene-title{display:flex;gap:16px;align-items:center}
 .scene-ico{flex:none;width:68px;height:68px;border-radius:20px;background:var(--brand);color:var(--on-brand);border:2px solid var(--brand-edge);box-shadow:0 4px 0 var(--brand-edge);display:grid;place-items:center;animation:pop var(--d-enter) var(--ease-spring) both}
 .scene-ico .ico{width:34px;height:34px}
+.scene-ico.mini{background:var(--c-violet);border-color:color-mix(in srgb,var(--c-violet) 70%,#000);box-shadow:0 4px 0 color-mix(in srgb,var(--c-violet) 70%,#000);color:#fff}
 .news{display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--ink-2);padding:8px 14px;border-radius:12px;background:var(--surface-2);border:1.5px solid var(--edge);width:fit-content;max-width:100%}
 .news .ico{color:var(--muted)}
 .dialog{display:grid;gap:14px}
@@ -294,6 +298,9 @@ input[type=range]:focus-visible{outline-offset:2px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink-2)}
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .legend em{width:12px;height:12px;border-radius:4px;display:inline-block;font-style:normal}
+.workshop{display:block;width:100%;height:auto}
+.ws-wrap{width:100%;max-width:880px;margin-inline:auto;border-radius:16px;overflow:hidden;border:2px solid var(--edge);background:var(--surface-2)}
+.ws-card .ws-wrap{max-width:none}
 .farm{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px 4px;align-items:end;padding:12px 10px 6px;border-radius:16px;background:var(--surface-2);border:2px solid var(--edge);position:relative}
 .farm::after{content:"";position:absolute;left:8px;right:8px;bottom:26px;height:6px;border-radius:99px;background:var(--edge)}
 .farm .printer{width:100%;height:auto;position:relative;z-index:1}
@@ -329,7 +336,7 @@ input[type=range]:focus-visible{outline-offset:2px}
 .run-bar{width:100%;max-width:880px}
 .run-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%;max-width:880px}
 .run-weeks{display:flex;gap:8px;width:100%;max-width:880px;justify-content:space-between}
-.run-weeks span{flex:1;padding:6px 10px;border-radius:99px;font:600 13.5px var(--font-body);background:var(--surface-2);border:1.5px solid var(--edge);color:var(--muted);transition:background var(--d-base),color var(--d-base)}
+.run-weeks span{flex:1;white-space:nowrap;text-align:center;padding:6px 10px;border-radius:99px;font:600 13.5px var(--font-body);background:var(--surface-2);border:1.5px solid var(--edge);color:var(--muted);transition:background var(--d-base),color var(--d-base)}
 .run-weeks span.on{background:var(--brand);color:var(--on-brand);border-color:var(--brand-edge)}
 
 /* ---------- итоги ---------- */
@@ -384,6 +391,26 @@ input[type=range]:focus-visible{outline-offset:2px}
 .meter{height:22px;border-radius:99px;background:var(--surface-3);border:2px solid var(--edge-strong);overflow:hidden}
 .meter i{display:block;height:100%;background:var(--loss-fg);transition:width 120ms linear,background var(--d-base)}
 .meter.good i{background:var(--layer-gain)} .meter.mid i{background:var(--p-nozzle)}
+
+/* ---------- отзывы покупателей ---------- */
+.rv-list{display:grid;gap:12px}
+.rv{display:grid;grid-template-columns:44px minmax(0,1fr);gap:12px;align-items:start;animation:rise var(--d-enter) var(--ease-out) both;animation-delay:calc(var(--i,0)*120ms + 150ms)}
+.rv-av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:800 19px var(--font-display);border:2px solid var(--edge-strong);background:var(--surface-3);color:var(--ink)}
+.rv-av.c-cyan{background:color-mix(in srgb,var(--c-cyan) 22%,var(--surface));border-color:var(--c-cyan);color:var(--c-cyan-text)}
+.rv-av.c-orange{background:color-mix(in srgb,var(--c-orange) 22%,var(--surface));border-color:var(--c-orange);color:var(--c-orange-text)}
+.rv-av.c-magenta{background:color-mix(in srgb,var(--c-magenta) 22%,var(--surface));border-color:var(--c-magenta);color:var(--c-magenta-text)}
+.rv-av.c-lime{background:color-mix(in srgb,var(--c-lime) 22%,var(--surface));border-color:var(--c-lime);color:var(--c-lime-text)}
+.rv-av.c-violet{background:color-mix(in srgb,var(--c-violet) 22%,var(--surface));border-color:var(--c-violet);color:var(--c-violet-text)}
+.rv-body{background:var(--surface-2);border:1.5px solid var(--edge);border-radius:6px 16px 16px 16px;padding:10px 14px;min-width:0}
+.rv-body p{margin:4px 0 0;color:var(--ink-2);font-size:15.5px}
+.rv-head{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap}
+.rv-head b{font-weight:700}
+.stars{display:inline-flex;gap:1px;vertical-align:middle}
+.stars .st{width:15px;height:15px}
+.stars .st.on{fill:var(--c-orange)}
+.stars .st.off{fill:var(--edge-strong);opacity:.45}
+.chip.brand .stars .st.on{fill:var(--on-brand)}
+.chip.brand .stars .st.off{fill:var(--on-brand);opacity:.3}
 
 /* ---------- окна и тосты ---------- */
 .modal{position:fixed;inset:0;z-index:60;background:var(--scrim);display:grid;place-items:center;padding:16px;animation:fade-in var(--d-base) ease both}
@@ -460,6 +487,7 @@ input[type=range]:focus-visible{outline-offset:2px}
 }
 @media (max-width:640px){
   .setup .seg{grid-template-columns:minmax(0,1fr)}
+  .run-weeks{gap:6px}.run-weeks span{padding:6px 2px;font-size:12px}
   .prow{grid-template-columns:repeat(2,minmax(0,1fr))}
   .run .farm{grid-template-columns:repeat(auto-fit,minmax(120px,148px))}
 }
@@ -610,7 +638,7 @@ function newState(name, opts){
     contracts:[], mods:[], flags:{}, pdm:{key:1, stand:1, mini:1, part:1, proto:1},
     unlock:{deposit:false, fund:false, loan:false},
     plan:{mode:'std', ad:0, price:{}, qty:{}}, tAdd:{key:0, stand:0, mini:0, part:0, proto:0},
-    history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
+    rate:{u:0, s:0}, history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
   PROD_IDS.forEach(function(id){ s.inv[id]=0; s.invVal[id]=0; s.plan.price[id]=PRODUCTS[id].ref; s.plan.qty[id]=0; });
   return s;
 }
@@ -1047,6 +1075,12 @@ var TERMS = {
   social:    ['Социальная ответственность', 'Бизнес влияет на людей вокруг. Добрые дела укрепляют репутацию, но тоже требуют ресурсов.'],
   capital:   ['Капитал', 'Всё, что есть у бизнеса (деньги, вклады, товар, оборудование), минус долги. Это главный результат игры.'],
   rep:       ['Репутация', 'Доверие покупателей. Она растёт от качества и честности, а падает от брака, срывов и скандалов, и влияет на спрос.'],
+  marketing: ['Маркетинг', 'Всё, что приводит покупателей: реклама, ярмарки, блогеры. У каждого способа своя цена и свой риск, и результат не гарантирован.'],
+  bulk:      ['Оптовая закупка', 'Чем больше берёшь, тем дешевле единица. Но деньги замораживаются в запасе, а материал со временем портится.'],
+  reliability:['Надёжность', 'Запасной блок, бесперебойник, профилактика. Они стоят денег, но спасают от простоев, которые стоят дороже.'],
+  service:   ['Клиентский сервис', 'Забота о покупателе после покупки: возврат, обмен, вежливый ответ. Она обходится дешевле, чем потеря клиентов.'],
+  sunk:      ['Невозвратные затраты', 'Деньги, которые уже потрачены и не вернутся. Решения нужно принимать по будущим выгодам и затратам, а не по тому, сколько жалко.'],
+  compliance:['Порядок в документах', 'Налоги, договоры и учёт. Когда с ними всё в порядке, проверки не страшны, а штрафы дороже порядка.'],
   defect:    ['Брак', 'Печать иногда ломается. Бракованная деталь тратит пластик и часы, поэтому цена годной детали выше.']
 };
 
@@ -1190,7 +1224,7 @@ var EVENTS = [
      apply:function(s){ s.tax='profit'; return [modChip('налог 15% с прибыли',false)]; },
      reply:say('nina','neutral','Посчитаем честно. Расходы придётся подтверждать.')},
     {label:'Пока не оформляться', sub:'штраф 20 000 ₽ и принудительный режим 6%',
-     apply:function(s){ s.tax='rev'; return [cashChip(s,-20000,'штраф'),modChip('налог 6% с выручки',false)]; },
+     apply:function(s){ s.tax='rev'; s.flags.lateTax=true; return [cashChip(s,-20000,'штраф'),modChip('налог 6% с выручки',false)]; },
      reply:say('nina','angry','Работать без оформления нельзя. Штраф вы заслужили.')}],
   lesson:function(s){ var m=Math.max(0,s.lastMargin); return 'Режим 15% с прибыли выгоднее, если прибыль меньше 40% выручки (тогда 15% от прибыли меньше, чем 6% от выручки). У тебя сейчас прибыльность около '+pctText(m)+', поэтому '+(m<0.4?'дешевле режим с прибылью.':'дешевле режим «Доходы» с 6% выручки.')+' Работать без оформления нельзя: это нарушение и штраф. Налоги идут на школы, дороги и больницы.'; }
  },{
@@ -1494,11 +1528,614 @@ var EVENTS = [
  }]; }}
 ];
 
-/* ===== «Случаи в мастерской»: небольшие события между сюжетной сценой и планированием ===== */
+/* ===== «Случаи в мастерской»: небольшие события между сюжетной сценой и планированием =====
+   Выпадают примерно в половине спокойных месяцев. Выбор «случая» один раз на месяц делается по коду класса,
+   поэтому у учеников с одним кодом выпадают одни и те же случаи. У каждого случая нет заведомо лучшего ответа:
+   что выгоднее, зависит от денег, часов печати и склада. */
+
+var MINI_MONTHS = [2,3,4,5,9,10,11,12,14];   /* месяцы, где сюжет короткий */
+var MINI_P = 0.5;
+
+function stockValue(s){ return invValueTotal(s); }
+
+var MINI = [
+
+/* ---------- продвижение ---------- */
+{id:'fair', title:'Школьная ярмарка', icon:'store', from:2, to:5, w:1,
+ st:function(s){ return {
+  tag:'Продвижение', term:'marketing',
+  lines:[
+    say('sem','happy','В субботу школьная ярмарка. Стол стоит 3 000 ₽, народу будет много.'),
+    say('phil','neutral','Если мы поедем на ярмарку, принтер будет стоять. Время не бесплатное: пока раздаёшь листовки, часы печати идут мимо.')],
+  choices:[
+    {label:'Арендовать стол', sub:'3 000 ₽ · спрос ×1,2 в этом месяце · часы печати −12 ч · репутация +2', cost:3000,
+     apply:function(s){ addModB2C(s,1.2,1,'Ярмарка'); addMod(s,'hoursAdd',-12,1,'Работа на ярмарке'); return [cashChip(s,-3000),modChip('спрос ×1,2 на месяц',true),modChip('−12 часов печати',false),repChip(s,2)]; },
+     reply:say('sem','happy','Народу было много! Листовки закончились раньше, чем Фил успел заскучать.')},
+    {label:'Разнести листовки по классам', sub:'500 ₽ на печать листовок · спрос ×1,06 в этом месяце', cost:500,
+     apply:function(s){ addModB2C(s,1.06,1,'Листовки'); return [cashChip(s,-500),modChip('спрос ×1,06 на месяц',true)]; },
+     reply:say('sem','neutral','Разнёс всем, кого встретил. Даже завхозу.')},
+    {label:'Остаться печатать', sub:'без трат',
+     apply:function(s){ return [chip('часы целиком идут на печать','info')]; },
+     reply:say('phil','happy','Я тоже за печать. Кто-то же должен работать.')}],
+  lesson:'Реклама и ярмарки стоят денег и времени. Чтобы понять выгоду, сравни: на сколько вырастет прибыль и сколько прибыли принесли бы те же часы печати без ярмарки.'
+ }; }},
+
+{id:'blogger', title:'Блогер просит бесплатно', icon:'megaphone', from:3, to:14, w:1,
+ st:function(s){ return {
+  tag:'Продвижение', term:'marketing',
+  lines:[
+    say('liza','neutral','Мне написал школьный блогер Тёма. Хочет бесплатный набор для обзора и обещает «рассказать всем».'),
+    say('phil','smug','Обещать легко. Видео либо взлетит, либо утонет среди тысячи таких же.')],
+  choices:[
+    {label:'Отправить набор', sub:'1 500 ₽ на материалы и доставку · шанс 30%, что видео взлетит: спрос ×1,15 на 2 месяца', cost:1500,
+     apply:function(s,rng){ if(rng()<0.30){ addModB2C(s,1.15,2,'Видео взлетело'); return [cashChip(s,-1500),modChip('видео взлетело! спрос ×1,15 на 2 мес.',true),repChip(s,2)]; } return [cashChip(s,-1500),chip('видео прошло незамеченным','info')]; },
+     reply:say('liza','excited','Отправили! Теперь скрещиваем пальцы и ждём алгоритм.')},
+    {label:'Предложить промокод вместо набора', sub:'0 ₽ · спрос ×1,04 на месяц',
+     apply:function(s){ addModB2C(s,1.04,1,'Промокод'); return [modChip('спрос ×1,04 на месяц',true)]; },
+     reply:say('phil','neutral','Промокод вместо набора. Бюджетно. Блогер ответил «ок», что бы это ни значило.')},
+    {label:'Отказать', sub:'без трат',
+     apply:function(s){ return [chip('деньги остаются на счету','info')]; },
+     reply:say('liza','neutral','Ладно, Тёма переживёт.')}],
+  lesson:'Реклама у блогеров похожа на лотерею: иногда она приводит толпу покупателей, иногда никого. Рискуй суммой, которую не жалко потерять.'
+ }; }},
+
+{id:'viral', title:'Фил попал в ролик', icon:'sparkle', from:3, to:14, w:0.5,
+ st:function(s){ return {
+  tag:'Продвижение', term:'marketing',
+  lines:[
+    say('liza','excited','Фил, ты звезда! Какой-то ролик, где ты печатаешь брелок и шутишь про пластик, набрал сто тысяч просмотров!'),
+    say('phil','happy','Я всегда знал, что у меня талант. Просто голос принтера не берут в кино.')],
+  choices:[
+    {label:'Подхватить волну в комментариях', sub:'2 500 ₽ на ответы и конкурс · спрос ×1,2 на 2 месяца · репутация +3', cost:2500,
+     apply:function(s){ addModB2C(s,1.2,2,'Фил в ролике'); return [cashChip(s,-2500),modChip('спрос ×1,2 на 2 мес.',true),repChip(s,3)]; },
+     reply:say('liza','excited','Конкурс «Придумай шутку для Фила»! Победитель получит брелок с автографом.')},
+    {label:'Просто порадоваться', sub:'без трат · спрос ×1,08 на 2 месяца',
+     apply:function(s){ addModB2C(s,1.08,2,'Фил в ролике'); return [modChip('спрос ×1,08 на 2 мес.',true)]; },
+     reply:say('phil','smug','Слава пришла сама. Теперь я требую отдельную розетку.')}],
+  lesson:'Удачная известность бывает случайной, и её нельзя планировать. Но тот, кто быстро ею пользуется, получает больше покупателей, чем тот, кто просто радуется.'
+ }; }},
+
+{id:'newcolor', title:'Новый цвет пластика', icon:'flask', from:2, to:12, w:1,
+ st:function(s){ return {
+  tag:'Уникальность', term:'diff',
+  lines:[
+    say('phil','excited','Пришёл пластик цвета «космический металлик». Блестит так, что глазам больно. Брелоки и подставки из него смотрятся как из будущего.'),
+    say('nina','neutral','Он дороже обычного на 20%. Но блестящее покупают охотнее. Если, конечно, покупатели его заметят.')],
+  choices:[
+    {label:'Выпустить лимитированную серию', sub:'3 500 ₽ за пластик и рекламу · привычная цена брелоков и подставок ×1,05 на 2 месяца', cost:3500,
+     apply:function(s){ addMod(s,'ref',1.05,2,'Металлик','key'); addMod(s,'ref',1.05,2,'Металлик','stand'); return [cashChip(s,-3500),modChip('цена брелоков и подставок ×1,05 на 2 мес.',true),repChip(s,1)]; },
+     reply:say('phil','happy','Металлик! Мои шестерёнки сияют от гордости.')},
+    {label:'Попробовать только на брелоках', sub:'800 ₽ · привычная цена брелоков ×1,03 на 2 месяца', cost:800,
+     apply:function(s){ addMod(s,'ref',1.03,2,'Металлик','key'); return [cashChip(s,-800),modChip('цена брелоков ×1,03 на 2 мес.',true)]; },
+     reply:say('nina','neutral','Осторожный эксперимент. Мне нравится.')},
+    {label:'Остаться на обычном', sub:'без трат',
+     apply:function(s){ return [chip('всё как раньше','info')]; },
+     reply:say('phil','neutral','Без блеска тоже красиво. Просто тише.')}],
+  lesson:'Необычный товар можно продавать дороже: покупатели платят за отличие от других. Но чтобы это сработало, о новинке нужно рассказать.'
+ }; }},
+
+/* ---------- закупки, склад, деньги ---------- */
+{id:'bulk', title:'Оптовая скидка на пластик', icon:'box', from:3, to:14, w:1, ok:function(s){ return s.cash>=20000; },
+ st:function(s){ return {
+  tag:'Закупки', term:'bulk',
+  lines:[
+    say('nina','neutral','Поставщик предлагает пластик оптом: чем больше берёшь, тем дешевле килограмм.'),
+    say('phil','worried','Но катушки не вечные. Если они пролежат дольше трёх месяцев, влага и пыль съедят качество.')],
+  choices:[
+    {label:'20 кг со скидкой 15%', sub:function(s){ return rub(Math.round(20*filMarket(s)*0.85))+' · брак +1 п.п. на 4 месяца (пластик отсыревает)'; }, cost:function(s){ return Math.round(20*filMarket(s)*0.85); },
+     apply:function(s){ var c=Math.round(20*filMarket(s)*0.85); s.fil.kg+=20; s.fil.val+=c; s.cash-=c; addMod(s,'fail',0.01,4,'Отсыревший пластик'); return [chip('−'+rub(c).replace('−','')+' на пластик','loss'),chip('+20 кг пластика со скидкой','gain'),modChip('брак +1 п.п. на 4 мес.',false)]; },
+     reply:say('nina','happy','Скидка есть скидка. Главное, чтобы катушки не лежали до лета.')},
+    {label:'10 кг со скидкой 8%', sub:function(s){ return rub(Math.round(10*filMarket(s)*0.92))+' · без отсыревания'; }, cost:function(s){ return Math.round(10*filMarket(s)*0.92); },
+     apply:function(s){ var c=Math.round(10*filMarket(s)*0.92); s.fil.kg+=10; s.fil.val+=c; s.cash-=c; return [chip('−'+rub(c).replace('−','')+' на пластик','loss'),chip('+10 кг пластика со скидкой','gain')]; },
+     reply:say('nina','neutral','Умеренно и без риска.')},
+    {label:'Покупать по мере надобности', sub:'без трат',
+     apply:function(s){ return [chip('деньги остаются на счету','info')]; },
+     reply:say('phil','neutral','Зато склад не пахнет сыростью.')}],
+  lesson:'Оптовая закупка снижает цену килограмма, но замораживает деньги в запасе и портит материал, если он лежит долго. Выгодно брать столько, сколько успеешь использовать.'
+ }; }},
+
+{id:'supplier', title:'Новый поставщик пластика', icon:'truck', from:3, to:14, w:1,
+ st:function(s){ return {
+  tag:'Закупки', term:'cost',
+  lines:[
+    say('nina','neutral','Два новых поставщика прислали прайсы. Один дешевле на 8%, но у него встречаются бракованные катушки. Другой дороже на 6%, зато с проверенным качеством.'),
+    say('phil','smug','Я за качество, но я не плачу по счетам.')],
+  choices:[
+    {label:'Дешёвый поставщик', sub:'пластик −8% на 3 месяца · брак +2 п.п. на 3 месяца',
+     apply:function(s){ addMod(s,'fil',0.92,3,'Дешёвый поставщик'); addMod(s,'fail',0.02,3,'Дешёвый поставщик'); return [modChip('пластик −8% на 3 мес.',true),modChip('брак +2 п.п. на 3 мес.',false)]; },
+     reply:say('nina','neutral','Посмотрим, не съест ли брак всю экономию.')},
+    {label:'Качественный поставщик', sub:'пластик +6% на 3 месяца · брак −2 п.п. на 3 месяца · репутация +1',
+     apply:function(s){ addMod(s,'fil',1.06,3,'Качественный поставщик'); addMod(s,'fail',-0.02,3,'Качественный поставщик'); return [modChip('пластик +6% на 3 мес.',false),modChip('брак −2 п.п. на 3 мес.',true),repChip(s,1)]; },
+     reply:say('phil','happy','Идеально ровные катушки. Я пою.')},
+    {label:'Остаться с прежним', sub:'без изменений',
+     apply:function(s){ return [chip('поставщик прежний','info')]; },
+     reply:say('nina','neutral','Знакомый поставщик тоже ценность.')}],
+  lesson:'Дешёвый материал не всегда выгоден: брак тратит и пластик, и часы печати. Сравнивай полную цену годной детали, а не цену килограмма.'
+ }; }},
+
+{id:'pallet', title:'Склад переполнен', icon:'box', from:4, to:14, w:1.2, ok:function(s){ return stockValue(s)>=12000; },
+ st:function(s){ var v=stockValue(s); return {
+  tag:'Склад', term:'sunk',
+  lines:[
+    say('sem','worried','Фил, у нас под столом растёт гора непроданных изделий. Скоро придётся ходить по ним.'),
+    say('nina','neutral','На складе товара на '+rub(v)+'. Каждый месяц он дешевеет на 6% и просит денег на хранение.')],
+  choices:[
+    {label:'Распродажа остатков со скидкой 30%', sub:'половина склада уйдёт за 70% себестоимости · вернутся деньги, но с убытком',
+     apply:function(s){ var g=0; PROD_IDS.forEach(function(id){ var q=Math.floor(s.inv[id]/2); if(q>0){ var share=q/s.inv[id], val=s.invVal[id]*share; g+=val; s.inv[id]-=q; s.invVal[id]-=val; } }); var cash=Math.round(g*0.7); s.cash+=cash; return [cashChip(s,cash,'с распродажи'),chip('склад вдвое меньше','gain'),chip('убыток '+rub(Math.round(g*0.3)),'loss')]; },
+     reply:say('nina','neutral','Убыток неприятен, но он уже случился: деньги в товаре замёрзли. Лучше вернуть хоть что-то.')},
+    {label:'Подарить часть школе', sub:'четверть склада бесплатно · репутация +3',
+     apply:function(s){ PROD_IDS.forEach(function(id){ var q=Math.floor(s.inv[id]/4); if(q>0){ var share=q/s.inv[id], val=s.invVal[id]*share; s.inv[id]-=q; s.invVal[id]-=val; } }); return [chip('четверть склада подарена школе','info'),repChip(s,3)]; },
+     reply:say('sem','happy','Первоклашки будут в восторге. А завхоз перестанет ворчать про коробки.')},
+    {label:'Оставить как есть', sub:'без трат · склад продолжит дорожать содержанием',
+     apply:function(s){ return [chip('товар лежит дальше','info')]; },
+     reply:say('phil','worried','Мы с горой договорились: она сидит тихо, а я её не трогаю.')}],
+  lesson:'Невозвратные затраты уже потрачены, и их не вернуть. Решай по будущему: если товар не продаётся, держать его дороже, чем отдать со скидкой.'
+ }; }},
+
+{id:'energy', title:'Электричество дорожает', icon:'bolt', from:4, to:14, w:1, ok:function(s){ return !s.flags.solar; },
+ st:function(s){ return {
+  tag:'Расходы', term:'payback',
+  lines:[
+    say('nina','worried','Тарифы на электричество выросли. Печать подорожает на 15% на ближайшие три месяца.'),
+    say('phil','smug','Я могу печатать ночью по дешёвому тарифу, но тогда никто не увидит, как я блистательно работаю.')],
+  choices:[
+    {label:'Поставить солнечную панель', sub:'6 000 ₽ · расход на печать −15% до конца игры', cost:6000,
+     apply:function(s){ s.flags.solar=true; addMod(s,'run',0.85,99,'Солнечная панель'); return [cashChip(s,-6000),modChip('расход на печать −15% навсегда',true),repChip(s,1)]; },
+     reply:say('phil','excited','Я теперь на солнечной энергии! Почти как растение, только печатаю.')},
+    {label:'Печатать ночью', sub:'расход на печать +5% вместо +15% · часы печати ×0,97 на 3 месяца',
+     apply:function(s){ addMod(s,'run',1.05,3,'Ночной тариф'); addMod(s,'hours',0.97,3,'Ночные смены'); return [modChip('расход на печать +5% на 3 мес.',false),modChip('часы печати ×0,97 на 3 мес.',false)]; },
+     reply:say('nina','neutral','Ночью дешевле, но принтеры требуют присмотра. Помощник пригодится.')},
+    {label:'Терпеть', sub:'расход на печать +15% на 3 месяца',
+     apply:function(s){ addMod(s,'run',1.15,3,'Дорогое электричество'); return [modChip('расход на печать +15% на 3 мес.',false)]; },
+     reply:say('phil','sad','Электричество кусается. Но я потерплю, у меня толстая изоляция.')}],
+  lesson:'Затраты на оборудование окупаются, когда экономия за месяц умножается на оставшиеся месяцы и превышает цену. Чем меньше времени осталось, тем труднее окупить вложение.'
+ }; }},
+
+/* ---------- оборудование и надёжность ---------- */
+{id:'nozzle', title:'Сопло засорилось', icon:'wrench', from:2, to:14, w:1,
+ st:function(s){ return {
+  tag:'Обслуживание', term:'risk',
+  lines:[
+    say('phil','sad','Чих. Сопло засорилось, пластик идёт тонкой кривой ниточкой. Если печатать дальше, я начну чихать красиво, но бракованно.'),
+    say('sem','neutral','Можно заменить сопло, можно прочистить иглой, а можно сделать вид, что так и задумано.')],
+  choices:[
+    {label:'Купить новое сопло', sub:'1 500 ₽ · брака не прибавится', cost:1500,
+     apply:function(s){ return [cashChip(s,-1500),chip('сопло заменено','gain')]; },
+     reply:say('phil','happy','Новое сопло! Печатаю тоньше, чем волос ёжика.')},
+    {label:'Прочистить иглой', sub:'0 ₽ · вечер работы · брак +3 п.п. в этом месяце',
+     apply:function(s){ addMod(s,'fail',0.03,1,'Прочищенное сопло'); return [modChip('брак +3 п.п. на месяц',false)]; },
+     reply:say('sem','neutral','Кустарно, но работает. Иногда.')},
+    {label:'Печатать как есть', sub:'0 ₽ · брак +6 п.п. на 2 месяца',
+     apply:function(s){ addMod(s,'fail',0.06,2,'Грязное сопло'); return [modChip('брак +6 п.п. на 2 мес.',false)]; },
+     reply:say('phil','worried','Не хочу пугать, но я чихаю всё сильнее.')}],
+  lesson:'Профилактика и мелкий ремонт дешевле, чем потери от брака. Каждая бракованная деталь тратит пластик и часы печати.'
+ }; }},
+
+{id:'powercut', title:'Отключили свет', icon:'bolt', from:2, to:14, w:1, ok:function(s){ return !s.flags.ups; },
+ st:function(s){ return {
+  tag:'Надёжность', term:'reliability',
+  lines:[
+    say('nar','neutral','В доме отключили электричество на сутки. Принтеры замерли посреди печати.'),
+    say('phil','sad','Я стоял на третьем слое подставки. Теперь она выглядит как недостроенный небоскрёб.')],
+  choices:[
+    {label:'Купить бесперебойник', sub:'2 500 ₽ · потерь не будет · будущие отключения не страшны', cost:2500,
+     apply:function(s){ s.flags.ups=true; return [cashChip(s,-2500),chip('бесперебойник защищает от отключений','gain')]; },
+     reply:say('phil','excited','Теперь у меня есть запасное сердце. Тихо жужжит, как кот.')},
+    {label:'Переждать', sub:'часы печати ×0,95 в этом месяце',
+     apply:function(s){ addMod(s,'hours',0.95,1,'Отключение света'); return [modChip('часы печати ×0,95 на месяц',false)]; },
+     reply:say('sem','neutral','Сутки потеряны. Зато выспались.')}],
+  lesson:'Надёжность стоит денег, но простой стоит дороже. Вложение в защиту окупается тем, что убытки не повторяются.'
+ }; }},
+
+{id:'philup', title:'Фил просит апгрейд', icon:'gear', from:2, to:12, w:0.8,
+ st:function(s){ return {
+  tag:'Оборудование', term:'depr',
+  lines:[
+    say('phil','sad','Слушай, у меня ремни растянулись, подшипники скрипят. Я печатаю как будто в валенках.'),
+    say('sem','neutral','Комплект подшипников и ремней стоит 3 000 ₽. А ещё у Фила, между прочим, день рождения. Или день выпуска. В общем, какая-то дата.')],
+  choices:[
+    {label:'Заменить ремни и подшипники', sub:'3 000 ₽ · брак −1 п.п. на 6 месяцев', cost:3000,
+     apply:function(s){ addMod(s,'fail',-0.01,6,'Новые подшипники'); return [cashChip(s,-3000),modChip('брак −1 п.п. на 6 мес.',true)]; },
+     reply:say('phil','excited','Скольжу как по маслу! Хотя масла на мне и не было.')},
+    {label:'Смазать самому', sub:'300 ₽ · брак −0,5 п.п. на 3 месяца', cost:300,
+     apply:function(s){ addMod(s,'fail',-0.005,3,'Смазка'); return [cashChip(s,-300),modChip('брак −0,5 п.п. на 3 мес.',true)]; },
+     reply:say('sem','happy','Масленка, тряпка и ровные руки. Рецепт старый, но работает.')},
+    {label:'Отложить', sub:'без трат',
+     apply:function(s){ return [chip('Фил терпит дальше','info')]; },
+     reply:say('phil','sad','Ладно. Я мужественно скрипну.')}],
+  lesson:'Оборудование изнашивается, и вложения в ремонт нужно сравнивать с потерями от брака. Мелкое обслуживание часто выгоднее, чем большая замена.'
+ }; }},
+
+{id:'thief', title:'Пропали катушки', icon:'pin', from:5, to:14, w:0.8, ok:function(s){ return s.space!=='school' && !s.flags.camera; },
+ st:function(s){ return {
+  tag:'Риск', term:'risk',
+  lines:[
+    say('sem','worried','Фил, у нас пропали пять катушек пластика. Замок на двери ломался, но все думали, что это пустяк.'),
+    say('phil','sad','Мне кажется, я видел, как кто-то уносил мой сон. То есть пластик.')],
+  choices:[
+    {label:'Установить камеру и замок', sub:'1 500 ₽ · кража не повторится · репутация +1', cost:1500,
+     apply:function(s){ s.flags.camera=true; var lost=Math.min(s.fil.kg,5), v=lost>0?s.fil.val*(lost/s.fil.kg):0; s.fil.kg-=lost; s.fil.val-=v; return [cashChip(s,-1500),chip('пропало '+f1d(lost)+' кг пластика','loss'),chip('камера и замок защищают мастерскую','gain'),repChip(s,1)]; },
+     reply:say('sem','neutral','Недорого, а спать спокойнее. Покупатели тоже замечают, когда за товаром следят.')},
+    {label:'Заявить в полицию', sub:'0 ₽ · пластик не вернут · шанс 20%, что кража повторится',
+     apply:function(s,rng){ var lost=Math.min(s.fil.kg,5), v=lost>0?s.fil.val*(lost/s.fil.kg):0; s.fil.kg-=lost; s.fil.val-=v; var out=[chip('пропало '+f1d(lost)+' кг пластика','loss')]; if(rng()<0.2){ var l2=Math.min(s.fil.kg,3), v2=l2>0?s.fil.val*(l2/s.fil.kg):0; s.fil.kg-=l2; s.fil.val-=v2; out.push(chip('ещё '+f1d(l2)+' кг пропало позже','loss')); } return out; },
+     reply:say('sem','sad','Заявление приняли. Пластик, скорее всего, не найдут.')},
+    {label:'Ничего не делать', sub:'0 ₽ · пластик пропал · шанс 50%, что кража повторится',
+     apply:function(s,rng){ var lost=Math.min(s.fil.kg,5), v=lost>0?s.fil.val*(lost/s.fil.kg):0; s.fil.kg-=lost; s.fil.val-=v; var out=[chip('пропало '+f1d(lost)+' кг пластика','loss')]; if(rng()<0.5){ var l2=Math.min(s.fil.kg,3), v2=l2>0?s.fil.val*(l2/s.fil.kg):0; s.fil.kg-=l2; s.fil.val-=v2; out.push(chip('ещё '+f1d(l2)+' кг пропало позже','loss')); } return out; },
+     reply:say('phil','worried','Тишина. Слишком тихо. Я не доверяю такой тишине.')}],
+  lesson:'Защита имущества стоит денег, но потеря стоит дороже. Мелкие кражи без защиты легко повторяются: чем дольше ничего не делаешь, тем больше теряешь.'
+ }; }},
+
+/* ---------- покупатели и репутация ---------- */
+{id:'refund', title:'Покупатель возвращает подставку', icon:'users', from:3, to:14, w:1,
+ st:function(s){ return {
+  tag:'Сервис', term:'service',
+  lines:[
+    say('liza','worried','Нам вернули подставку. Покупатель пишет, что она шатается, и просит деньги назад.'),
+    say('phil','neutral','Я проверил: одна ножка действительно чуть короче. Это не заговор, это допуск 0,3 мм.')],
+  choices:[
+    {label:'Вернуть деньги', sub:'1 200 ₽ · репутация +1',
+     apply:function(s){ return [cashChip(s,-1200),repChip(s,1)]; },
+     reply:say('liza','happy','Спасибо за честность. Он написал хороший отзыв и подружился с Филом.')},
+    {label:'Заменить на новую', sub:'500 ₽ материалов · часы печати −3 ч · репутация +2',
+     apply:function(s){ addMod(s,'hoursAdd',-3,1,'Замена подставки'); return [cashChip(s,-500),modChip('−3 часа печати',false),repChip(s,2)]; },
+     reply:say('liza','excited','Новая подставка, ровная, как линейка. Покупатель пообещал рассказать друзьям.')},
+    {label:'Отказать: «пользуйтесь подложкой»', sub:'0 ₽ · репутация −3',
+     apply:function(s){ return [repChip(s,-3)]; },
+     reply:say('phil','worried','Мне кажется, мы только что превратили одного покупателя в блогера-критика.')}],
+  lesson:'Клиентский сервис дешевле, чем потеря репутации. Один довольный покупатель приводит друзей, один обиженный отпугивает десятерых.'
+ }; }},
+
+{id:'hater', title:'Негативный комментарий', icon:'news', from:3, to:14, w:1,
+ st:function(s){ return {
+  tag:'Репутация', term:'rep',
+  lines:[
+    say('liza','sad','Под нашим постом в группе кто-то пишет: «Бракованный пластиковый мусор». Лайков уже тридцать.'),
+    say('phil','worried','Это неправда! Ну, почти. У нас бывают погрешности. Но не мусор же.')],
+  choices:[
+    {label:'Вежливо ответить и показать фото проверки', sub:'0 ₽ · репутация +1',
+     apply:function(s){ return [repChip(s,1)]; },
+     reply:say('liza','happy','Он удалил комментарий и поставил пять звёзд. Приятно, когда разговор получается.')},
+    {label:'Ответить в ответ', sub:'0 ₽ · репутация −4',
+     apply:function(s){ return [repChip(s,-4)]; },
+     reply:say('phil','sad','Мы ответили. Теперь ругаются уже все. Я бы не рекомендовал.')},
+    {label:'Не отвечать', sub:'0 ₽ · репутация −1',
+     apply:function(s){ return [repChip(s,-1)]; },
+     reply:say('liza','neutral','Тишина тоже ответ, но не всегда лучший.')}],
+  lesson:'Репутация строится месяцами, а портится за один комментарий. Спокойный и вежливый ответ работает лучше, чем ссора.'
+ }; }},
+
+{id:'maxprice', title:'Макс снизил цены', icon:'tag', from:3, to:14, w:1, ok:function(s){ return !s.flags.ally; },
+ st:function(s){ return {
+  tag:'Конкуренция', term:'compete',
+  lines:[
+    say('max','smug','Продаю подставки и органайзеры на 15% дешевле. Ничего личного, просто бизнес.'),
+    say('phil','worried','Он дешевле. А мы что, будем дешевле? Мы не можем быть дешевле, я не умею быть дешевле.')],
+  choices:[
+    {label:'Дарить брелок к подставке', sub:'1 200 ₽ на брелоки · спрос на подставки ×1,1 на 2 месяца', cost:1200,
+     apply:function(s){ addMod(s,'dem',1.1,2,'Брелок в подарок','stand'); return [cashChip(s,-1200),modChip('спрос на подставки ×1,1 на 2 мес.',true)]; },
+     reply:say('phil','excited','Подставка и брелок в наборе! Макс может снижать цену сколько хочет, но брелок за 15% не подарит.')},
+    {label:'Поговорить с Максом', sub:'0 ₽ · шанс 50%, что он вернёт цены, иначе спрос на подставки ×0,92',
+     apply:function(s,rng){ if(rng()<0.5){ return [chip('Макс вернул цены','gain')]; } addMod(s,'dem',0.92,2,'Подставки Макса','stand'); return [modChip('спрос на подставки ×0,92 на 2 мес.',false)]; },
+     reply:say('max','neutral','Я подумаю. Может быть. Но не обещаю.')},
+    {label:'Не реагировать', sub:'спрос на подставки ×0,88 на 2 месяца',
+     apply:function(s){ addMod(s,'dem',0.88,2,'Подставки Макса','stand'); return [modChip('спрос на подставки ×0,88 на 2 мес.',false)]; },
+     reply:say('max','smug','Рынок решает сам. Как удобно.')}],
+  lesson:'Когда конкурент снижает цену, не обязательно отвечать тем же. Можно добавить ценность: подарок, сервис, скорость. Покупатели платят не только за цену.'
+ }; }},
+
+{id:'wholesale', title:'Оптовый заказ', icon:'truck', from:3, to:14, w:1,
+ st:function(s){ return {
+  tag:'Заказы', term:'opp',
+  lines:[
+    say('nina','neutral','Магазин канцтоваров хочет 80 брелоков к концу месяца. Предлагают по 95 ₽, в розницу они идут по 120 ₽.'),
+    say('phil','neutral','Брелоки печатаются быстро, но часы у нас считаные. Выгоднее заказ или обычная продажа?')],
+  choices:[
+    {label:'Взять заказ по 95 ₽', sub:'80 брелоков · штраф 30% за срыв · репутация +2 при успехе',
+     apply:function(s){ s.contracts.push({prod:'key', qty:80, price:95, penalty:0.30, repLoss:4, repGain:2, label:'Канцтовары: 80 брелоков'}); return [modChip('обязательный заказ: 80 брелоков по 95 ₽',true)]; },
+     reply:say('nina','happy','Спасибо. Магазин ждёт брелоки к субботе.')},
+    {label:'Попросить 130 ₽ за штуку', sub:'шанс 40%, что согласятся: 80 брелоков по 130 ₽, иначе заказа не будет',
+     apply:function(s,rng){ if(rng()<0.4){ s.contracts.push({prod:'key', qty:80, price:130, penalty:0.30, repLoss:4, repGain:2, label:'Канцтовары: 80 брелоков по 130'}); return [modChip('согласились: 80 брелоков по 130 ₽',true)]; } return [chip('магазин отказался','info')]; },
+     reply:say('nina','neutral','Торг — дело тонкое. Попробуем.')},
+    {label:'Отказаться', sub:'все часы остаются для свободной продажи',
+     apply:function(s){ return [chip('часы печати свободны','info')]; },
+     reply:say('phil','neutral','Нет так нет. Розница тоже не обижает.')}],
+  lesson:'Оптовый заказ даёт гарантированный спрос, но занимает часы и продаётся дешевле розницы. Если часов не хватает, выгоднее розница. Если они простаивают, заказ приносит чистую прибыль.'
+ }; }},
+
+{id:'custom', title:'Фигурка собаки', icon:'heart', from:4, to:14, w:1, ok:function(s){ return s.unlocked.mini; },
+ st:function(s){ return {
+  tag:'Уникальность', term:'diff',
+  lines:[
+    say('liza','excited','Нам написал коллекционер. Хочет фигурку своей таксы в рыцарских доспехах. По фото. С подписью «Сэр Сосиска».'),
+    say('phil','happy','Это лучшее задание в моей жизни. Я не шучу.')],
+  choices:[
+    {label:'Взять один заказ', sub:'4 500 ₽ за фигурку · материалы 500 ₽ · часы печати −10 ч · репутация +1',
+     apply:function(s){ addMod(s,'hoursAdd',-10,1,'Сэр Сосиска'); return [cashChip(s,4000,'чистыми'),modChip('−10 часов печати',false),repChip(s,1)]; },
+     reply:say('liza','excited','Сэр Сосиска готов к бою! Коллекционер прислал фото, где такса позирует рядом с моделью.')},
+    {label:'Предложить серию из 5 фигурок', sub:'шанс 50%, что согласятся: 12 000 ₽ · часы печати −30 ч · иначе ничего',
+     apply:function(s,rng){ if(rng()<0.5){ addMod(s,'hoursAdd',-30,1,'Серия «Сосиска»'); return [cashChip(s,10500,'чистыми'),modChip('−30 часов печати',false),repChip(s,2)]; } return [chip('коллекционер выбрал одну фигурку','info')]; },
+     reply:say('liza','neutral','Серия — это смело. Посмотрим, что ответят.')},
+    {label:'Отказаться', sub:'без изменений',
+     apply:function(s){ return [chip('часы свободны','info')]; },
+     reply:say('phil','sad','Мы потеряли шанс узнать, как выглядит такса в доспехах. Печально.')}],
+  lesson:'Персональный заказ можно продать дороже обычного: за уникальность покупатели платят. Но он занимает часы печати, которые нужны другим изделиям.'
+ }; }},
+
+/* ---------- люди, учёба, порядок ---------- */
+{id:'schoolfree', title:'Значки для олимпиады', icon:'cap', from:2, to:14, w:1,
+ st:function(s){ return {
+  tag:'Ответственность', term:'social',
+  lines:[
+    say('sem','neutral','Нужны тридцать значков для победителей олимпиады по физике. Бюджета на это у школы нет.'),
+    say('phil','happy','Значки я люблю. Они маленькие и быстро печатаются. А ещё школа — наш дом.')],
+  choices:[
+    {label:'Напечатать бесплатно', sub:'400 ₽ материалов · часы печати −8 ч · репутация +3', cost:400,
+     apply:function(s){ addMod(s,'hoursAdd',-8,1,'Значки'); return [cashChip(s,-400),modChip('−8 часов печати',false),repChip(s,3)]; },
+     reply:say('sem','happy','Спасибо. Победители получили значки и сфотографировались у принтера.')},
+    {label:'Напечатать с надписью «Спонсор»', sub:'400 ₽ материалов · часы печати −8 ч · репутация +2 · спрос ×1,04 на месяц', cost:400,
+     apply:function(s){ addMod(s,'hoursAdd',-8,1,'Значки'); addModB2C(s,1.04,1,'Надпись «Спонсор»'); return [cashChip(s,-400),modChip('−8 часов печати',false),modChip('спрос ×1,04 на месяц',true),repChip(s,2)]; },
+     reply:say('sem','neutral','Скромно и честно. Ребята заметили надпись.')},
+    {label:'Вежливо отказаться', sub:'без трат · репутация −1',
+     apply:function(s){ return [repChip(s,-1)]; },
+     reply:say('sem','sad','Понимаю. Бизнес есть бизнес. Но школа это запомнит.')}],
+  lesson:'Помощь школе или городу укрепляет репутацию, но тоже требует материалов и часов. Благотворительность и прибыль нужно уметь сочетать.'
+ }; }},
+
+{id:'test', title:'Контрольная по физике', icon:'book', from:2, to:14, w:1,
+ st:function(s){ return {
+  tag:'Время', term:'opp',
+  lines:[
+    say('sem','neutral','Завтра контрольная по физике. А ещё три срочных заказа и неудобная мысль, что суток всего двадцать четыре часа.'),
+    say('phil','worried','Я бы тебе помог, но физику лучше знать самому. Я знаю только то, что пластик плавится.')],
+  choices:[
+    {label:'Подготовиться к контрольной', sub:'часы печати −10 ч · репутация +1 (оценка выросла)',
+     apply:function(s){ addMod(s,'hoursAdd',-10,1,'Подготовка к контрольной'); return [modChip('−10 часов печати',false),repChip(s,1),chip('оценка по физике: пять','gain')]; },
+     reply:say('sem','happy','Пятёрка! Фил просил передать, что гордится, хотя физику не сдавал.')},
+    {label:'Печатать, а контрольную как-нибудь', sub:'часов печати хватает · репутация −2 (родители расстроены)',
+     apply:function(s){ return [repChip(s,-2),chip('оценка по физике: тройка','info')]; },
+     reply:say('phil','worried','Я бы не рекомендовал. Тройка — это тоже слой, но не самый ровный.')},
+    {label:'Поделить время поровну', sub:'часы печати −4 ч',
+     apply:function(s){ addMod(s,'hoursAdd',-4,1,'Контрольная'); return [modChip('−4 часа печати',false),chip('оценка по физике: четыре','info')]; },
+     reply:say('sem','neutral','Золотая середина. Четвёрка и заказы вовремя.')}],
+  lesson:'Время главный ресурс предпринимателя. Любое решение сравнивай с тем, от чего ты отказываешься. Учёба и дело тоже конкурируют за часы.'
+ }; }},
+
+{id:'sick', title:'Помощник заболел', icon:'users', from:8, to:14, w:1.4, ok:function(s){ return !!s.staff.asst; },
+ st:function(s){ return {
+  tag:'Люди', term:'labor',
+  lines:[
+    say('phil','sad','Данила заболел. Звонил из дома, кашляет в трубку так, что мне стало страшно.'),
+    say('nina','neutral','Без помощника ночью принтеры останутся без присмотра. Что будем делать?')],
+  choices:[
+    {label:'Нанять замену на неделю', sub:'2 000 ₽ · потерь печати не будет', cost:2000,
+     apply:function(s){ return [cashChip(s,-2000),chip('печать идёт как обычно','gain')]; },
+     reply:say('nina','neutral','Расходы небольшие, зато график не сорван.')},
+    {label:'Справиться вдвоём с Филом', sub:'0 ₽ · часы печати ×0,92 в этом месяце',
+     apply:function(s){ addMod(s,'hours',0.92,1,'Помощник болеет'); return [modChip('часы печати ×0,92 на месяц',false)]; },
+     reply:say('phil','worried','Мы справимся. Я даже ночью не сплю. Потому что принтеры не спят.')},
+    {label:'Отправить лечиться и оплатить больничный', sub:'1 500 ₽ · репутация +1, часы печати ×0,95',
+     apply:function(s){ addMod(s,'hours',0.95,1,'Больничный'); return [cashChip(s,-1500),modChip('часы печати ×0,95 на месяц',false),repChip(s,1)]; },
+     reply:say('nina','happy','Люди помнят, как о них заботились. Это окупается.')}],
+  lesson:'Работники иногда болеют, а их работа не стоит. Хорошая мастерская заранее продумывает, кто заменит человека, и относится к людям по-человечески.'
+ }; }},
+
+{id:'inspector', title:'Визит инспектора', icon:'doc', from:7, to:14, w:1, ok:function(s){ return !!s.tax; },
+ st:function(s){ return {
+  tag:'Порядок', term:'compliance',
+  lines:[
+    say('nina','neutral','Завтра к нам придёт налоговый инспектор. Просто проверка документов, ничего особенного.'),
+    (s.flags.lateTax||s.flags.liza==='pirate') ? say('nina','worried','Но я помню, что с оформлением и моделями у нас были вопросы. Лучше подготовиться.') : say('sem','happy','У нас вроде всё чисто. Хотя Фил однажды прятал чеки за принтером. Шучу, наверное.')],
+  choices:[
+    {label:'Показать все документы самим', sub:'0 ₽ · полдня на объяснения: часы печати −4 ч · если были нарушения, найдут и оштрафуют',
+     apply:function(s){ addMod(s,'hoursAdd',-4,1,'Проверка'); if(s.flags.lateTax || s.flags.liza==='pirate'){ return [cashChip(s,-6000,'штраф'),modChip('−4 часа печати',false),chip('нашли нарушения','loss'),repChip(s,-2)]; } return [modChip('−4 часа печати',false),chip('проверка пройдена','gain'),repChip(s,1)]; },
+     reply:say('nina','happy','Всё в порядке. Инспектор даже улыбнулся.')},
+    {label:'Нанять бухгалтера на день', sub:'2 000 ₽ · документы будут в идеальном порядке, часы печати не теряются', cost:2000,
+     apply:function(s){ var pen=(s.flags.lateTax||s.flags.liza==='pirate'); return [cashChip(s,-2000),chip(pen?'бухгалтер всё исправил до визита':'проверка пройдена','gain'),repChip(s,2)]; },
+     reply:say('nina','neutral','Рекомендую. Иногда спокойствие стоит дороже штрафа.')},
+    {label:'Попросить отложить визит', sub:'0 ₽ · репутация −1',
+     apply:function(s){ return [repChip(s,-1),chip('визит перенесён на потом','info')]; },
+     reply:say('sem','sad','Откладывать можно, но проверка всё равно придёт.')}],
+  lesson:'Налоги и учёт нужно вести аккуратно с первого дня. Тогда проверка не страшна, а штрафы за нарушения всегда больше, чем цена порядка.'
+ }; }},
+
+{id:'expo', title:'Выставка 3D-технологий', icon:'target', from:9, to:14, w:1, ok:function(s){ return s.cash>=12000 && s.unlocked.part; },
+ st:function(s){ return {
+  tag:'Продвижение', term:'marketing',
+  lines:[
+    say('liza','excited','В городе проходит выставка 3D-технологий. Приедут заводы, архитекторы и инженеры. Им нужны прототипы и запчасти!'),
+    say('nina','neutral','Стенд стоит 8 000 ₽. Можно сходить и просто посмотреть бесплатно.')],
+  choices:[
+    {label:'Купить стенд', sub:'8 000 ₽ · спрос на запчасти ×1,3 и прототипы ×1,5 на 3 месяца · репутация +3', cost:8000,
+     apply:function(s){ addMod(s,'dem',1.3,3,'Выставка','part'); addMod(s,'dem',1.5,3,'Выставка','proto'); return [cashChip(s,-8000),modChip('спрос на запчасти ×1,3 на 3 мес.',true),modChip('спрос на прототипы ×1,5 на 3 мес.',true),repChip(s,3)]; },
+     reply:say('liza','excited','Мы раздали сорок визиток. Три завода обещали написать!')},
+    {label:'Сходить посетителями', sub:'0 ₽ · спрос на запчасти ×1,05 на 3 месяца · репутация +1',
+     apply:function(s){ addMod(s,'dem',1.05,3,'Знакомства на выставке','part'); return [modChip('спрос на запчасти ×1,05 на 3 мес.',true),repChip(s,1)]; },
+     reply:say('phil','happy','Полезные знакомства. И бесплатные ручки.')},
+    {label:'Пропустить', sub:'без трат',
+     apply:function(s){ return [chip('всё как раньше','info')]; },
+     reply:say('nina','neutral','Не каждая возможность нужна именно сейчас.')}],
+  lesson:'Реклама для компаний отличается от розничной: заказчики приходят на выставки и платят за качество. Стенд окупается, если вы готовы выполнить новые заказы.'
+ }; }}
+
+];
+
+var MINI_BY_ID = {}; MINI.forEach(function(e){ MINI_BY_ID[e.id]=e; });
+
+/* выпал ли случай в этом месяце: решается один раз и запоминается */
+function pickMini(s){
+  if(MINI_MONTHS.indexOf(s.month)<0) return '';
+  var rng=rngFor(s,'mini'+s.month);
+  if(rng()>=MINI_P) return '';
+  var seen=s.miniSeen||[];
+  var pool=MINI.filter(function(e){ return seen.indexOf(e.id)<0 && s.month>=e.from && s.month<=e.to && (!e.ok||e.ok(s)); });
+  if(!pool.length) return '';
+  var total=pool.reduce(function(a,e){ return a+e.w; },0), roll=rng()*total, acc=0;
+  for(var i=0;i<pool.length;i++){ acc+=pool[i].w; if(roll<=acc) return pool[i].id; }
+  return pool[pool.length-1].id;
+}
+function miniFor(s){
+  s.mini=s.mini||{};
+  if(s.mini[s.month]===undefined){ var id=pickMini(s); s.mini[s.month]=id; if(id){ s.miniSeen=s.miniSeen||[]; s.miniSeen.push(id); } }
+  return s.mini[s.month]||'';
+}
 /* стадии месяца: сюжетные сцены плюс, если выпал случай, ещё одна небольшая */
 function stagesOf(s){
-  return EVENTS[s.month-1].stages(s);
+  var st=EVENTS[s.month-1].stages(s), id=miniFor(s);
+  if(id){ var e=MINI_BY_ID[id], g=e.st(s); g.mini=true; g.miniId=id; g.miniTitle=e.title; g.miniIcon=e.icon; st=st.concat([g]); }
+  return st;
 }
+
+/* ===== Отзывы покупателей и факты о 3D-печати =====
+   Отзывы собираются из данных месяца: брак, цена, режим печати, нехватка товара.
+   Все тексты написаны без привязки к роду покупателя: глаголы в настоящем времени или безличные. */
+
+var REV_NAMES = ['Марина К.','Игорь П.','Соня','Дядя Коля','Ника М.','Артём В.','Кирилл','Лена из 8Б','Мама Паши','Тренер Сергей','Бабушка Нина','Даня_3D',
+  'Катя Р.','Руслан','Полина','Мастер Гена','Олимпиадник Лёша','Сосед с пятого этажа','Таня из библиотеки','Вася-коллекционер','Тётя Люба','Макар','Ксюша','Дед Борис'];
+var REV_COLORS = ['cyan','orange','magenta','lime','violet'];
+
+/* g: 0 — мужской род, 1 — женский (нужен только для слов о самом товаре) */
+var REV_TEXT = {
+  key: {
+    praise:  ['Брелок с именем: теперь ключи точно мои, а не соседские. Пять звёзд.','Имя вышло чётко, каждая буква ровная. Дарю всему классу.','Лёгкий, яркий, не царапается. Уже просят такие же.','Ключи теперь не теряются: брелок видно за версту.','Сделан так, что даже запах горячего пластика кажется приятным.'],
+    mixed:   ['Брелок хороший, но надпись можно было сделать жирнее. Всё равно беру ещё.','Яркий и прочный. Из минусов: колечко слабовато.'],
+    neutral: ['Нормальный брелок. Ключи держит, имя читается.','Брелок как брелок, без сюрпризов.'],
+    short:   ['Хотелось брелок, но на витрине пусто. Жду следующую партию.','Все брелоки разобрали за час. Пишите, когда будут!'],
+    defect:  ['Одна буква в имени еле читается: слой съехал. Обидно.','Между буквами паутинка из пластика. Убирается зажигалкой, но осадочек остался.'],
+    draft:   ['Брелок шершавый, слои видны. Для ключей сойдёт, для подарка слабовато.'],
+    expensive:['Брелок красивый, но цена кусается: за эти деньги можно взять три.','Хороший, только дорого для куска пластика с именем.'],
+    cheap:   ['Брелок за такие деньги — подарок. Беру десять!','Цена приятная, качество тоже. Покупаю всему классу.']
+  },
+  stand: {
+    praise:  ['Подставка держит ноутбук и не шатается. Стол наконец стал ровным.','В органайзер влез весь канцелярский зоопарк. Порядок как в музее.','Ровная, тяжёлая, красивая. Гости спрашивают, где такую взять.','Три недели на столе, ни одной царапины. Респект мастерам.'],
+    mixed:   ['Подставка хорошая, но углы острые, палец запомнил. В остальном отлично.','Держит всё, что нужно. Цвет можно было поспокойнее.'],
+    neutral: ['Подставка как подставка: держит, не падает.','Нормально. Ничего лишнего.'],
+    short:   ['Нужна была подставка, но их разобрали. Следующий раз беру сразу две.','На подставку очередь! Надеюсь, к зиме напечатают ещё.'],
+    defect:  ['Подставка слегка кривая: стол ровный, а она наклонена. Края отслаиваются.','Один слой отошёл от остальных. Держится на честном слове.'],
+    draft:   ['Слои видны и на ощупь как ребристый картон. Держит, но красоты ноль.'],
+    expensive:['Подставка добротная, но цена почти как у настоящего стола.','Хорошая, но за такие деньги хочется чуть больше.'],
+    cheap:   ['За эту цену подставка — находка. Заказываю вторую.','Бюджетно и крепко. Рекомендую всем соседям.']
+  },
+  mini: {
+    praise:  ['Фигурка дракона огонь: прорисованы даже чешуйки. Настолка теперь выглядит дороже.','Для игры идеально: стоит ровно, детали чёткие.','Фигурки уже разошлись по друзьям. Пишите, если будут новые серии!','Мини-герой вышел харизматичнее, чем в правилах.'],
+    mixed:   ['Фигурка красивая, но подставка тонковата. Придётся подклеить.','Детали отличные, мечик чуть толстоват. Зато не сломается.'],
+    neutral: ['Фигурка нормальная, для игры хватит.','Годится. Рассматривать под лупой не буду.'],
+    short:   ['Хотелось фигурку к игре, а их нет. Ждём новую партию всей командой.','Фигурки закончились. Играем пока пуговицами.'],
+    defect:  ['У фигурки отвалился меч ещё в коробке. Печатают же не пластилином.','Одна рука тоньше другой. Герой теперь вечно салютует.'],
+    draft:   ['Фигурка шершавая, детали смазаны. Для коллекции маловато.'],
+    expensive:['Фигурка классная, но цена как у настоящей коллекционной. Задумываюсь.','Дорогая. Хотя дракон того стоит. Наверное.'],
+    cheap:   ['Фигурка за такую цену? Беру всех персонажей!','Цена радует. Собираю целую армию.']
+  },
+  part: {
+    praise:  ['Запчасть села как родная. Стиральная машина снова крутит бельё.','Деталь подошла по размеру точь-в-точь. Мастер в сервисе удивился.','Сломанный крючок холодильника заменён. Работает лучше оригинала.','Спасли отпуск: запчасть напечатали за день.'],
+    mixed:   ['Запчасть подошла, но пришлось чуть подточить. В целом спасибо.','Работает. Цвет не сошёлся, но кто увидит.'],
+    neutral: ['Запчасть работает. Посмотрим, сколько проживёт.','Нормально, главное что держится.'],
+    short:   ['Срочно нужна запчасть, а в наличии нет. Ждать неделю не вариант.','Хотели взять деталь, но нечего. Придётся искать в другом месте.'],
+    defect:  ['Запчасть треснула при установке. Видимо, печаталась не с первого раза.','Деталь с пустотами внутри, прослужила два дня.'],
+    draft:   ['Запчасть грубая: слои видны, посадка с люфтом.'],
+    expensive:['Запчасть нужна, поэтому беру. Но цена как у новой машины, а не детали.','Дорого за кусочек пластика, хотя другого выхода нет.'],
+    cheap:   ['За такие деньги запчасть лучше магазинной. Спасибо!','Отличная цена. Теперь все детали заказываю у вас.']
+  },
+  proto: {
+    praise:  ['Прототип корпуса получили вовремя. Инженеры довольны, сборка с первого раза.','Размеры точные до десятой доли миллиметра. Продолжаем сотрудничество.','Отличное качество: заказчик утвердил прототип без правок.'],
+    mixed:   ['Прототип хороший, но пара отверстий подогнана неточно. Доработаем.','Всё удачно, только срок могли указать честнее.'],
+    neutral: ['Прототип принят. Есть вопросы по допускам, но в целом годится.','Рабочий образец получен, спасибо.'],
+    short:   ['Заказывали прототип, а срок сорван. Придётся искать других.','Партнёр без прототипа — партнёр без сделки. Жаль.'],
+    defect:  ['В прототипе нашлись пустоты внутри. Для формы подходит, для нагрузки нет.','Корпус повело при остывании. Крышка не закрывается.'],
+    draft:   ['Прототип чернового качества. Для презентации придётся перепечатывать.'],
+    expensive:['Прототип качественный, но бюджет проекта трещит. Обсудим скидку на серию.','Хорошо, но дороговато для стартапа.'],
+    cheap:   ['Цена удивила приятно. Закажем ещё серию.','Дешевле, чем у конкурентов, и не хуже.']
+  }
+};
+/* редкие реплики: появляются при определённых событиях сюжета */
+var REV_SPECIAL = [
+  {when:function(s){ return true; },                                       who:'Пётр Семёнович', t:'Принтер ворчит заметно меньше, чем раньше. Это успех.', stars:5, p:0.07},
+  {when:function(s){ return !!s.flags.ally; },                              who:'Макс',          t:'Дорого и хорошо. Выгляжу рядом с вами очень профессионально.', stars:5, p:0.14},
+  {when:function(s){ return s.flags.liza==='pirate'; },                     who:'Автор моделей',  t:'Эти фигурки мне что-то очень напоминают. Свяжитесь со мной.', stars:1, p:0.35},
+  {when:function(s){ return s.flags.liza==='partner'||s.flags.liza==='own'; }, who:'Лиза',        t:'Мои фигурки в хороших руках. Пишите, если нужна новая серия.', stars:5, p:0.12},
+  {when:function(s,r){ return r.month>=14; },                                 who:'Покупатель из «МегаПринта»', t:'У них дешевле, зато у вас есть душа. И запах пластика.', stars:4, p:0.2},
+  {when:function(s){ return !!s.flags.social; },                            who:'Ирина Сергеевна', t:'Дети до сих пор рассказывают про свои новые руки. Спасибо.', stars:5, p:0.3},
+  {when:function(s){ return true; },                                       who:'Кот Барсик',     t:'Мяу. Пять звёзд. Коробка от брелока лучше самого брелока. (Пишет хозяйка.)', stars:5, p:0.05}
+];
+
+function starsHTML(n){
+  var out='';
+  for(var i=1;i<=5;i++) out+='<svg class="st '+(i<=n?'on':'off')+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2.800 2.900 6 6.600.9-4.800 4.600 1.200 6.500L12 17.600 6.100 20.800l1.200-6.500L2.500 9.700l6.600-.9L12 2.800Z"/></svg>';
+  return '<span class="stars" role="img" aria-label="Оценка '+n+' из 5">'+out+'</span>';
+}
+
+/* отзывы за месяц: {list:[{name,color,stars,id,text,who}], avg, units} */
+function makeReviews(s, r){
+  var m=r.month, ids=PROD_IDS.filter(function(id){ var x=r.rows[id]; return x && ((x.sold+x.contractUnits)>0 || x.lost>=3); });
+  var items=[], totalUnits=0, starUnits=0, rng=rngFor(s,'rv'+m);
+  ids.forEach(function(id){
+    var x=r.rows[id], units=x.sold+x.contractUnits, ref=Math.max(1,refPrice(s,id)), ratio=x.price/ref, T=REV_TEXT[id], theme, stars;
+    if(x.lost>=Math.max(3,x.demand*0.12) && rng()<0.75) theme='short';
+    else if(r.fail>0.12 && rng()<0.7) theme='defect';
+    else if(r.mode==='draft' && rng()<0.6) theme='draft';
+    else if(ratio>1.22 && rng()<0.7) theme='expensive';
+    else if(ratio<0.82 && rng()<0.6) theme='cheap';
+    else { var sc=4.4+(r.mode==='fine'?0.5:0)+(s.rep-30)/120+(rng()-0.5)*1.3-(ratio>1.08?0.4:0); theme=sc>4.55?'praise':(sc>3.7?'mixed':'neutral'); }
+    stars = {praise:5, mixed:4, neutral:3, short:3, defect:(r.fail>0.2?1:2), draft:2, expensive:3, cheap:5}[theme];
+    if(units>0){ totalUnits+=units; starUnits+=units*stars; }
+    var pool=T[theme]||T.neutral;
+    items.push({id:id, units:Math.max(units,1), theme:theme, stars:stars, text:pool[Math.floor(rng()*pool.length)]});
+  });
+  /* выбираем до трёх отзывов: чем больше продано, тем вероятнее */
+  var picked=[];
+  while(items.length && picked.length<3){
+    var tot=items.reduce(function(a,b){ return a+b.units; },0), roll=rng()*tot, k=0, acc=0;
+    for(;k<items.length;k++){ acc+=items[k].units; if(roll<=acc) break; }
+    picked.push(items.splice(Math.min(k,items.length-1),1)[0]);
+  }
+  /* имена без повторов */
+  var names=REV_NAMES.slice(), list=picked.map(function(it,i){
+    var ni=Math.floor(rng()*names.length), nm=names.splice(ni,1)[0];
+    return {name:nm, color:REV_COLORS[hashStr(nm)%REV_COLORS.length], stars:it.stars, id:it.id, text:it.text, theme:it.theme};
+  });
+  /* редкая реплика героя заменяет последний отзыв */
+  REV_SPECIAL.forEach(function(sp){
+    if(list.length && sp.when(s,r) && rng()<sp.p && !list.some(function(l){ return l.special; })){
+      list[list.length-1]={name:sp.who, color:'violet', stars:sp.stars, id:null, text:sp.t, theme:'special', special:true};
+    }
+  });
+  return {list:list, avg: totalUnits>0 ? starUnits/totalUnits : 0, units: totalUnits};
+}
+function ratingText(x){ return (Math.round(x*10)/10).toFixed(1).replace('.',','); }
+
+/* ---------- факты ---------- */
+var FACTS = [
+  'Первый 3D-принтер сделал американец Чарльз Халл в 1983 году. Метод назывался стереолитографией.',
+  'Слово «филамент» значит «нить». Это та самая катушка пластика, из которой принтер лепит изделие.',
+  'Большинство домашних принтеров строят деталь слоями толщиной от 0,1 до 0,3 мм. Это тоньше человеческого волоса.',
+  'В США и Китае уже печатают дома: за сутки принтер может возвести стены небольшого здания.',
+  'Космонавты на МКС печатают запчасти прямо на станции, а не ждут грузовой корабль с Земли.',
+  'Из пластика PLA делают и брелоки, и упаковку. Он получается из кукурузы или сахарного тростника и разлагается лучше обычного пластика.',
+  'Протезы кисти для детей печатают на 3D-принтере: они стоят в десятки раз дешевле заводских и подстраиваются под рост.',
+  'Самый частый враг печати — плохо приставший первый слой. Поэтому стол калибруют так тщательно.',
+  'Паутинка между деталями называется «стринг» (stringing). Её убирают настройкой температуры и откатом нити.',
+  'Отлипание углов детали от стола называется «варпинг». Его вызывает неравномерное остывание пластика.',
+  'Принтер может печатать часами без присмотра, но один сбой посередине способен испортить всю деталь.',
+  'В медицине по снимку КТ печатают точные модели органов, чтобы хирурги готовились к операции заранее.',
+  'Самолёты печатают на 3D-принтере для сложных деталей: так получается легче и прочнее, чем отливкой.',
+  'Электричество для печати стоит копейки. Основные расходы мастерской — пластик, время принтера и аренда.',
+  'Амортизация — это не трата денег, а способ честно записать, что принтер каждый месяц немного изнашивается.',
+  'Ставка по вкладу, инфляция и налоги меняют итог так же сильно, как цена на ваши изделия.',
+  'Чем больше в мастерской принтеров, тем больше нужно заказов. Лишний станок без работы стоит как дорогая полка.',
+  'Реклама окупается, когда у вас есть свободные часы печати и товар, который не жалко продавать дороже.',
+  'Страховка — это небольшая плата сейчас за защиту от большой неприятности потом.',
+  'Репутация растёт месяцами, а падает за один сорванный заказ. Зато честная работа возвращает её обратно.',
+  'Корпорации печатают миллионы одинаковых вещей. Мелкая мастерская выигрывает там, где нужны уникальные.',
+  'Первый слой часто печатают медленнее остальных: он держит всю деталь на столе.',
+  'Одна и та же деталь, напечатанная «тонко», может занять в полтора раза больше времени, но стоить дороже.',
+  'Слайсер — программа, которая режет 3D-модель на слои и пишет для принтера маршрут движения сопла.',
+  'Сопло может быть 0,4 мм, а может быть 1 мм. Чем оно шире, тем быстрее печать и тем грубее детали.',
+  'Многие мейкеры собирают принтеры сами из деталей. Так появились и RepRap, и первые домашние 3D-принтеры.',
+  'Календарь сезонности важен: перед Новым годом заказов в разы больше, чем летом.',
+  'Хороший бизнес считает не только выручку, но и прибыль за час работы оборудования.',
+  'Из переработанного пластика уже печатают скамейки и детские площадки. Мусор получает вторую жизнь.',
+  'Некоторые принтеры печатают шоколадом, тестом и даже бетоном. Принцип тот же: слой за слоем.'
+];
+function factFor(s, tag){ var f=FACTS; return f[Math.floor(rand01(s,'fact'+tag)*f.length)]; }
 
 /* ===== Викторины, награды и финалы ===== */
 var QUIZ = [
@@ -1663,7 +2300,7 @@ function productSVG(id, size, count){
 
 /* ---------- принтер ---------- */
 /* opts: color (id продукта), layers (0..9), working (bool), state: 'on'|'idle'|'off', scale */
-function printerSVG(opts){
+function printerParts(opts){
   opts=opts||{}; var id=opts.obj||'stand', o=OBJ[id], n=Math.max(0,Math.min(o.w.length,Math.round(opts.layers==null?o.w.length:opts.layers)));
   var working=!!opts.working, step=0.3, dur=(o.w.length*step+1.4).toFixed(2);
   var plateY=118, lay='', i, W=56;
@@ -1676,8 +2313,7 @@ function printerSVG(opts){
   var gantryY=working ? (plateY-12) : (topY-14);
   var led = opts.state==='off' ? 'var(--led-off)' : (working ? 'var(--led-on)' : 'var(--led-idle)');
   var style='--n:'+o.w.length+';--dur:'+dur+'s;--step:'+step+'s;--rise:'+rise.toFixed(1)+'px;';
-  return '<svg class="printer'+(working?' working':'')+(opts.state==='off'?' is-off':'')+(opts.cls?' '+opts.cls:'')+'" viewBox="0 0 160 150" style="'+style+'" role="img" aria-label="'+esc(opts.label||'Принтер')+'" focusable="false">'+
-   '<ellipse cx="80" cy="144" rx="62" ry="4" fill="var(--shadow-soft)"/>'+
+  var inner=   '<ellipse cx="80" cy="144" rx="62" ry="4" fill="var(--shadow-soft)"/>'+
    '<rect x="18" y="126" width="124" height="16" rx="5" fill="var(--p-body)"/><rect x="18" y="126" width="124" height="4" rx="2" fill="#fff" opacity=".12"/>'+
    '<rect x="58" y="131" width="44" height="7" rx="3" fill="var(--p-screen)"/><circle cx="66" cy="134.500" r="2" fill="'+led+'"/><rect x="72" y="133" width="24" height="3" rx="1.500" fill="var(--p-line)"/>'+
    '<rect x="32" y="26" width="8" height="100" rx="3" fill="var(--p-rail)"/><rect x="120" y="26" width="8" height="100" rx="3" fill="var(--p-rail)"/>'+
@@ -1689,7 +2325,12 @@ function printerSVG(opts){
      '<rect x="38" y="'+(plateY-12)+'" width="84" height="7" rx="3" fill="var(--p-rail)"/><rect x="38" y="'+(plateY-12)+'" width="84" height="2.200" rx="1" fill="#fff" opacity=".18"/>'+
      '<g class="p-head"><rect x="72" y="'+(plateY-19)+'" width="18" height="15" rx="3.500" fill="var(--p-body)"/><rect x="75" y="'+(plateY-16)+'" width="12" height="3" rx="1.500" fill="var(--c-'+PCOL[id]+')"/><path d="M78 '+(plateY-4)+'h6l-3 6z" fill="var(--p-nozzle)"/></g>'+
    '</g></g>'+
-   '</svg>';
+   '';
+  return {cls:'printer'+(working?' working':'')+(opts.state==='off'?' is-off':'')+(opts.cls?' '+opts.cls:''), style:style, label:opts.label||'Принтер', inner:inner};
+}
+function printerSVG(opts){
+  var p=printerParts(opts);
+  return '<svg class="'+p.cls+'" viewBox="0 0 160 150" style="'+p.style+'" role="img" aria-label="'+esc(p.label)+'" focusable="false">'+p.inner+'</svg>';
 }
 
 /* ---------- аватары ---------- */
@@ -1866,6 +2507,148 @@ function calibSVG(v, target){
   return '<svg viewBox="0 0 388 240" role="img" aria-label="Сопло над столом принтера и пробная линия пластика" focusable="false"><rect width="388" height="240" fill="var(--surface-2)"/>'+
    '<rect x="20" y="'+bed+'" width="348" height="16" rx="6" fill="var(--p-plate)"/><path d="M30 '+(bed+8)+'h328" stroke="var(--p-line)" stroke-dasharray="5 5"/>'+line+
    '<g style="transform:translateY('+(noz-60).toFixed(1)+'px);transition:transform 120ms linear"><rect x="164" y="38" width="60" height="44" rx="10" fill="var(--p-body)"/><rect x="172" y="48" width="44" height="8" rx="4" fill="var(--c-orange)"/><path d="M178 82h32l-9 24h-14z" fill="var(--p-nozzle)"/><rect x="190" y="14" width="8" height="24" fill="var(--p-rail)"/></g></svg>';
+}
+
+/* ===== Живая мастерская: SVG-сцена, которая меняется вместе с игрой =====
+   Помещение, принтеры, люди, склад, вывеска и украшения берутся из состояния игры.
+   Сцена 640×360. Принтеры рисуются теми же деталями, что и на карточках, и печатают по тем же правилам. */
+
+function seasonOf(month){ var i=Math.max(0,Math.min(15,(month||1)-1))%12; return i<3?'autumn':(i<6?'winter':(i<9?'spring':'summer')); }
+
+/* одежда и внешность людей в мастерской */
+var WS_PEOPLE = {
+  owner: {skin:'#F1C5A0', hair:'#5A3A24', top:'var(--brand)',  legs:'#3B4A82', cap:true},
+  asst:  {skin:'#D9A67C', hair:'#2E2118', top:'var(--c-cyan)', legs:'#2A3566', apron:true},
+  teen:  {skin:'#EBC3A1', hair:'#B5651D', top:'var(--c-violet)', legs:'#434F8A', phones:true}
+};
+function wsPerson(x, y, who, k){
+  var p=WS_PEOPLE[who], sc=k||0.8;
+  var hair = p.cap ? '<path d="M-15 -90a15 15 0 0 1 30 0v2h-30z" fill="'+p.top+'" stroke="var(--brand-edge)" stroke-width="1.5"/><path d="M-15 -88h34" stroke="var(--brand-edge)" stroke-width="3" stroke-linecap="round"/>'
+                                : '<path d="M-15 -90a15 15 0 0 1 30 0c0 3-2 5-4 5-3-5-10-7-15-5-3 1-7 2-11 0z" fill="'+p.hair+'"/>';
+  var extra = p.apron ? '<rect x="-14" y="-60" width="28" height="30" rx="6" fill="#fff" opacity=".85"/><path d="M-6 -60v-6M6 -60v-6" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".85"/>'
+            : (p.phones ? '<path d="M-17 -90a17 17 0 0 1 34 0" fill="none" stroke="var(--p-screen)" stroke-width="3"/><rect x="-20" y="-92" width="6" height="10" rx="3" fill="var(--p-screen)"/><rect x="14" y="-92" width="6" height="10" rx="3" fill="var(--p-screen)"/>' : '');
+  return '<g transform="translate('+x+' '+y+') scale('+sc+')">'+
+    '<ellipse cx="0" cy="2" rx="24" ry="5" fill="var(--shadow-soft)"/>'+
+    '<rect x="-14" y="-34" width="11" height="34" rx="5" fill="'+p.legs+'"/><rect x="3" y="-34" width="11" height="34" rx="5" fill="'+p.legs+'"/>'+
+    '<rect x="-20" y="-76" width="40" height="46" rx="14" fill="'+p.top+'"/><rect x="-26" y="-70" width="10" height="30" rx="5" fill="'+p.top+'"/><rect x="16" y="-70" width="10" height="30" rx="5" fill="'+p.top+'"/>'+
+    extra+
+    '<circle cx="0" cy="-90" r="15" fill="'+p.skin+'"/>'+hair+
+    '<circle cx="-5.500" cy="-89" r="1.700" fill="#1A1226"/><circle cx="5.500" cy="-89" r="1.700" fill="#1A1226"/><path d="M-4 -83q4 4 8 0" fill="none" stroke="#7A3B2E" stroke-width="1.800" stroke-linecap="round"/>'+
+    '</g>';
+}
+
+/* коробка с товаром на полке */
+function wsBox(x, y, col){
+  return '<g transform="translate('+x+' '+y+')"><rect x="0" y="-22" width="28" height="22" rx="3" fill="var(--c-'+col+')"/><rect x="0" y="-22" width="28" height="6" rx="3" fill="#fff" opacity=".28"/><rect x="11" y="-22" width="6" height="22" fill="#fff" opacity=".35"/></g>';
+}
+
+/* фон помещения: стена, окно с сезоном, мебель */
+function wsWindow(x, y, w, h, season, curtains){
+  var sky={autumn:'var(--sky-autumn)', winter:'var(--sky-winter)', spring:'var(--sky-spring)', summer:'var(--sky-summer)'}[season], d='';
+  if(season==='autumn') d='<path d="M10 '+(h-8)+'q12-26 24-8t30-8" fill="none" stroke="#C0612B" stroke-width="3"/><path d="M'+(w*0.25)+' 16l5 8-5 3-5-3z M'+(w*0.62)+' 34l5 8-5 3-5-3z M'+(w*0.8)+' 12l4 7-4 3-4-3z" fill="#E8742B"/><path d="M0 '+(h-12)+'h'+w+'v12H0z" fill="#8FB070" opacity=".55"/>';
+  else if(season==='winter') d='<path d="M0 '+(h-16)+'q'+(w*0.25)+'-14 '+(w*0.5)+'-4t'+(w*0.5)+' -2v22H0z" fill="#fff" opacity=".9"/><g fill="#fff"><circle cx="'+(w*0.2)+'" cy="18" r="2.400"/><circle cx="'+(w*0.45)+'" cy="34" r="2"/><circle cx="'+(w*0.7)+'" cy="14" r="2.600"/><circle cx="'+(w*0.85)+'" cy="40" r="2"/><circle cx="'+(w*0.33)+'" cy="52" r="1.800"/></g>';
+  else if(season==='spring') d='<path d="M0 '+(h-18)+'q'+(w*0.3)+'-18 '+(w*0.55)+'-6t'+(w*0.45)+'-2v26H0z" fill="#7FCB8F" opacity=".85"/><g fill="#fff"><circle cx="'+(w*0.28)+'" cy="'+(h-14)+'" r="3"/><circle cx="'+(w*0.62)+'" cy="'+(h-22)+'" r="3"/></g><g fill="#F7B8D4"><circle cx="'+(w*0.28)+'" cy="'+(h-14)+'" r="1.200"/><circle cx="'+(w*0.62)+'" cy="'+(h-22)+'" r="1.200"/></g>';
+  else d='<circle cx="'+(w*0.72)+'" cy="24" r="12" fill="#FFD23F"/><path d="M0 '+(h-14)+'q'+(w*0.3)+'-10 '+(w*0.6)+'-2t'+(w*0.4)+'-2v18H0z" fill="#68B76B" opacity=".85"/><ellipse cx="'+(w*0.28)+'" cy="26" rx="16" ry="7" fill="#fff" opacity=".9"/>';
+  return '<g transform="translate('+x+' '+y+')"><rect x="-6" y="-6" width="'+(w+12)+'" height="'+(h+12)+'" rx="10" fill="#C79A63"/><rect width="'+w+'" height="'+h+'" rx="6" fill="'+sky+'"/>'+d+
+    '<path d="M'+(w/2)+' 0v'+h+'M0 '+(h/2)+'h'+w+'" stroke="#C79A63" stroke-width="4"/>'+
+    (curtains?'<path d="M-6 -6h'+(w*0.28)+'q-6 '+(h*0.5)+' 0 '+(h+12)+'h-'+(w*0.28)+'z M'+(w+6)+' -6h-'+(w*0.28)+'q6 '+(h*0.5)+' 0 '+(h+12)+'h'+(w*0.28)+'z" fill="var(--c-magenta)" opacity=".7"/>':'')+'</g>';
+}
+function wsBackdrop(s, season){
+  var sp=s.space, o='';
+  if(sp==='school'){
+    o+='<rect width="640" height="276" fill="var(--surface-3)"/>';
+    o+='<rect x="24" y="52" width="196" height="102" rx="8" fill="#A97B45"/><rect x="31" y="59" width="182" height="88" rx="4" fill="#1F3A2E"/><text x="122" y="94" text-anchor="middle" font-family="Tektur,sans-serif" font-weight="800" font-size="22" fill="#F4F6FC" opacity=".92">КРУЖОК</text><path d="M60 114h124M60 126h80" stroke="#F4F6FC" stroke-width="3" stroke-linecap="round" opacity=".5"/>';
+    o+='<rect x="240" y="60" width="130" height="62" rx="6" fill="#C79A63" stroke="#A97B45" stroke-width="4"/><g><rect x="252" y="72" width="26" height="22" fill="var(--c-cyan)"/><rect x="288" y="70" width="26" height="24" fill="var(--c-orange)" transform="rotate(-4 301 82)"/><rect x="326" y="74" width="26" height="22" fill="var(--c-magenta)"/><rect x="262" y="98" width="28" height="16" fill="#fff" opacity=".9"/><rect x="302" y="98" width="28" height="16" fill="var(--c-lime)"/></g>';
+    o+='<circle cx="606" cy="46" r="22" fill="var(--surface)" stroke="var(--edge-strong)" stroke-width="4"/><path d="M606 46V32M606 46l9 5" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>';
+    o+=wsWindow(470,22,100,76,season,false);
+  } else if(sp==='home'){
+    o+='<rect width="640" height="276" fill="color-mix(in srgb,var(--c-orange) 10%,var(--surface-2))"/>';
+    for(var i=0;i<20;i++) o+='<rect x="'+(i*32)+'" y="0" width="16" height="276" fill="var(--c-orange)" opacity=".05"/>';
+    o+=wsWindow(470,24,100,76,season,true);
+    o+='<rect x="262" y="52" width="56" height="64" rx="6" fill="var(--surface)" stroke="var(--edge-strong)" stroke-width="3"/><path d="M290 66l10 30h-20z" fill="var(--c-cyan)"/><circle cx="290" cy="86" r="5" fill="var(--c-orange)"/>';
+    o+='<rect x="340" y="100" width="100" height="7" rx="3" fill="#A97B45"/><rect x="348" y="78" width="10" height="22" fill="var(--c-lime)"/><rect x="362" y="72" width="10" height="28" fill="var(--c-violet)"/><rect x="376" y="82" width="10" height="18" fill="var(--c-orange)"/><rect x="394" y="86" width="12" height="14" rx="3" fill="var(--c-magenta)"/>';
+  } else if(sp==='cowork'){
+    o+='<rect width="640" height="276" fill="var(--surface-2)"/>';
+    o+='<rect x="0" y="0" width="640" height="22" fill="var(--surface-3)"/><g fill="var(--surface)"><rect x="70" y="6" width="80" height="8" rx="4"/><rect x="280" y="6" width="80" height="8" rx="4"/><rect x="490" y="6" width="80" height="8" rx="4"/></g>';
+    for(var j=0;j<5;j++) o+='<path d="M'+(110+j*110)+' 22V276" stroke="var(--edge-strong)" stroke-width="3" opacity=".4"/>';
+    o+=wsWindow(466,26,144,72,season,false);
+    o+='<g opacity=".8" fill="var(--c-cyan)"><rect x="474" y="72" width="12" height="26"/><rect x="492" y="58" width="16" height="40"/><rect x="514" y="76" width="12" height="22"/><rect x="532" y="62" width="18" height="36"/><rect x="556" y="80" width="12" height="18"/></g>';
+  } else {
+    o+='<rect width="640" height="276" fill="color-mix(in srgb,var(--ink) 8%,var(--surface-3))"/>';
+    for(var k=0;k<32;k++) o+='<rect x="'+(k*20)+'" y="0" width="3" height="276" fill="var(--ink)" opacity=".05"/>';
+    o+='<rect x="462" y="24" width="150" height="80" rx="8" fill="var(--surface-2)" stroke="var(--edge-strong)" stroke-width="4"/>';
+    o+='<g fill="var(--edge-strong)"><path d="M480 44h24l4 8h-32z" opacity=".8"/><rect x="520" y="40" width="6" height="34" rx="3"/><circle cx="552" cy="58" r="10" fill="none" stroke="var(--edge-strong)" stroke-width="4"/><rect x="574" y="38" width="26" height="6" rx="3"/><rect x="574" y="52" width="20" height="6" rx="3"/><rect x="480" y="70" width="40" height="8" rx="3"/></g>';
+    o+='<g fill="var(--edge)" stroke="var(--edge-strong)" stroke-width="3"><circle cx="596" cy="330" r="16"/></g><circle cx="596" cy="330" r="6" fill="var(--edge-strong)"/>';
+  }
+  /* пол и плинтус */
+  o+='<rect y="276" width="640" height="84" fill="var(--edge)"/><rect y="276" width="640" height="6" fill="var(--edge-strong)" opacity=".4"/>';
+  if(sp==='cowork') o+='<rect x="130" y="304" width="380" height="40" rx="10" fill="var(--c-cyan)" opacity=".12"/>';
+  if(sp==='home') o+='<ellipse cx="320" cy="326" rx="200" ry="20" fill="var(--c-magenta)" opacity=".1"/>';
+  return o;
+}
+
+/* раскладка принтеров: до четырёх в один ряд, больше — в два */
+function wsLayout(n){
+  var rows=n<=4?1:2, per=rows===1?n:Math.ceil(n/2), spacing=400/Math.max(1,per), k=rows===1?Math.min(0.9,spacing*0.95/160):0.6, out=[], i;
+  for(i=0;i<n;i++){
+    var row=rows===1?0:(i<per?0:1), idx=rows===1?i:(row===0?i:i-per);
+    var cx=24+spacing*(idx+0.5)+(row===1?spacing*0.0:0);
+    out.push({cx:cx, k:k, row:row});
+  }
+  return {items:out, rows:rows, k:k};
+}
+
+/* s — состояние игры; o: {jobs, working, month, label} */
+function workshopSVG(s, o){
+  o=o||{}; var jobs=o.jobs&&o.jobs.length?o.jobs:s.printers.map(function(p){ return {obj:null, util:0, label:PRINTERS[p.t].name}; });
+  var month=o.month||Math.max(1,Math.min(TOTAL,s.month)), season=seasonOf(month), n=jobs.length, L=wsLayout(n), out='';
+  out+=wsBackdrop(s, season);
+  /* вывеска-табличка */
+  var nm=cleanShopName(s.shop)||'Слой за слоем', pw=Math.max(150,Math.min(300,nm.length*13+44));
+  out+='<g><path d="M'+(40)+' 0v10M'+(24+pw-16)+' 0v10" stroke="var(--edge-strong)" stroke-width="3"/><rect x="24" y="8" width="'+pw+'" height="36" rx="12" fill="var(--surface)" stroke="var(--edge-strong)" stroke-width="3"/><rect x="24" y="34" width="'+pw+'" height="10" rx="0" fill="var(--c-orange)" clip-path="inset(0 0 0 0 round 0 0 10px 10px)" opacity=".9"/><text x="'+(24+pw/2)+'" y="30" text-anchor="middle" font-family="Tektur,sans-serif" font-weight="800" font-size="'+Math.min(19,Math.max(12,pw/(nm.length*0.62+1)))+'" fill="var(--ink)">'+esc(nm)+'</text></g>';
+  /* стол и полка */
+  out+='<rect x="24" y="236" width="592" height="14" rx="6" fill="#C79A63"/><rect x="24" y="236" width="592" height="4" rx="2" fill="#fff" opacity=".25"/><rect x="34" y="250" width="572" height="26" rx="4" fill="#B88A55"/><path d="M180 250v26M330 250v26M480 250v26" stroke="#A97B45" stroke-width="3"/><rect x="40" y="276" width="10" height="30" fill="#A97B45"/><rect x="590" y="276" width="10" height="30" fill="#A97B45"/>';
+  if(L.rows===2) out+='<rect x="24" y="152" width="420" height="8" rx="3" fill="#C79A63"/><path d="M60 160v14M410 160v14" stroke="#A97B45" stroke-width="5" stroke-linecap="round"/>';
+  /* принтеры: сначала дальний ряд */
+  for(var row=1;row>=0;row--){
+    for(var i=0;i<n;i++){
+      var pl=L.items[i]; if(pl.row!==row) continue;
+      var j=jobs[i], objId=j.obj||'stand', nl=OBJ[objId].w.length, layers=j.obj?Math.max(1,Math.round(j.util*nl)):Math.max(1,Math.round(nl*0.5));
+      var parts=printerParts({obj:objId, layers:layers, working:!!o.working&&j.util>0, state:(j.util>0||!o.jobs)?'on':'idle', label:j.label});
+      var baseY=row===0?236:152, ty=baseY-142*pl.k, tx=pl.cx-80*pl.k;
+      out+='<g class="'+parts.cls+'" style="'+parts.style+'" transform="translate('+tx.toFixed(1)+' '+ty.toFixed(1)+') scale('+pl.k.toFixed(3)+')">'+parts.inner+'</g>';
+    }
+  }
+  /* полки со складом справа */
+  var stockCols=[['key','cyan',3],['stand','orange',3],['mini','magenta',2],['part','lime',2],['proto','violet',1]];
+  out+='<rect x="456" y="150" width="164" height="8" rx="3" fill="#C79A63"/><rect x="456" y="198" width="164" height="8" rx="3" fill="#C79A63"/>';
+  var bx=462, by=150, i2, c, nb;
+  stockCols.forEach(function(sc,idx){
+    var id=sc[0]; if(!s.unlocked[id]) return; var q=s.inv[id]||0; nb=Math.min(sc[2],Math.ceil(q/40));
+    var shelfY = (idx<2)?150:198, startX = (idx===0||idx===2)?462:(idx===1?548:(idx===3?548:462));
+    if(idx===2) startX=462; if(idx===3) startX=520; if(idx===4) startX=582;
+    for(i2=0;i2<nb;i2++) out+=wsBox(startX+i2*(idx===4?0:29), shelfY, sc[1]);
+  });
+  /* предметы на столе */
+  if(s.channel.market || s.channel.site) out+='<g transform="translate(540 236)"><rect x="-26" y="-34" width="52" height="34" rx="4" fill="var(--p-body)"/><rect x="-22" y="-30" width="44" height="26" rx="2" fill="var(--p-screen)"/><rect x="-8" y="-24" width="16" height="12" rx="2" fill="var(--c-orange)"/><path d="M-10 0h20" stroke="var(--p-body)" stroke-width="4"/></g>';
+  if(s.service) out+='<g transform="translate(594 236)"><rect x="-16" y="-14" width="32" height="14" rx="3" fill="var(--c-orange)"/><path d="M-6 -14v-6h12v6" fill="none" stroke="var(--p-body)" stroke-width="3"/></g>';
+  /* украшения по ходу сюжета */
+  var dx=300;
+  if(s.insurance) { out+='<g transform="translate('+dx+' 14)"><rect width="38" height="42" rx="5" fill="var(--surface)" stroke="var(--edge-strong)" stroke-width="3"/><path d="M19 8l12 4v10c0 7-5 11-12 14-7-3-12-7-12-14V12z" fill="var(--c-cyan)"/><path d="m13 22 5 5 8-9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>'; dx+=48; }
+  if(s.flags.social) { out+='<g transform="translate('+dx+' 14)"><rect width="38" height="42" rx="5" fill="var(--surface)" stroke="var(--edge-strong)" stroke-width="3"/><path d="M19 32s-9-5-9-12a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 7-9 12-9 12z" fill="var(--c-magenta)"/></g>'; dx+=48; }
+  if(ownerCapital(s)>=GOAL*0.5) { out+='<g transform="translate('+dx+' 14)"><rect width="38" height="42" rx="5" fill="var(--surface)" stroke="var(--edge-strong)" stroke-width="3"/><rect x="9" y="16" width="20" height="20" fill="var(--c-orange)"/><rect x="13" y="22" width="4" height="4" fill="#fff"/><rect x="21" y="22" width="4" height="4" fill="#fff"/><rect x="16" y="28" width="6" height="8" fill="#fff"/><path d="M19 6v10M19 6h8l-3 3 3 3h-8" stroke="var(--ink)" stroke-width="2" fill="var(--brand)"/></g>'; dx+=48; }
+  if(s.flags.eco) out+='<g transform="translate(28 330)"><rect x="-4" y="-26" width="34" height="28" rx="4" fill="var(--c-lime)" opacity=".85"/><path d="M13 -6c0-8 4-12 10-13-1 7-4 11-10 13z" fill="#fff" opacity=".9"/><path d="M8 -6c0-4-3-6-6-6 0 4 2 6 6 6z" fill="#fff" opacity=".9"/></g>';
+  else out+='<g transform="translate(24 330)"><rect x="0" y="-22" width="28" height="22" rx="5" fill="#A97B45"/><g fill="var(--c-lime)"><circle cx="14" cy="-30" r="8"/><circle cx="6" cy="-26" r="6"/><circle cx="22" cy="-26" r="6"/></g></g>';
+  if(s.flags.psu) out+='<g transform="translate(610 322)"><rect x="-8" y="-34" width="16" height="34" rx="6" fill="#D8352A"/><rect x="-4" y="-40" width="8" height="8" rx="2" fill="var(--ink)"/></g>';
+  else if(s.flags.fireHappened) out+='<g transform="translate(402 214)" opacity=".7"><ellipse cx="0" cy="0" rx="22" ry="12" fill="#1A1226"/><ellipse cx="6" cy="-10" rx="12" ry="8" fill="#1A1226"/></g>';
+  if(s.flags.alliance2) out+='<g transform="translate(446 14)"><path d="M0 0v44" stroke="var(--ink)" stroke-width="3"/><path d="M0 2h34l-8 10 8 10H0z" fill="var(--c-cyan)"/><path d="M0 2h17v20H0z" fill="var(--brand)"/></g>';
+  else if(s.flags.ally) out+='<g transform="translate(446 14)"><path d="M0 0v44" stroke="var(--ink)" stroke-width="3"/><path d="M0 2h28l-6 8 6 8H0z" fill="var(--c-cyan)"/></g>';
+  /* люди: владелец, помощник, подросток */
+  out+=wsPerson(150, 338, 'owner', 0.82);
+  if(s.staff.asst) out+=wsPerson(232, 338, 'asst', 0.82);
+  if(s.staff.teen) out+=wsPerson(310, 338, 'teen', 0.78);
+  var ar = '<svg class="workshop" viewBox="0 0 640 360" role="img" aria-label="'+esc(o.label||('Мастерская «'+nm+'»: '+n+' '+plural(n,'принтер','принтера','принтеров')+', '+SPACES[s.space].name.toLowerCase()))+'" focusable="false">'+out+'</svg>';
+  return ar;
 }
 
 /* ===== Интерфейс «Слоя за слоем»: экраны, действия, сохранение ===== */
@@ -2109,8 +2892,8 @@ function calibLive(){
 function sceneView(){
   var st=U.stage||0, key=S.month+':'+st;
   if(U.view && U.view.key===key) return U.view;
-  var ev=EVENTS[S.month-1], stages=ev.stages(S), g=stages[st];
-  var view={key:key, title:ev.title, n:stages.length, tag:g.tag, term:g.term, lines:g.lines, lesson:fn(g.lesson,S),
+  var ev=EVENTS[S.month-1], stages=stagesOf(S), g=stages[st];
+  var view={key:key, title:g.mini?g.miniTitle:ev.title, icon:g.mini?g.miniIcon:ev.icon, mini:!!g.mini, n:stages.length, tag:g.tag, term:g.term, lines:g.lines, lesson:fn(g.lesson,S),
     choices:choicesOf(S,g).map(function(c){ var cost=fn(c.cost,S)||0, req=c.req?c.req(S):''; return {label:fn(c.label,S), sub:fn(c.sub,S), cost:cost, why:req, poor:cost>S.cash, talent:c.talent||''}; })};
   /* страховка от тупика: если все варианты недоступны из-за денег, разрешаем взять недостающее в долг */
   var any=view.choices.some(function(c){ return !c.why && !c.poor; });
@@ -2120,8 +2903,8 @@ function sceneView(){
 function sceneHTML(){
   var v=sceneView(), st=U.stage||0, res=(U.res||[])[st], ch=CHAPTERS[chapterOf(S.month)];
   var ev=EVENTS[S.month-1];
-  var h='<section class="scene-head"><div class="scene-title"><span class="scene-ico" aria-hidden="true">'+ico(ev.icon||'star')+'</span><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · месяц '+S.month+' · акт «'+ch.name+'»</div><h1 id="pagetitle" tabindex="-1">'+v.title+'</h1></div></div>';
-  if(st===0) h+='<div class="news">'+ico('news')+'<span><b>Новости.</b> '+esc(NEWS[S.month-1])+'</span></div>';
+  var h='<section class="scene-head"><div class="scene-title"><span class="scene-ico'+(v.mini?' mini':'')+'" aria-hidden="true">'+ico(v.icon||ev.icon||'star')+'</span><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · месяц '+S.month+' · '+(v.mini?'случай в мастерской':'акт «'+ch.name+'»')+'</div><h1 id="pagetitle" tabindex="-1">'+v.title+'</h1></div></div>';
+  if(st===0 && !v.mini) h+='<div class="news">'+ico('news')+'<span><b>Новости.</b> '+esc(NEWS[S.month-1])+'</span></div>';
   if(v.n>1) h+='<div class="stagedots"><span class="dots" aria-hidden="true">'+Array.apply(null,Array(v.n)).map(function(_,i){ return '<i class="'+(i===st?'on':'')+'"></i>'; }).join('')+'</span>Сцена '+(st+1)+' из '+v.n+'</div>';
   h+='</section>';
   if(st===0 && S.month===ch.months[0]) h+='<section class="card flat lined"><div class="eyebrow">Акт '+(chapterOf(S.month)+1)+' · '+ch.about+'</div><p style="margin-top:6px;font-size:17px">'+ch.intro+'</p></section>';
@@ -2305,6 +3088,7 @@ function printerCard(type, owned){
 }
 function shopHTML(){
   var sp=SPACES[S.space], h='';
+  h+=wsCard('Твоя мастерская', esc(sp.name));
   h+='<div class="callout">'+ico('info')+'<div>Оборудование и люди дают <b>часы печати</b>, но не покупателей. Покупай, когда часов не хватает, а товар раскупают. Все покупки видны в «Капитале» по остаточной стоимости.</div></div>';
   h+='<section class="stack"><div class="row between"><h2 style="font-size:22px">Принтеры</h2><span class="chip info">'+S.printers.length+' из '+sp.limit+' мест · «'+sp.name+'»</span></div><div class="grid-auto">';
   S.printers.forEach(function(p,i){ var d=PRINTERS[p.t]; h+='<article class="card upg owned"><header>'+printerSVG({obj:'stand',layers:6,state:'on',label:d.name,cls:'art'})+'<div><h3>'+(p.t==='old'?'Фил':d.name)+'</h3><p class="muted">'+d.hours+' ч · брак '+Math.round(d.fail*100)+'%</p></div></header><div class="chips"><span class="chip gain">'+ico('check')+' в работе</span>'+(p.t==='old'?'':'<span class="chip">остаточная стоимость '+rub(d.price*Math.max(0,1-p.age/DEPR_MONTHS))+'</span>')+'</div></article>'; });
@@ -2357,6 +3141,12 @@ function finHTML(){
   return h;
 }
 
+/* ---------- живая мастерская ---------- */
+function wsCard(title, note){
+  var pv=previewMonth(S,S.plan,1);
+  return '<section class="card ws-card stack"><div class="row between"><h2 style="font-size:20px">'+title+'</h2>'+(note?'<span class="chip info">'+note+'</span>':'')+'</div><div class="ws-wrap">'+workshopSVG(S,{jobs:jobAssign(pv),working:false})+'</div></section>';
+}
+
 /* ---------- печать месяца (анимация) ---------- */
 var runTimers=[];
 function clearRunTimers(){ runTimers.forEach(clearTimeout); runTimers=[]; }
@@ -2366,7 +3156,7 @@ function runHTML(){
   return '<section class="run"><div><div class="eyebrow">'+MONTH_NAMES[r.month-1]+' · печать</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.6vw,44px)">Принтеры работают</h1></div>'+
     '<div class="run-weeks" aria-hidden="true"><span id="wk0" class="on">Неделя 1</span><span id="wk1">Неделя 2</span><span id="wk2">Неделя 3</span><span id="wk3">Неделя 4</span></div>'+
     '<div class="run-bar"><div class="fil" aria-hidden="true"><i id="runfill" style="width:0%;transition:width 3000ms linear"></i></div></div>'+
-    farmRunHTML(r)+
+    '<div class="ws-wrap">'+workshopSVG(S,{jobs:jobAssign({rows:r.rows}),working:true,month:r.month})+'</div>'+
     '<div class="run-nums"><div class="fbox"><b>Напечатано</b><span class="num" data-run="'+made+'" data-fmt="pcs">0 шт.</span></div><div class="fbox"><b>Продано</b><span class="num" data-run="'+r.soldTot+'" data-fmt="pcs">0 шт.</span></div><div class="fbox"><b>Выручка</b><span class="num" data-run="'+Math.round(r.revTot)+'" data-fmt="rub">0 ₽</span></div></div>'+
     '<div class="row"><button class="btn primary" data-act="runskip">Показать итоги'+ico('right')+'</button></div></section>';
 }
@@ -2406,6 +3196,13 @@ function insights(r){
   out.sort(function(a,b){ return b.p-a.p; });
   return out.slice(0,4);
 }
+function ratingNow(){ var q=S.rate; return q && q.u>0 ? q.s/q.u : 0; }
+function reviewsHTML(r){
+  var rv=r.reviews; if(!rv || !rv.list.length) return '';
+  var items=rv.list.map(function(x,i){ var P=x.id?PRODUCTS[x.id]:null;
+    return '<div class="rv" style="--i:'+i+'"><div class="rv-av c-'+x.color+'" aria-hidden="true">'+esc(x.name.charAt(0))+'</div><div class="rv-body"><div class="rv-head"><b>'+esc(x.name)+'</b>'+starsHTML(x.stars)+(P?'<span class="chip">'+esc(P.short)+'</span>':'')+'</div><p>'+esc(x.text)+'</p></div></div>'; }).join('');
+  return '<section class="card stack"><div class="row between"><h2 style="font-size:20px">Что пишут покупатели</h2>'+(rv.units>0?'<span class="chip brand">'+starsHTML(Math.round(rv.avg))+' <span>'+ratingText(rv.avg)+' за месяц</span></span>':'')+'</div><div class="rv-list">'+items+'</div></section>';
+}
 function reportHTML(){
   var r=U.report, mx=Math.max(1,r.revTot), rows='', n=0;
   function row(name,val,kind,hint){ if(Math.abs(val)<0.5) return ''; n++; return '<div class="wf-row '+kind+'" style="--i:'+n+'"><span>'+name+(hint?' <span class="muted" style="font-size:13px">'+hint+'</span>':'')+'</span><b class="num">'+(kind==='minus'?'−':(kind==='plus'?'+':''))+rub(Math.abs(val)).replace('−','')+'</b><div class="bar"><i style="width:'+clamp(Math.abs(val)/mx*100,0,100).toFixed(1)+'%"></i></div></div>'; }
@@ -2419,10 +3216,11 @@ function reportHTML(){
   }).join('');
   var m=r.month, quizNext=(m%4===0);
   var h='<section class="card lined"><div class="row between" style="align-items:flex-end"><div><div class="eyebrow">'+MONTH_NAMES[m-1]+': итоги месяца</div><h1 id="pagetitle" tabindex="-1" class="profit num '+(r.profit>=0?'gain-t':'loss-t')+'" style="margin-top:6px"><span id="profitnum" data-v="'+Math.round(r.profit)+'">'+(r.profit>=0?'+':'')+rub(r.profit)+'</span></h1><p class="muted">чистая прибыль за месяц</p></div>'+
-    '<div class="chips">'+(bestM?'<span class="chip brand">'+ico('star')+' лучший месяц</span>':'')+'<span class="chip info">'+ico('clock')+' часы: '+Math.round(r.hours)+' из '+r.H+'</span><span class="chip">Капитал: '+rub(r.cap)+'</span></div></div></section>';
+    '<div class="chips">'+(bestM?'<span class="chip brand">'+ico('star')+' лучший месяц</span>':'')+'<span class="chip info">'+ico('clock')+' часы: '+Math.round(r.hours)+' из '+r.H+'</span><span class="chip">Капитал: '+rub(r.cap)+'</span>'+(ratingNow()>0?'<span class="chip">Рейтинг мастерской: '+ratingText(ratingNow())+'</span>':'')+'</div></div></section>';
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Как получилась прибыль</h2><div class="wf">'+rows+'<div class="wf-row sum"><span>Прибыль</span><b class="num '+(r.profit>=0?'gain-t':'loss-t')+'">'+rub(r.profit)+'</b></div></div></section>'+
     '<section class="card stack"><h2 style="font-size:20px">Твоя башня слоёв</h2><div class="tower-wrap">'+towerSVG(S.history,{animateLast:true})+'</div><p class="muted" style="font-size:14px">Каждый месяц это слой. Ширина слоя зависит от выручки, зелёный цвет значит прибыль, штриховка значит убыток.</p></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Что и как продавалось</h2><div class="prows">'+prods+'</div></section>';
+  h+=reviewsHTML(r);
   h+='<section class="card flat stack"><div class="row" style="align-items:flex-start;gap:14px">'+avatarSVG('phil',r.profit>=0?'happy':'worried',48)+'<div class="stack" style="flex:1;min-width:0"><div class="eyebrow">Разбор от Фила</div>'+ins.map(function(i){ return '<div class="callout '+(i.k==='info'?'':i.k)+'" style="padding:10px 14px">'+ico(i.k==='ok'?'check':(i.k==='info'?'info':'warn'))+'<div>'+i.t+'</div></div>'; }).join('')+'</div></div></section>';
   h+='<div><button class="btn primary" data-act="afterreport">'+(quizNext?'Проверить прошивку Фила (вопросы)':'Следующий месяц')+ico('right')+'</button></div>';
   return h;
@@ -2451,6 +3249,7 @@ function chapterHTML(){
   var h='<section class="card lined stack-lg"><div class="eyebrow">Акт '+(I.ch+1)+' завершён</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.4vw,42px)">«'+ch.name+'»</h1>'+
     '<div class="dialog">'+bubble(say('nar','neutral',ch.outro||'Последний слой лёг на место.'),0)+'</div>'+
     '<div class="chips"><span class="chip '+(I.correct>=2?'gain':'loss')+'">'+ico('cap')+' Верных ответов: '+I.correct+' из '+QUIZ_PICK+'</span><span class="chip brand">'+ico('coin')+' Грант: +'+rub(I.bonus)+'</span><span class="chip '+(I.profit>=0?'gain':'loss')+'">Прибыль за акт: '+rub(I.profit)+'</span><span class="chip">Капитал: '+rub(ownerCapital(S))+'</span></div></section>';
+  h+=wsCard('Мастерская к концу акта «'+ch.name+'»', S.printers.length+' '+plural(S.printers.length,'принтер','принтера','принтеров'));
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Башня слоёв</h2><div class="tower-wrap">'+towerSVG(S.history,{})+'</div></section><section class="card stack"><h2 style="font-size:20px">Капитал по месяцам</h2>'+capChartSVG(S.history,{})+'</section></div>';
   h+='<div><button class="btn primary" data-act="chapternext">'+(I.ch===3?'Узнать решение комиссии':(I.ch===1?'Завершить урок 1':'Акт '+(I.ch+2)+' «'+next.name+'»'))+ico('right')+'</button></div>';
   return h;
@@ -2474,6 +3273,7 @@ function finalHTML(){
     '<div class="callout '+(ti<=1?'ok':(ti<=3?'':'warn'))+'">'+ico(ti<=1?'star':'info')+'<div><b>'+T.verdict+'.</b> '+T.text+'</div></div>'+
     '<div class="chips"><span class="chip info">Вопросы: '+qTotal()+' из '+S.quizTotal+'</span><span class="chip">Выручка за игру: '+rub(S.totalRevenue)+'</span>'+(bestM?'<span class="chip brand">Лучший месяц: '+MONTH_NAMES[bestM.m-1]+', '+rub(bestM.profit)+'</span>':'')+'<span class="chip gain">Наград: '+got+' из '+BADGES.length+'</span></div></div>'+
     '<div class="tower-wrap">'+towerSVG(S.history,{h:300,w:380})+'</div></div></section>';
+  h+=wsCard('Мастерская на финише', S.printers.length+' '+plural(S.printers.length,'принтер','принтера','принтеров'));
   h+='<section class="card stack-lg"><h2 style="font-size:22px">Что было дальше</h2><div class="dialog">'+bubble(say('sem','happy',T.sem),0)+bubble(say('phil',ti<=2?'excited':'happy',T.phil),1)+epi.map(function(e,i){ return bubble(say(e.who,'happy',e.t),i+2); }).join('')+'</div></section>';
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Капитал по месяцам</h2>'+capChartSVG(S.history,{})+'</section><section class="card stack"><h2 style="font-size:20px">Награды</h2><div class="badges">'+badges.map(function(x){ return '<div class="bdg '+(x.on?'on':'off')+'">'+ico(x.b.icon)+'<div><b>'+x.b.name+'</b><small>'+x.b.desc+'</small></div></div>'; }).join('')+'</div></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Результат для учителя</h2><div class="field"><label for="resline" class="sr-only">Результат</label><textarea class="input" id="resline" readonly rows="2">'+esc(resultLine())+'</textarea></div><div class="row"><button class="btn small" data-act="copyres">'+ico('copy')+' Скопировать</button></div></section>';
@@ -2586,7 +3386,7 @@ var A={
  choose:function(el){
    var i=+el.getAttribute('data-i'), st=U.stage||0, v=sceneView(), vc=v.choices[i];
    if(!vc || vc.why || (U.res&&U.res[st])) return;
-   var stg=EVENTS[S.month-1].stages(S)[st], c=choicesOf(S,stg)[i];
+   var stg=stagesOf(S)[st], c=choicesOf(S,stg)[i];
    var chips=c.apply(S, rngFor(S,'ev'+S.month+':'+st)), gap=coverDeficit(S);
    if(gap) chips.push(chip('Денег не хватило: банк покрыл '+rub(gap)+' в долг','loss'));
    addTerm(stg.term);
@@ -2637,6 +3437,7 @@ var A={
  go:function(){
    var pv=previewMonth(S,S.plan,1); if(pv.cashNow>S.cash+0.5){ toast('Не хватает денег на закупку. Уменьши выпуск.'); return; }
    var before=S.cash, r=runMonth(S); r.cashBefore=before; r.cashAfter=S.cash;
+   r.reviews=makeReviews(S,r); S.rate=S.rate||{u:0,s:0}; S.rate.u+=r.reviews.units; S.rate.s+=r.reviews.avg*r.reviews.units;
    U.report=r; U.screen=reduced?'report':'run'; U.tab='biz';
    if(reduced){ render(); sfx(r.profit>=0?'good':'bad'); } else render();
  },

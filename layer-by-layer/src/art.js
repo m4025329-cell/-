@@ -84,7 +84,7 @@ function productSVG(id, size, count){
 
 /* ---------- принтер ---------- */
 /* opts: color (id продукта), layers (0..9), working (bool), state: 'on'|'idle'|'off', scale */
-function printerSVG(opts){
+function printerParts(opts){
   opts=opts||{}; var id=opts.obj||'stand', o=OBJ[id], n=Math.max(0,Math.min(o.w.length,Math.round(opts.layers==null?o.w.length:opts.layers)));
   var working=!!opts.working, step=0.3, dur=(o.w.length*step+1.4).toFixed(2);
   var plateY=118, lay='', i, W=56;
@@ -97,8 +97,7 @@ function printerSVG(opts){
   var gantryY=working ? (plateY-12) : (topY-14);
   var led = opts.state==='off' ? 'var(--led-off)' : (working ? 'var(--led-on)' : 'var(--led-idle)');
   var style='--n:'+o.w.length+';--dur:'+dur+'s;--step:'+step+'s;--rise:'+rise.toFixed(1)+'px;';
-  return '<svg class="printer'+(working?' working':'')+(opts.state==='off'?' is-off':'')+(opts.cls?' '+opts.cls:'')+'" viewBox="0 0 160 150" style="'+style+'" role="img" aria-label="'+esc(opts.label||'Принтер')+'" focusable="false">'+
-   '<ellipse cx="80" cy="144" rx="62" ry="4" fill="var(--shadow-soft)"/>'+
+  var inner=   '<ellipse cx="80" cy="144" rx="62" ry="4" fill="var(--shadow-soft)"/>'+
    '<rect x="18" y="126" width="124" height="16" rx="5" fill="var(--p-body)"/><rect x="18" y="126" width="124" height="4" rx="2" fill="#fff" opacity=".12"/>'+
    '<rect x="58" y="131" width="44" height="7" rx="3" fill="var(--p-screen)"/><circle cx="66" cy="134.500" r="2" fill="'+led+'"/><rect x="72" y="133" width="24" height="3" rx="1.500" fill="var(--p-line)"/>'+
    '<rect x="32" y="26" width="8" height="100" rx="3" fill="var(--p-rail)"/><rect x="120" y="26" width="8" height="100" rx="3" fill="var(--p-rail)"/>'+
@@ -110,7 +109,12 @@ function printerSVG(opts){
      '<rect x="38" y="'+(plateY-12)+'" width="84" height="7" rx="3" fill="var(--p-rail)"/><rect x="38" y="'+(plateY-12)+'" width="84" height="2.200" rx="1" fill="#fff" opacity=".18"/>'+
      '<g class="p-head"><rect x="72" y="'+(plateY-19)+'" width="18" height="15" rx="3.500" fill="var(--p-body)"/><rect x="75" y="'+(plateY-16)+'" width="12" height="3" rx="1.500" fill="var(--c-'+PCOL[id]+')"/><path d="M78 '+(plateY-4)+'h6l-3 6z" fill="var(--p-nozzle)"/></g>'+
    '</g></g>'+
-   '</svg>';
+   '';
+  return {cls:'printer'+(working?' working':'')+(opts.state==='off'?' is-off':'')+(opts.cls?' '+opts.cls:''), style:style, label:opts.label||'Принтер', inner:inner};
+}
+function printerSVG(opts){
+  var p=printerParts(opts);
+  return '<svg class="'+p.cls+'" viewBox="0 0 160 150" style="'+p.style+'" role="img" aria-label="'+esc(p.label)+'" focusable="false">'+p.inner+'</svg>';
 }
 
 /* ---------- аватары ---------- */

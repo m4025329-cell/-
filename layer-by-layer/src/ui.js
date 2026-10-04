@@ -239,8 +239,8 @@ function calibLive(){
 function sceneView(){
   var st=U.stage||0, key=S.month+':'+st;
   if(U.view && U.view.key===key) return U.view;
-  var ev=EVENTS[S.month-1], stages=ev.stages(S), g=stages[st];
-  var view={key:key, title:ev.title, n:stages.length, tag:g.tag, term:g.term, lines:g.lines, lesson:fn(g.lesson,S),
+  var ev=EVENTS[S.month-1], stages=stagesOf(S), g=stages[st];
+  var view={key:key, title:g.mini?g.miniTitle:ev.title, icon:g.mini?g.miniIcon:ev.icon, mini:!!g.mini, n:stages.length, tag:g.tag, term:g.term, lines:g.lines, lesson:fn(g.lesson,S),
     choices:choicesOf(S,g).map(function(c){ var cost=fn(c.cost,S)||0, req=c.req?c.req(S):''; return {label:fn(c.label,S), sub:fn(c.sub,S), cost:cost, why:req, poor:cost>S.cash, talent:c.talent||''}; })};
   /* страховка от тупика: если все варианты недоступны из-за денег, разрешаем взять недостающее в долг */
   var any=view.choices.some(function(c){ return !c.why && !c.poor; });
@@ -250,8 +250,8 @@ function sceneView(){
 function sceneHTML(){
   var v=sceneView(), st=U.stage||0, res=(U.res||[])[st], ch=CHAPTERS[chapterOf(S.month)];
   var ev=EVENTS[S.month-1];
-  var h='<section class="scene-head"><div class="scene-title"><span class="scene-ico" aria-hidden="true">'+ico(ev.icon||'star')+'</span><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · месяц '+S.month+' · акт «'+ch.name+'»</div><h1 id="pagetitle" tabindex="-1">'+v.title+'</h1></div></div>';
-  if(st===0) h+='<div class="news">'+ico('news')+'<span><b>Новости.</b> '+esc(NEWS[S.month-1])+'</span></div>';
+  var h='<section class="scene-head"><div class="scene-title"><span class="scene-ico'+(v.mini?' mini':'')+'" aria-hidden="true">'+ico(v.icon||ev.icon||'star')+'</span><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · месяц '+S.month+' · '+(v.mini?'случай в мастерской':'акт «'+ch.name+'»')+'</div><h1 id="pagetitle" tabindex="-1">'+v.title+'</h1></div></div>';
+  if(st===0 && !v.mini) h+='<div class="news">'+ico('news')+'<span><b>Новости.</b> '+esc(NEWS[S.month-1])+'</span></div>';
   if(v.n>1) h+='<div class="stagedots"><span class="dots" aria-hidden="true">'+Array.apply(null,Array(v.n)).map(function(_,i){ return '<i class="'+(i===st?'on':'')+'"></i>'; }).join('')+'</span>Сцена '+(st+1)+' из '+v.n+'</div>';
   h+='</section>';
   if(st===0 && S.month===ch.months[0]) h+='<section class="card flat lined"><div class="eyebrow">Акт '+(chapterOf(S.month)+1)+' · '+ch.about+'</div><p style="margin-top:6px;font-size:17px">'+ch.intro+'</p></section>';
@@ -435,6 +435,7 @@ function printerCard(type, owned){
 }
 function shopHTML(){
   var sp=SPACES[S.space], h='';
+  h+=wsCard('Твоя мастерская', esc(sp.name));
   h+='<div class="callout">'+ico('info')+'<div>Оборудование и люди дают <b>часы печати</b>, но не покупателей. Покупай, когда часов не хватает, а товар раскупают. Все покупки видны в «Капитале» по остаточной стоимости.</div></div>';
   h+='<section class="stack"><div class="row between"><h2 style="font-size:22px">Принтеры</h2><span class="chip info">'+S.printers.length+' из '+sp.limit+' мест · «'+sp.name+'»</span></div><div class="grid-auto">';
   S.printers.forEach(function(p,i){ var d=PRINTERS[p.t]; h+='<article class="card upg owned"><header>'+printerSVG({obj:'stand',layers:6,state:'on',label:d.name,cls:'art'})+'<div><h3>'+(p.t==='old'?'Фил':d.name)+'</h3><p class="muted">'+d.hours+' ч · брак '+Math.round(d.fail*100)+'%</p></div></header><div class="chips"><span class="chip gain">'+ico('check')+' в работе</span>'+(p.t==='old'?'':'<span class="chip">остаточная стоимость '+rub(d.price*Math.max(0,1-p.age/DEPR_MONTHS))+'</span>')+'</div></article>'; });
@@ -487,6 +488,12 @@ function finHTML(){
   return h;
 }
 
+/* ---------- живая мастерская ---------- */
+function wsCard(title, note){
+  var pv=previewMonth(S,S.plan,1);
+  return '<section class="card ws-card stack"><div class="row between"><h2 style="font-size:20px">'+title+'</h2>'+(note?'<span class="chip info">'+note+'</span>':'')+'</div><div class="ws-wrap">'+workshopSVG(S,{jobs:jobAssign(pv),working:false})+'</div></section>';
+}
+
 /* ---------- печать месяца (анимация) ---------- */
 var runTimers=[];
 function clearRunTimers(){ runTimers.forEach(clearTimeout); runTimers=[]; }
@@ -496,7 +503,7 @@ function runHTML(){
   return '<section class="run"><div><div class="eyebrow">'+MONTH_NAMES[r.month-1]+' · печать</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.6vw,44px)">Принтеры работают</h1></div>'+
     '<div class="run-weeks" aria-hidden="true"><span id="wk0" class="on">Неделя 1</span><span id="wk1">Неделя 2</span><span id="wk2">Неделя 3</span><span id="wk3">Неделя 4</span></div>'+
     '<div class="run-bar"><div class="fil" aria-hidden="true"><i id="runfill" style="width:0%;transition:width 3000ms linear"></i></div></div>'+
-    farmRunHTML(r)+
+    '<div class="ws-wrap">'+workshopSVG(S,{jobs:jobAssign({rows:r.rows}),working:true,month:r.month})+'</div>'+
     '<div class="run-nums"><div class="fbox"><b>Напечатано</b><span class="num" data-run="'+made+'" data-fmt="pcs">0 шт.</span></div><div class="fbox"><b>Продано</b><span class="num" data-run="'+r.soldTot+'" data-fmt="pcs">0 шт.</span></div><div class="fbox"><b>Выручка</b><span class="num" data-run="'+Math.round(r.revTot)+'" data-fmt="rub">0 ₽</span></div></div>'+
     '<div class="row"><button class="btn primary" data-act="runskip">Показать итоги'+ico('right')+'</button></div></section>';
 }
@@ -536,6 +543,13 @@ function insights(r){
   out.sort(function(a,b){ return b.p-a.p; });
   return out.slice(0,4);
 }
+function ratingNow(){ var q=S.rate; return q && q.u>0 ? q.s/q.u : 0; }
+function reviewsHTML(r){
+  var rv=r.reviews; if(!rv || !rv.list.length) return '';
+  var items=rv.list.map(function(x,i){ var P=x.id?PRODUCTS[x.id]:null;
+    return '<div class="rv" style="--i:'+i+'"><div class="rv-av c-'+x.color+'" aria-hidden="true">'+esc(x.name.charAt(0))+'</div><div class="rv-body"><div class="rv-head"><b>'+esc(x.name)+'</b>'+starsHTML(x.stars)+(P?'<span class="chip">'+esc(P.short)+'</span>':'')+'</div><p>'+esc(x.text)+'</p></div></div>'; }).join('');
+  return '<section class="card stack"><div class="row between"><h2 style="font-size:20px">Что пишут покупатели</h2>'+(rv.units>0?'<span class="chip brand">'+starsHTML(Math.round(rv.avg))+' <span>'+ratingText(rv.avg)+' за месяц</span></span>':'')+'</div><div class="rv-list">'+items+'</div></section>';
+}
 function reportHTML(){
   var r=U.report, mx=Math.max(1,r.revTot), rows='', n=0;
   function row(name,val,kind,hint){ if(Math.abs(val)<0.5) return ''; n++; return '<div class="wf-row '+kind+'" style="--i:'+n+'"><span>'+name+(hint?' <span class="muted" style="font-size:13px">'+hint+'</span>':'')+'</span><b class="num">'+(kind==='minus'?'−':(kind==='plus'?'+':''))+rub(Math.abs(val)).replace('−','')+'</b><div class="bar"><i style="width:'+clamp(Math.abs(val)/mx*100,0,100).toFixed(1)+'%"></i></div></div>'; }
@@ -549,10 +563,11 @@ function reportHTML(){
   }).join('');
   var m=r.month, quizNext=(m%4===0);
   var h='<section class="card lined"><div class="row between" style="align-items:flex-end"><div><div class="eyebrow">'+MONTH_NAMES[m-1]+': итоги месяца</div><h1 id="pagetitle" tabindex="-1" class="profit num '+(r.profit>=0?'gain-t':'loss-t')+'" style="margin-top:6px"><span id="profitnum" data-v="'+Math.round(r.profit)+'">'+(r.profit>=0?'+':'')+rub(r.profit)+'</span></h1><p class="muted">чистая прибыль за месяц</p></div>'+
-    '<div class="chips">'+(bestM?'<span class="chip brand">'+ico('star')+' лучший месяц</span>':'')+'<span class="chip info">'+ico('clock')+' часы: '+Math.round(r.hours)+' из '+r.H+'</span><span class="chip">Капитал: '+rub(r.cap)+'</span></div></div></section>';
+    '<div class="chips">'+(bestM?'<span class="chip brand">'+ico('star')+' лучший месяц</span>':'')+'<span class="chip info">'+ico('clock')+' часы: '+Math.round(r.hours)+' из '+r.H+'</span><span class="chip">Капитал: '+rub(r.cap)+'</span>'+(ratingNow()>0?'<span class="chip">Рейтинг мастерской: '+ratingText(ratingNow())+'</span>':'')+'</div></div></section>';
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Как получилась прибыль</h2><div class="wf">'+rows+'<div class="wf-row sum"><span>Прибыль</span><b class="num '+(r.profit>=0?'gain-t':'loss-t')+'">'+rub(r.profit)+'</b></div></div></section>'+
     '<section class="card stack"><h2 style="font-size:20px">Твоя башня слоёв</h2><div class="tower-wrap">'+towerSVG(S.history,{animateLast:true})+'</div><p class="muted" style="font-size:14px">Каждый месяц это слой. Ширина слоя зависит от выручки, зелёный цвет значит прибыль, штриховка значит убыток.</p></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Что и как продавалось</h2><div class="prows">'+prods+'</div></section>';
+  h+=reviewsHTML(r);
   h+='<section class="card flat stack"><div class="row" style="align-items:flex-start;gap:14px">'+avatarSVG('phil',r.profit>=0?'happy':'worried',48)+'<div class="stack" style="flex:1;min-width:0"><div class="eyebrow">Разбор от Фила</div>'+ins.map(function(i){ return '<div class="callout '+(i.k==='info'?'':i.k)+'" style="padding:10px 14px">'+ico(i.k==='ok'?'check':(i.k==='info'?'info':'warn'))+'<div>'+i.t+'</div></div>'; }).join('')+'</div></div></section>';
   h+='<div><button class="btn primary" data-act="afterreport">'+(quizNext?'Проверить прошивку Фила (вопросы)':'Следующий месяц')+ico('right')+'</button></div>';
   return h;
@@ -581,6 +596,7 @@ function chapterHTML(){
   var h='<section class="card lined stack-lg"><div class="eyebrow">Акт '+(I.ch+1)+' завершён</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.4vw,42px)">«'+ch.name+'»</h1>'+
     '<div class="dialog">'+bubble(say('nar','neutral',ch.outro||'Последний слой лёг на место.'),0)+'</div>'+
     '<div class="chips"><span class="chip '+(I.correct>=2?'gain':'loss')+'">'+ico('cap')+' Верных ответов: '+I.correct+' из '+QUIZ_PICK+'</span><span class="chip brand">'+ico('coin')+' Грант: +'+rub(I.bonus)+'</span><span class="chip '+(I.profit>=0?'gain':'loss')+'">Прибыль за акт: '+rub(I.profit)+'</span><span class="chip">Капитал: '+rub(ownerCapital(S))+'</span></div></section>';
+  h+=wsCard('Мастерская к концу акта «'+ch.name+'»', S.printers.length+' '+plural(S.printers.length,'принтер','принтера','принтеров'));
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Башня слоёв</h2><div class="tower-wrap">'+towerSVG(S.history,{})+'</div></section><section class="card stack"><h2 style="font-size:20px">Капитал по месяцам</h2>'+capChartSVG(S.history,{})+'</section></div>';
   h+='<div><button class="btn primary" data-act="chapternext">'+(I.ch===3?'Узнать решение комиссии':(I.ch===1?'Завершить урок 1':'Акт '+(I.ch+2)+' «'+next.name+'»'))+ico('right')+'</button></div>';
   return h;
@@ -604,6 +620,7 @@ function finalHTML(){
     '<div class="callout '+(ti<=1?'ok':(ti<=3?'':'warn'))+'">'+ico(ti<=1?'star':'info')+'<div><b>'+T.verdict+'.</b> '+T.text+'</div></div>'+
     '<div class="chips"><span class="chip info">Вопросы: '+qTotal()+' из '+S.quizTotal+'</span><span class="chip">Выручка за игру: '+rub(S.totalRevenue)+'</span>'+(bestM?'<span class="chip brand">Лучший месяц: '+MONTH_NAMES[bestM.m-1]+', '+rub(bestM.profit)+'</span>':'')+'<span class="chip gain">Наград: '+got+' из '+BADGES.length+'</span></div></div>'+
     '<div class="tower-wrap">'+towerSVG(S.history,{h:300,w:380})+'</div></div></section>';
+  h+=wsCard('Мастерская на финише', S.printers.length+' '+plural(S.printers.length,'принтер','принтера','принтеров'));
   h+='<section class="card stack-lg"><h2 style="font-size:22px">Что было дальше</h2><div class="dialog">'+bubble(say('sem','happy',T.sem),0)+bubble(say('phil',ti<=2?'excited':'happy',T.phil),1)+epi.map(function(e,i){ return bubble(say(e.who,'happy',e.t),i+2); }).join('')+'</div></section>';
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Капитал по месяцам</h2>'+capChartSVG(S.history,{})+'</section><section class="card stack"><h2 style="font-size:20px">Награды</h2><div class="badges">'+badges.map(function(x){ return '<div class="bdg '+(x.on?'on':'off')+'">'+ico(x.b.icon)+'<div><b>'+x.b.name+'</b><small>'+x.b.desc+'</small></div></div>'; }).join('')+'</div></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Результат для учителя</h2><div class="field"><label for="resline" class="sr-only">Результат</label><textarea class="input" id="resline" readonly rows="2">'+esc(resultLine())+'</textarea></div><div class="row"><button class="btn small" data-act="copyres">'+ico('copy')+' Скопировать</button></div></section>';
@@ -716,7 +733,7 @@ var A={
  choose:function(el){
    var i=+el.getAttribute('data-i'), st=U.stage||0, v=sceneView(), vc=v.choices[i];
    if(!vc || vc.why || (U.res&&U.res[st])) return;
-   var stg=EVENTS[S.month-1].stages(S)[st], c=choicesOf(S,stg)[i];
+   var stg=stagesOf(S)[st], c=choicesOf(S,stg)[i];
    var chips=c.apply(S, rngFor(S,'ev'+S.month+':'+st)), gap=coverDeficit(S);
    if(gap) chips.push(chip('Денег не хватило: банк покрыл '+rub(gap)+' в долг','loss'));
    addTerm(stg.term);
@@ -767,6 +784,7 @@ var A={
  go:function(){
    var pv=previewMonth(S,S.plan,1); if(pv.cashNow>S.cash+0.5){ toast('Не хватает денег на закупку. Уменьши выпуск.'); return; }
    var before=S.cash, r=runMonth(S); r.cashBefore=before; r.cashAfter=S.cash;
+   r.reviews=makeReviews(S,r); S.rate=S.rate||{u:0,s:0}; S.rate.u+=r.reviews.units; S.rate.s+=r.reviews.avg*r.reviews.units;
    U.report=r; U.screen=reduced?'report':'run'; U.tab='biz';
    if(reduced){ render(); sfx(r.profit>=0?'good':'bad'); } else render();
  },

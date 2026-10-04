@@ -87,10 +87,11 @@ function pickChoice(s, stage, prefs, idx, rng){
   for(var k=0;k<order.length;k++){ var c=cs[order[k]]; if(!c) continue; var cost=fn(c.cost,s)||0; var rq=c.req?c.req(s):''; if(cost<=s.cash && !rq) return order[k]; }
   return cs.length-1;
 }
-function playEvents(s, prefs, rng, ctr){
+function playEvents(s, prefs, rng, ctr, force){
   var stages=stagesOf(s);
   stages.forEach(function(st,si){
-    var i=pickChoice(s,st,prefs,ctr.i,rng); (s.__picked=s.__picked||[]).push(i); ctr.i++; choicesOf(s,st)[i].apply(s,rngFor(s,'ev'+s.month+':'+si)); coverDeficit(s);
+    var i = (force && st.mini && st.miniId===force.id) ? Math.min(force.option, choicesOf(s,st).length-1) : pickChoice(s,st,prefs,ctr.i,rng);
+    if(!(st.mini)){ (s.__picked=s.__picked||[]).push(i); ctr.i++; } choicesOf(s,st)[i].apply(s,rngFor(s,'ev'+s.month+':'+si)); coverDeficit(s);
   });
 }
 /* ---- политики ---- */
@@ -114,7 +115,9 @@ function runGame(kind, pol, seed, verbose, opts){
   for(var m=1;m<=TOTAL;m++){
     s.month=m; var prefs = pol==='random' ? null : POL[pol];
     if(prefs===null){ prefs=[]; for(var q=0;q<19;q++) prefs.push(Math.floor(rng()*3)); }
-    playEvents(s, prefs, rng, ctr);
+    if(opts.force && m===opts.force.month){ s.mini=s.mini||{}; s.mini[m]=opts.force.id; s.miniSeen=s.miniSeen||[]; s.miniSeen.push(opts.force.id); }
+    else if(opts.noMini){ s.mini=s.mini||{}; s.mini[m]=''; }
+    playEvents(s, prefs, rng, ctr, opts.force && m===opts.force.month ? opts.force : null);
     if(kind==='expert'){ tryInvest(s,{}); bestExpert(s); }
     else if(kind==='human'){ tryInvest(s,{minGain:15000}); bestExpert(s,true); 
       PROD_IDS.forEach(function(id){ if(!isAvailable(s,id)) return; var pf=1+(rng()-0.5)*0.30, qf=1+(rng()-0.5)*0.40; s.plan.price[id]=Math.max(priceBounds(s,id,s.plan.mode).min, Math.round(s.plan.price[id]*pf/5)*5); s.plan.qty[id]=Math.max(lockQty(s,id), Math.round(s.plan.qty[id]*qf)); });

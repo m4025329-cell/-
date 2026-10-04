@@ -12,7 +12,7 @@ let fails=0; const ok=(c,m)=>{ if(!c){ fails++; console.log('FAIL',m); } else co
   p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{ if(m.type()==='error') errs.push(m.text()); });
   await p.goto(FILE); await p.waitForTimeout(300);
   const setState=(S,U)=>p.evaluate(([S,U])=>window.__game.setState(S,U),[S,U]);
-  const base=(month)=>{ const s=newState('Тест'); s.month=month; return s; };
+  const base=(month)=>{ const s=newState('Тест'); s.month=month; s.mini={}; s.mini[month]=''; return s; };
   /* 1. пожар без денег и без страховки: все варианты дороже счёта */
   let s=base(13); s.cash=1500; await setState(s,{screen:'scene',stage:0,res:[]}); await p.waitForTimeout(300);
   let dis=await p.$$eval('.choice',els=>els.map(e=>e.disabled));
