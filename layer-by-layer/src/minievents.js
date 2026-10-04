@@ -433,9 +433,9 @@ var MINI_BY_ID = {}; MINI.forEach(function(e){ MINI_BY_ID[e.id]=e; });
 
 /* выпал ли случай в этом месяце: решается один раз и запоминается */
 function pickMini(s){
-  if(MINI_MONTHS.indexOf(s.month)<0) return '';
+  if(!s.sandbox && MINI_MONTHS.indexOf(s.month)<0) return '';
   var rng=rngFor(s,'mini'+s.month);
-  if(rng()>=MINI_P) return '';
+  if(rng()>=(s.sandbox?0.9:MINI_P)) return '';
   var seen=s.miniSeen||[];
   var pool=MINI.filter(function(e){ return seen.indexOf(e.id)<0 && s.month>=e.from && s.month<=e.to && (!e.ok||e.ok(s)); });
   if(!pool.length) return '';
@@ -450,7 +450,7 @@ function miniFor(s){
 }
 /* стадии месяца: сюжетные сцены плюс, если выпал случай, ещё одна небольшая */
 function stagesOf(s){
-  var st=EVENTS[s.month-1].stages(s), id=miniFor(s);
+  var st=s.sandbox ? [sandboxStage(s)] : EVENTS[s.month-1].stages(s), id=miniFor(s);
   if(id){ var e=MINI_BY_ID[id], g=e.st(s); g.mini=true; g.miniId=id; g.miniTitle=e.title; g.miniIcon=e.icon; st=st.concat([g]); }
   return st;
 }

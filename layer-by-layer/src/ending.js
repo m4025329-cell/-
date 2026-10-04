@@ -40,7 +40,7 @@ var TIERS = [
    text:'В этот раз не получилось. Зато теперь видно, где были ошибки. Попробуй ещё раз и сравни свои решения.',
    sem:'Ошибки это материал для следующей попытки.', phil:'Давай перепечатаем. Я не обидчивый.'}
 ];
-function tierOf(cap){ for(var i=0;i<TIERS.length;i++){ if(cap>=TIERS[i].min) return i; } return TIERS.length-1; }
+function tierOf(cap){ cap=capNorm(cap); for(var i=0;i<TIERS.length;i++){ if(cap>=TIERS[i].min) return i; } return TIERS.length-1; }
 function titleOf(cap){ return TIERS[tierOf(cap)].title; }
 
 function epilogue(s){

@@ -66,9 +66,11 @@ var OBJ = {
   stand: {w:[1,1,0.92,0.84,0.76,0.68,0.62,0.58], h:4.4},
   mini:  {w:[0.9,0.9,0.55,0.3,0.3,0.45,0.72,0.72,0.5], h:4.2},
   part:  {w:[0.78,0.96,0.78,0.96,0.78,0.96,0.78,0.96], h:4.4},
-  proto: {w:[1,1,1,1,1,1,0.86,0.62,0.36], h:4.2}
+  proto: {w:[1,1,1,1,1,1,0.86,0.62,0.36], h:4.2},
+  lamp:  {w:[0.82,0.82,0.5,0.62,0.78,0.9,0.96,0.9,0.72,0.42], h:3.9},
+  toy:   {w:[0.22,0.22,0.5,0.76,0.92,0.92,0.76,0.5,0.28], h:4.4}
 };
-var PCOL = {key:'cyan', stand:'orange', mini:'magenta', part:'lime', proto:'violet'};
+var PCOL = {key:'cyan', stand:'orange', mini:'magenta', part:'lime', proto:'violet', lamp:'teal', toy:'rose'};
 /* стопка слоёв как маленькая иллюстрация изделия */
 function productSVG(id, size, count){
   var o=OBJ[id], n=count==null?o.w.length:Math.max(0,Math.min(o.w.length,Math.round(count))), W=40, H=o.h*o.w.length+4, out='';

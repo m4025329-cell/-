@@ -1,8 +1,10 @@
 /* ===== «Слой за слоем»: экономический движок (без интерфейса) ===== */
 var GOAL = 1000000, TOTAL = 16, START_CASH = 35000, QUIZ_BONUS = 3000;
 var FIL_BASE = 1400, RUN_COST = 12, DEPR_MONTHS = 36, STORAGE_RATE = 0.02, OBSOLETE_RATE = 0.06;
+var DEMAND_SCALE = 0.92;   /* общий масштаб спроса: подогнан симуляцией под сложность игры */
+var SEASON_CLEAR = 0.25;   /* сезонный товар после сезона уценивают до четверти стоимости */
 var LOAN_RATE = 0.015, DEPOSIT_RATE = 0.01, TAX_MIN = 0.01;
-var PACK = {key:10, stand:22, mini:18, part:45, proto:120}; /* упаковка и доставка, ₽ за штуку */
+var PACK = {key:10, stand:22, mini:18, part:45, proto:120, lamp:40, toy:8}; /* упаковка и доставка, ₽ за штуку */
 var MONTH_NAMES = ['Сентябрь','Октябрь','Ноябрь','Декабрь','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 var MONTH_SHORT = ['Сен','Окт','Ноя','Дек','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
@@ -11,7 +13,7 @@ var MODES = {
   std:   {id:'std',   name:'Стандарт', layer:'0,2 мм', time:1.00, grams:1.00, q:1.00, fail:0},
   fine:  {id:'fine',  name:'Тонко',    layer:'0,1 мм', time:1.55, grams:1.06, q:1.22, fail:0}
 };
-var PROD_IDS = ['key','stand','mini','part','proto'];
+var PROD_IDS = ['key','stand','mini','part','proto','lamp','toy'];
 /* t — часов печати на штуку (стандарт), g — граммов пластика, ref — привычная цена,
    спрос = dmax / (1 + (цена/p50)^k): чем выше цена, тем меньше покупателей */
 var PRODUCTS = {
@@ -19,14 +21,18 @@ var PRODUCTS = {
   stand: {id:'stand', name:'Подставки и органайзеры',  short:'Подставки',  t:1.2,  g:55,  ref:360,  p50:410,  k:3.4, dmax:82,   qs:0.6, b2b:false, need:null},
   mini:  {id:'mini',  name:'Фигурки для настолок',     short:'Фигурки',    t:2.5,  g:35,  ref:560,  p50:640,  k:3.0, dmax:60,   qs:1.4, b2b:false, need:null},
   part:  {id:'part',  name:'Запчасти на заказ',        short:'Запчасти',   t:3.0,  g:90,  ref:1100, p50:1450, k:2.8, dmax:20,   qs:1.0, b2b:false, need:null},
-  proto: {id:'proto', name:'Прототипы для компаний',   short:'Прототипы',  t:9,    g:350, ref:3600, p50:4800, k:2.5, dmax:6.5, qs:1.2, b2b:true,  need:'big'}
+  proto: {id:'proto', name:'Прототипы для компаний',   short:'Прототипы',  t:9,    g:350, ref:3600, p50:4800, k:2.5, dmax:6.5, qs:1.2, b2b:true,  need:'big'},
+  lamp:  {id:'lamp',  name:'Ночники и светильники',    short:'Ночники',    t:3.8,  g:120, ref:1000, p50:1300, k:3.0, dmax:9,   qs:1.1, b2b:false, need:null, unlockBy:'lab'},
+  toy:   {id:'toy',   name:'Ёлочные игрушки',          short:'Игрушки',    t:0.8,  g:18,  ref:260,  p50:330,  k:3.6, dmax:36,  qs:0.8, b2b:false, need:null, months:[3,4,15,16], seasonal:true}
 };
 var SEASON = {
   key:   [1.20,0.95,1.15,1.60,0.70,1.15,1.35,0.95,1.00,1.15,0.80,0.95,1.20,0.95,1.15,1.60],
   stand: [1.35,1.00,1.05,1.20,0.80,0.95,1.00,1.00,0.95,0.85,0.75,1.20,1.35,1.00,1.05,1.20],
   mini:  [0.90,1.10,1.20,1.40,1.10,0.95,0.90,0.90,0.85,0.80,0.80,0.90,0.95,1.15,1.25,1.45],
   part:  [1.00,1.00,1.00,1.00,1.10,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00],
-  proto: [1.00,1.00,1.00,1.25,0.80,1.00,1.00,1.00,1.00,1.00,0.90,1.00,1.00,1.00,1.00,1.25]
+  proto: [1.00,1.00,1.00,1.25,0.80,1.00,1.00,1.00,1.00,1.00,0.90,1.00,1.00,1.00,1.00,1.25],
+  lamp:  [0.95,1.10,1.25,1.35,1.10,1.00,0.90,0.85,0.80,0.80,0.85,1.00,1.05,1.20,1.30,1.40],
+  toy:   [0.00,0.00,0.90,1.60,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.00,0.90,1.60]
 };
 var PRINTERS = {
   old:  {id:'old',  name:'Фил',                  hours:100, fail:0.12, price:0,      big:false, note:'Старый, но с характером'},
@@ -98,16 +104,28 @@ function newState(name, opts){
   opts = opts || {};
   var s = { v:1, name:name||'Мастер', shop:'', talent:null, diff:'norm', code:'', seed:String(opts.seed||randomSeed()), month:1, cash:START_CASH, savings:0, fund:0, loanLeft:0, loanStep:0, equity:1,
     printers:[{t:'old', age:99}], space:'school', staff:{asst:0, teen:0},
-    unlocked:{key:true, stand:true, mini:false, part:false, proto:false},
+    unlocked:{key:true, stand:true, mini:false, part:false, proto:false, lamp:false, toy:false},
     inv:{}, invVal:{}, fil:{kg:3, val:3*1250}, filIdx:1, infl:1, rep:5,
     tax:null, channel:{market:false, site:false}, insurance:false, service:false,
-    contracts:[], mods:[], flags:{}, pdm:{key:1, stand:1, mini:1, part:1, proto:1},
+    contracts:[], mods:[], flags:{}, pdm:{key:1, stand:1, mini:1, part:1, proto:1, lamp:1, toy:1},
     unlock:{deposit:false, fund:false, loan:false},
-    plan:{mode:'std', ad:0, price:{}, qty:{}}, tAdd:{key:0, stand:0, mini:0, part:0, proto:0},
-    rate:{u:0, s:0}, filHist:[1], lab:{done:{}, active:[]}, history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
+    plan:{mode:'std', ad:0, price:{}, qty:{}}, tAdd:{key:0, stand:0, mini:0, part:0, proto:0, lamp:0, toy:0},
+    rate:{u:0, s:0}, team:{}, quests:{}, comp:{max:1, mega:1}, compHist:[], filHist:[1], lab:{done:{}, active:[]}, history:[], quizScore:[], quizTotal:0, terms:[], overdrafts:0, totalRevenue:0, lastProfitPerHour:0, bestUtil:0, utilMonths:0, soldKinds:0, lastMargin:0.3 };
   PROD_IDS.forEach(function(id){ s.inv[id]=0; s.invVal[id]=0; s.plan.price[id]=PRODUCTS[id].ref; s.plan.qty[id]=0; });
   return s;
 }
+
+/* старые сохранения: добавляем поля, которых тогда не было */
+function ensureState(s){
+  PROD_IDS.forEach(function(id){
+    if(s.inv[id]==null) s.inv[id]=0; if(s.invVal[id]==null) s.invVal[id]=0; if(s.pdm[id]==null) s.pdm[id]=1; if(s.tAdd[id]==null) s.tAdd[id]=0;
+    if(s.unlocked[id]==null) s.unlocked[id]=false; if(s.plan.price[id]==null) s.plan.price[id]=PRODUCTS[id].ref; if(s.plan.qty[id]==null) s.plan.qty[id]=0;
+  });
+  if(!s.comp) s.comp={max:1, mega:1}; if(!s.compHist) s.compHist=[]; if(!s.team) s.team={}; if(!s.quests) s.quests={}; if(!s.filHist) s.filHist=[1]; if(!s.lab) s.lab={done:{}, active:[]}; if(!s.clients) s.clients={}; if(!s.orderStats) s.orderStats={}; if(!s.flagsMonth) s.flagsMonth={};
+  return s;
+}
+/* товары, которые открываются сами по времени */
+function refreshUnlocks(s){ if(s.month>=3) s.unlocked.toy=true; return s; }
 
 /* ---------- модификаторы ---------- */
 /* настройка мастерской: делается один раз после пролога */
@@ -123,6 +141,7 @@ function applySetup(s, o){
   s.cash = DIFFS[s.diff].cash;
   if(s.talent==='des'){ ['key','stand','mini'].forEach(function(id){ s.pdm[id]*=TALENTS.des.dem; }); }
   if(s.talent==='sel'){ s.rep = clamp(s.rep+TALENTS.sel.rep,0,100); }
+  applyScenario(s, o.scn||'story');
   s.setupDone = true;
   return s;
 }
@@ -136,7 +155,7 @@ function hasBig(s){ return s.printers.some(function(p){ return PRINTERS[p.t].big
 function printerHours(s){
   var h=0; s.printers.forEach(function(p){ h+=PRINTERS[p.t].hours; });
   var mult = 1 + (s.staff.asst?STAFF.asst.hours:0) + (s.staff.teen?STAFF.teen.hours:0);
-  mult *= SPACES[s.space].hm * modProd(s,'hours');
+  mult *= SPACES[s.space].hm * modProd(s,'hours') * teamHours(s);
   h = h*mult + (s.flags.alliance2?ALLY2_HOURS:(s.flags.ally?ALLY_HOURS:0)) + modSum(s,'hoursAdd');
   return Math.max(0, Math.round(h));
 }
@@ -145,17 +164,20 @@ function baseFail(s){
   return h>0 ? t/h : 0.1;
 }
 function failRate(s, mode){
-  var f = baseFail(s) + MODES[mode].fail + modSum(s,'fail') - (s.service?0.02:0) - (s.talent==='eng'?TALENTS.eng.fail:0);
+  var f = baseFail(s) + MODES[mode].fail + modSum(s,'fail') - (s.service?0.02:0) - (s.talent==='eng'?TALENTS.eng.fail:0) - teamFail(s);
   return clamp(f, 0.01, 0.35);
 }
 function isAvailable(s, id){
   if(!s.unlocked[id]) return false;
+  var P=PRODUCTS[id]; if(P.months && P.months.indexOf(s.month)<0) return false;
   var need = PRODUCTS[id].need;
   if(need==='big' && !hasBig(s)) return false;
   return true;
 }
 function whyLocked(s, id){
-  if(!s.unlocked[id]) return 'Откроется по ходу истории';
+  var P=PRODUCTS[id];
+  if(!s.unlocked[id]) return P.unlockBy==='lab' ? 'Откроется после исследования «Подсветка и электроника»' : (P.seasonal ? 'Сезонный товар: открывается в ноябре' : 'Откроется по ходу истории');
+  if(P.months && P.months.indexOf(s.month)<0) return 'Сезонный товар: продаётся только в ноябре и декабре';
   if(PRODUCTS[id].need==='big' && !hasBig(s)) return 'Нужен принтер большого формата';
   return '';
 }
@@ -166,16 +188,16 @@ function runCostPerHour(s){ return RUN_COST * s.infl * modProd(s,'run'); }
 function levelMult(s){ return (DIFFS[s.diff||'norm']||DIFFS.norm).price; }
 function refPrice(s, id){ return Math.round(PRODUCTS[id].ref * s.infl * modProd(s,'ref',id) * levelMult(s) / 5) * 5; }
 function p50Of(s, id){ return PRODUCTS[id].p50 * s.infl * modProd(s,'ref',id) * levelMult(s); }
-function adMult(s, i){ var a=ADS[i]; return 1 + (a.mult-1)*(s.talent==='sel'?TALENTS.sel.ad:1); }
+function adMult(s, i){ var a=ADS[i]; return 1 + (a.mult-1)*(s.talent==='sel'?TALENTS.sel.ad:1)*teamAd(s); }
 function commissionRate(s){ return CHANNELS.market.commission - (s.talent==='sel'?TALENTS.sel.comm:0); }
 function channelMult(s){ return (s.channel.market?CHANNELS.market.mult:1) * (s.channel.site?CHANNELS.site.mult:1); }
 function demandAt(s, id, price, plan, noise){
   var P=PRODUCTS[id], x=price/p50Of(s,id);
-  var base = P.dmax / (1 + Math.pow(x, P.k));
+  var base = P.dmax*DEMAND_SCALE / (1 + Math.pow(x, P.k));
   var repMult = 1 + s.rep*(P.b2b?0.02:0.010);
   var q = Math.pow(MODES[plan.mode].q, P.qs);
   var ch = P.b2b ? 1 : channelMult(s);
-  return Math.max(0, base * SEASON[id][s.month-1] * repMult * adMult(s,plan.ad) * q * ch * modProd(s,'dem',id) * s.pdm[id] * (noise||1));
+  return Math.max(0, base * SEASON[id][s.month-1] * repMult * adMult(s,plan.ad) * q * ch * modProd(s,'dem',id) * s.pdm[id] * teamDem(s,id) * compFactor(s,id,price) * (noise||1));
 }
 function priceBounds(s, id, mode){
   var ref=refPrice(s,id); var c = unitCostEst(s, id, mode||s.plan.mode, 0);
@@ -193,7 +215,8 @@ function fixedParts(s){
   p.ally = (s.flags.ally && !s.flags.alliance2) ? ALLY_FEE : 0;
   var tot=0, k; for(k in p) tot+=p[k];
   var m = modProd(s,'fixed'); 
-  p.total = Math.round(tot*m);
+  p.team = Math.round(teamSalary(s));
+  p.total = Math.round(tot*m*teamFixed(s)) + p.team;
   return p;
 }
 function fixedCosts(s){ return fixedParts(s).total; }
@@ -233,7 +256,7 @@ function maxQtyFor(s, plan, id){
   return Math.max(lockQty(s,id), Math.floor(Math.max(0,H-used)/hoursPerUnit(s,id,plan.mode)));
 }
 function sanitizePlan(s, plan){
-  var out = {mode:plan.mode, ad:plan.ad, price:{}, qty:{}}, H=printerHours(s);
+  var out = {mode:(s.noDraft && plan.mode==='draft')?'std':plan.mode, ad:plan.ad, price:{}, qty:{}}, H=printerHours(s);
   PROD_IDS.forEach(function(id){
     out.price[id] = plan.price[id]; 
     out.qty[id] = isAvailable(s,id) ? Math.max(lockQty(s,id), Math.max(0, Math.floor(plan.qty[id]||0))) : 0;
@@ -289,13 +312,14 @@ function computeMonth(s, rawPlan, noiseFn){
     var comm = (!P.b2b && s.channel.market) ? rev*commissionRate(s) : 0;
     var roy = (id==='mini' && s.flags.liza==='partner') ? rev*0.12 : 0;
     if(s.flags.alliance2 && (id==='key' || id==='stand')) roy += rev*0.08;
-    var packCost = (sold+cDeliver)*PACK[id]*s.infl;
-    var endVal = left2*avgCost*(1-OBSOLETE_RATE);
-    var writeOff = left2*avgCost*OBSOLETE_RATE;
+    var packCost = (sold+cDeliver)*packOf(s,id);
+    var seasonEnd = !!(P.months && P.months.indexOf(s.month+1)<0), clear = seasonEnd ? left2*avgCost*SEASON_CLEAR : 0;
+    var endVal = seasonEnd ? 0 : left2*avgCost*(1-OBSOLETE_RATE);
+    var writeOff = seasonEnd ? left2*avgCost : left2*avgCost*OBSOLETE_RATE;
     r.rows[id] = {id:id, q:q, attempts:att, defects:defects, hours:q*hoursPerUnit(s,id,mode), unit:unit, avgCost:avgCost, price:price, eff:eff, demand:D, contractUnits:cDeliver, contractQty:cq,
-                  avail:availMarket, sold:sold, lost:lost, left:left2, revenue:rev, contractRev:cRev, cogs:cg, comm:comm, roy:roy, endVal:endVal, invBefore:invN, valBefore:valN,
-                  pack:packCost, writeOff:writeOff, perHour: (hoursPerUnit(s,id,mode)>0) ? (eff-unit-PACK[id]*s.infl)/hoursPerUnit(s,id,mode) : 0, penalty:cPen};
-    packTot+=packCost; writeTot+=writeOff; revenue+=rev; contractRev+=cRev; cogs+=cg; commission+=comm; royalty+=roy; penalty+=cPen; invValEnd+=endVal; soldTot+=sold+cDeliver;
+                  avail:availMarket, sold:sold, lost:lost, left:(seasonEnd?0:left2), clear:clear, revenue:rev, contractRev:cRev, cogs:cg, comm:comm, roy:roy, endVal:endVal, invBefore:invN, valBefore:valN,
+                  pack:packCost, writeOff:writeOff, perHour: (hoursPerUnit(s,id,mode)>0) ? (eff-unit-packOf(s,id))/hoursPerUnit(s,id,mode) : 0, penalty:cPen};
+    packTot+=packCost; writeTot+=writeOff; revenue+=rev+clear; contractRev+=cRev; cogs+=cg; commission+=comm; royalty+=roy; penalty+=cPen; invValEnd+=endVal; soldTot+=sold+cDeliver;
     if(sold+cDeliver>0) soldKinds++;
   });
   var fp=fixedParts(s), fixed=fp.total, depr=deprMonthly(s);
@@ -345,7 +369,7 @@ function commitMonth(s, r, rng){
   if(s.cash<0){ r.overdraft=Math.round(-s.cash); s.loanLeft+=r.overdraft; s.loanStep=Math.max(s.loanStep, Math.round(s.loanLeft/12)); s.cash=0; s.overdrafts++; s.unlock.loan=true; }
   /* репутация */
   var ad=ADS[plan.ad];
-  s.rep = clamp(s.rep*0.985 + ad.rep + (r.soldTot>0?0.4:0) - (f>0.15?1.5:0) - r.repLoss + r.repGain, 0, 100);
+  s.rep = clamp(s.rep*0.985 + ad.rep + (hasSpec(s,'katya')?0.4:0) + (r.soldTot>0?0.4:0) - (f>0.15?1.5:0) - r.repLoss + r.repGain, 0, 100);
   s.lastMargin = r.revTot>0 ? r.profit/r.revTot : 0;
   s.lastProfitPerHour = r.hours>0 ? (r.revTot - r.cogs - 0)/Math.max(1,r.hours) : s.lastProfitPerHour;
   /* цены на пластик, возраст принтеров, модификаторы */
@@ -354,9 +378,9 @@ function commitMonth(s, r, rng){
   s.mods.forEach(function(m){ m.left--; });
   s.mods = s.mods.filter(function(m){ return m.left>0; });
   if(typeof applyOrderResults==='function') applyOrderResults(s, r);
-  if(typeof labTick==='function'){ labTick(s, r); stockTick(s, r); }
+  if(typeof labTick==='function'){ labTick(s, r); stockTick(s, r); compTick(s, r); }
   s.contracts = [];
-  var util = r.H>0 ? r.hours/r.H : 0; if(util>=0.9) s.utilMonths++;
+  var util = r.H>0 ? r.hours/r.H : 0; if(util>=0.9) s.utilMonths++; s.utilStreak = util>=0.85 ? (s.utilStreak||0)+1 : 0;
   s.maxKinds = Math.max(s.maxKinds||0, r.soldKinds);
   s.history.push({m:s.month, revenue:r.revTot, profit:r.profit, cap:ownerCapital(s), cash:s.cash, sold:r.soldTot, util:util, hours:r.hours, H:r.H});
   r.cap = ownerCapital(s); r.cashAfter = s.cash;
@@ -425,7 +449,7 @@ function suggestPlan(s, keepPrices){
     if(!isAvailable(s,id)) return;
     var c=unitCostEst(s,id,mode), h=hoursPerUnit(s,id,mode);
     var d=demandAt(s,id,plan.price[id],plan,1);
-    items.push({id:id, perHour:(plan.price[id]-c-PACK[id]*s.infl)/h, want:Math.max(0,Math.round(d)-s.inv[id]), h:h});
+    items.push({id:id, perHour:(plan.price[id]-c-packOf(s,id))/h, want:Math.max(0,Math.round(d)-s.inv[id]), h:h});
   });
   PROD_IDS.forEach(function(id){ plan.qty[id]=lockQty(s,id); });
   var left = printerHours(s) - planHours(s,plan);

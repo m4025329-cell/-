@@ -3,6 +3,7 @@ exports.setup = async function (p, o) {
   o = o || {};
   await p.waitForSelector('#setupgo');
   if (o.shop) await p.fill('#shopname', o.shop);
+  if (o.scn) await p.click('[data-act=pscn][data-k=' + o.scn + ']');
   await p.click('[data-act=ptalent][data-k=' + (o.talent || 'eng') + ']');
   if (o.diff) await p.click('[data-act=pdiff][data-k=' + o.diff + ']');
   if (o.code) await p.fill('#classcode', o.code);

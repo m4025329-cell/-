@@ -2,7 +2,7 @@
    Все скрипты проверки подключают этот файл, чтобы список модулей был в одном месте. */
 var fs = require('fs'), vm = require('vm'), path = require('path');
 var SRC = path.join(__dirname, '..', 'src');
-var FILES = ['engine', 'content', 'orders', 'lab', 'events', 'minievents', 'minievents2', 'ending'];
+var FILES = ['engine', 'content', 'orders', 'lab', 'team', 'modes', 'events', 'minievents', 'minievents2', 'minievents3', 'ending'];
 FILES.forEach(function (f) {
   var p = path.join(SRC, f + '.js');
   if (fs.existsSync(p)) vm.runInThisContext(fs.readFileSync(p, 'utf8').replace("if(typeof module!=='undefined') module.exports = {};", ''), { filename: p });

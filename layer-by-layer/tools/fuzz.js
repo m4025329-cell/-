@@ -8,7 +8,7 @@ for(var sd=1; sd<=N; sd++){
   var rng=mulberry(sd*104729), s=newState('f',{seed:'fz'+sd});
   applySetup(s,{shop:'Ф', talent:[null,'eng','des','sel'][sd%4], diff:['easy','norm','hard'][sd%3], code:''});
   for(var m=1;m<=TOTAL;m++){
-    s.month=m;
+    s.month=m; refreshUnlocks(s);
     /* события: случайный вариант среди доступных */
     stagesOf(s).forEach(function(st,si){
       var cs=choicesOf(s,st), ok=[]; cs.forEach(function(c,i){ var cost=fn(c.cost,s)||0; if(cost<=s.cash && !(c.req&&c.req(s))) ok.push(i); });
@@ -33,6 +33,8 @@ for(var sd=1; sd<=N; sd++){
       else if(x<0.75){ var ar=acceptOffer(s,o.id); if(ar.ok && rng()<0.2) dropOffer(s,o.id); }
       var e=orderEcon(s,o); ['hours','profit','perHour','total'].forEach(function(k){ if(bad(e[k])) fail('orderEcon NaN '+k,sd,m); });
     });
+    if(rng()<0.25){ hireSpec(s,SPEC_IDS[Math.floor(rng()*SPEC_IDS.length)]); } if(rng()<0.1){ fireSpec(s,SPEC_IDS[Math.floor(rng()*SPEC_IDS.length)]); }
+    if(rng()<0.35){ var qa=questsAvailable(s); if(qa.length) takeQuest(s,qa[Math.floor(rng()*qa.length)].id); }
     /* лаборатория и склад */
     if(rng()<0.3){ var rid=RESEARCH[Math.floor(rng()*RESEARCH.length)].id; startResearch(s,rid); }
     if(rng()<0.3){ var sup=['opt','std','eco'][Math.floor(rng()*3)]; buyFil(s,[5,10,20][Math.floor(rng()*3)],sup); }
@@ -64,6 +66,7 @@ for(var sd=1; sd<=N; sd++){
     var expected = r.profit + r.depositGain + r.fundGain;
     var diff = (after-before) - expected;
     if(Math.abs(diff)>5){ fail('capital not conserved: diff '+Math.round(diff)+' (profit '+Math.round(r.profit)+', dep '+r.depositGain+', fund '+r.fundGain+')',sd,m); }
+    var qr=questTick(s,r); if(bad(r.questCash)) fail('quest NaN',sd,m);
     var gr=settleGoals(s,r); if(bad(gr.reward)||bad(gr.bonus)) fail('goals NaN',sd,m);
     if(Math.abs(diff)>maxDiff){ maxDiff=Math.abs(diff); worst={sd:sd,m:m}; }
   }

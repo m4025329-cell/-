@@ -64,6 +64,7 @@ function tryInvest(s, opts){
   acts.push({k:'market', cost:0, ok:function(c){ return !c.channel.market && c.month>=6; }, do:function(c){ c.channel.market=true; }});
   acts.push({k:'site', cost:15000, ok:function(c){ return !c.channel.site && c.month>=6; }, do:function(c){ c.cash-=15000; c.channel.site=true; }});
   acts.push({k:'service', cost:0, ok:function(c){ return !c.service; }, do:function(c){ c.service=true; }});
+  if(!process.env.NOTEAM) SPEC_IDS.forEach(function(id){ acts.push({k:'t:'+id, cost:SPECS[id].hire, ok:function(c){ return canHire(c,id).ok; }, do:function(c){ hireSpec(c,id); }}); });
   if(!process.env.NOLAB) RESEARCH.forEach(function(r){ acts.push({k:'r:'+r.id, cost:r.cost, delay:r.months, ok:function(c){ return canResearch(c,r.id).ok; }, do:function(c){ if(c.__eval){ c.cash-=r.cost; r.apply(c); } else startResearch(c,r.id); }}); });
   var again=true, guard=0;
   while(again && guard++<6){
@@ -128,7 +129,7 @@ function runGame(kind, pol, seed, verbose, opts){
   var rng=mulberry(seed), s=newState('bot',{seed:'sim'+seed}), ctr={i:0}, rows=[];
   applySetup(s,{shop:'Бот', talent:('talent' in opts)?opts.talent:(process.env.TALENT||null), diff:opts.diff||process.env.DIFF||'norm', code:''});
   for(var m=1;m<=TOTAL;m++){
-    s.month=m; var prefs = pol==='random' ? null : POL[pol];
+    s.month=m; refreshUnlocks(s); var prefs = pol==='random' ? null : POL[pol];
     if(prefs===null){ prefs=[]; for(var q=0;q<19;q++) prefs.push(Math.floor(rng()*3)); }
     if(opts.force && m===opts.force.month){ s.mini=s.mini||{}; s.mini[m]=opts.force.id; s.miniSeen=s.miniSeen||[]; s.miniSeen.push(opts.force.id); }
     else if(opts.noMini){ s.mini=s.mini||{}; s.mini[m]=''; }

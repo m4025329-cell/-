@@ -1,7 +1,7 @@
 /* ===== Интерфейс «Слоя за слоем»: экраны, действия, сохранение ===== */
 (function(){
 'use strict';
-var KEY='lbl-save-v1', THEME_KEY='lbl-theme', SND_KEY='lbl-sound';
+var KEY='lbl-save-v1', THEME_KEY='lbl-theme', SND_KEY='lbl-sound', APP_VERSION='4.0.0';
 var S=null, U={screen:'title'}, soundOn=false, actx=null, reduced=false, lastFocus=null;
 try{ reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
 function $(s,r){ return (r||document).querySelector(s); }
@@ -23,7 +23,7 @@ function persist(){ if(S) lsSet(KEY, JSON.stringify(snapshot(false))); }
 function readSave(){ try{ var t=lsGet(KEY); if(!t) return null; var d=JSON.parse(t); return (d&&d.S&&typeof d.S.month==='number')?d:null; }catch(e){ return null; } }
 function applySave(d){
   S=d.S; U=d.U||{}; U.screen=U.screen||'scene';
-  S.clients=S.clients||{}; S.orderStats=S.orderStats||{}; S.flagsMonth=S.flagsMonth||{};
+  ensureState(S); setGoal(S);
   if(U.screen==='title') U.screen='scene';
   if((U.screen==='report'||U.screen==='run') && !U.report){ U.screen='scene'; U.stage=0; U.res=[]; }
   if(U.screen==='scene' && !U.res) U.res=[];
@@ -34,7 +34,7 @@ function exportCode(){ try{ return btoa(unescape(encodeURIComponent(JSON.stringi
 function importCode(code){ try{ var d=JSON.parse(decodeURIComponent(escape(atob(String(code).replace(/\s+/g,''))))); if(d&&d.S&&typeof d.S.month==='number'&&d.S.printers){ applySave(d); return true; } }catch(e){} return false; }
 function resultLine(){
   var cap=ownerCapital(S), done=Math.min(S.month-1,TOTAL);
-  return S.name+' | мастерская «'+(S.shop||'—')+'» | талант '+(S.talent?TALENTS[S.talent].name:'—')+' | сложность '+DIFFS[S.diff||'norm'].name+(S.code?' | код '+S.code:'')+' | месяц '+done+' из '+TOTAL+' | капитал '+rub(cap)+' | звание «'+titleOf(cap)+'» | вопросы '+qTotal()+'/'+S.quizTotal+' | заказов '+((S.orderStats&&S.orderStats.done)||0)+'/'+((S.orderStats&&S.orderStats.taken)||0);
+  return S.name+' | мастерская «'+(S.shop||'—')+'» | талант '+(S.talent?TALENTS[S.talent].name:'—')+' | сложность '+DIFFS[S.diff||'norm'].name+(S.code?' | код '+S.code:'')+' | месяц '+done+' из '+TOTAL+' | капитал '+rub(cap)+' | звание «'+titleOf(cap)+'» | вопросы '+qTotal()+'/'+S.quizTotal+' | режим '+scenarioOf(S).name+' | заказов '+((S.orderStats&&S.orderStats.done)||0)+'/'+((S.orderStats&&S.orderStats.taken)||0);
 }
 
 /* ---------- звук (по умолчанию выключен, в классе тише) ---------- */
@@ -127,7 +127,7 @@ function hudHTML(){
     '<div class="stat'+(third.neg?' neg':'')+'"><b>'+third.l+'</b><span class="num" data-k="'+third.k+'" data-v="'+Math.round(third.v)+'">'+rub(third.v)+'</span></div>'+
     '<div class="stat"><b>Капитал</b><span class="num" data-k="cap" data-v="'+Math.round(cap)+'">'+rub(cap)+'</span></div></div>'+
     '<div><div class="fil" role="progressbar" aria-label="Путь к цели" aria-valuemin="0" aria-valuemax="'+GOAL+'" aria-valuenow="'+Math.max(0,cap)+'"><i style="width:'+(p*100).toFixed(1)+'%"></i><svg viewBox="0 0 20 24" style="left:'+Math.max(2,p*100).toFixed(1)+'%"><path d="M3 2h14v11l-4 4v5h-6v-5l-4-4z" fill="var(--p-body)"/><path d="M7 17h6v2H7z" fill="var(--p-nozzle)"/><path d="M5 5h10" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"/></svg></div>'+
-    '<div class="fil-row"><span>Цель: капитал '+rub(GOAL)+' для технопарка</span><span class="num">'+Math.round(p*100)+'%</span></div>'+share+'</div></div>';
+    '<div class="fil-row"><span>Цель: капитал '+rub(GOAL)+((S.scenario&&S.scenario!=='story')?' · '+scenarioOf(S).name:' для технопарка')+'</span><span class="num">'+Math.round(p*100)+'%</span></div>'+share+'</div></div>';
 }
 function renderHud(){
   var hud=$('#hud'); if(!hud) return;
@@ -143,7 +143,7 @@ function titleHTML(){
     '<div class="field"><label for="pname">Как тебя зовут?</label><input class="input" id="pname" type="text" maxlength="24" autocomplete="off" placeholder="Например, Алексей" value="'+esc(nm)+'"></div>'+
     '<div class="row"><button class="btn primary" data-act="start" id="startbtn">'+(U.confirmNew?'Стереть и начать заново':'Начать игру')+ico('right')+'</button>'+
     (cont?'<button class="btn" data-act="continue">Продолжить: месяц '+Math.min(sv.S.month,TOTAL)+'</button>':'')+
-    '<button class="btn ghost small" data-act="loadcode">'+ico('download')+' Загрузить код</button><button class="btn ghost small" data-act="teacher">'+ico('cap')+' Для учителя</button></div>'+
+    '<button class="btn ghost small" data-act="loadcode">'+ico('download')+' Загрузить код</button><button class="btn ghost small" data-act="teacher">'+ico('cap')+' Для учителя</button><button class="btn ghost small" data-act="about">'+ico('info')+' О игре</button></div>'+
     (U.confirmNew?'<p class="loss-t">Прошлый прогресс будет удалён. Нажми ещё раз, чтобы подтвердить.</p>':(cont?'<p class="muted">На этом устройстве есть сохранённая игра.</p>':''))+
     '</div><div class="hero-art" aria-hidden="true">'+printerSVG({obj:'stand',working:true,label:'Принтер печатает подставку'})+'</div></section>'+
     '<section class="steps" aria-label="Как играть"><div class="card"><div class="step-n">1</div><h3>Реши</h3><p class="muted">В начале месяца случается сюжетная сцена. Выбери вариант и узнай, чему он учит.</p></div>'+
@@ -252,24 +252,27 @@ function introHTML(){
 
 /* ---------- настройка мастерской ---------- */
 function toSetup(){
-  U.setup=U.setup||{shop:SHOP_NAMES[Math.floor(Math.random()*SHOP_NAMES.length)], talent:null, diff:'norm', code:''};
+  U.setup=U.setup||{shop:SHOP_NAMES[Math.floor(Math.random()*SHOP_NAMES.length)], talent:null, diff:'norm', code:'', scn:'story'};
   U.screen='setup'; render();
 }
 function setupHTML(){
   var o=U.setup, d=DIFFS[o.diff], tal=o.talent?TALENTS[o.talent]:null;
   var talents=Object.keys(TALENTS).map(function(k){ var x=TALENTS[k], on=o.talent===k;
     return '<button class="talent" role="radio" aria-checked="'+on+'" data-act="ptalent" data-k="'+k+'"><span class="talent-ico">'+ico(x.icon)+'</span><span><b>'+x.name+'</b><small>'+talentPerk(k)+'</small></span></button>'; }).join('');
+  var scns=SCENARIO_IDS.map(function(k){ var x=SCENARIOS[k], on=(o.scn||'story')===k;
+    return '<button class="talent" role="radio" aria-checked="'+on+'" data-act="pscn" data-k="'+k+'"><span class="talent-ico">'+ico(x.icon)+'</span><span><b>'+x.name+'</b><small>'+x.about+'</small></span></button>'; }).join('');
   var diffs=Object.keys(DIFFS).map(function(k){ var x=DIFFS[k], on=o.diff===k;
     return '<button role="radio" aria-checked="'+on+'" data-act="pdiff" data-k="'+k+'"><b>'+x.name+'</b><span>'+x.about+'</span></button>'; }).join('');
   return '<section class="setup"><div class="stack-lg"><div><div class="eyebrow">Оформляем кружок как бизнес</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(28px,4.4vw,42px)">Создай мастерскую</h1></div>'+
     '<div class="dialog">'+bubble(say('phil','excited','Прежде чем печатать, придумай название, выбери талант и реши, насколько трудной будет игра. Вывеска уже ждёт!'),0)+'</div>'+
     '<div class="field"><label for="shopname">Название мастерской</label><div class="row nowrap"><input class="input" id="shopname" type="text" maxlength="28" autocomplete="off" value="'+esc(o.shop)+'"><button class="btn small" data-act="rname" aria-label="Случайное название">'+ico('dice')+'<span class="hide-s">Случайное</span></button></div></div>'+
+    '<div class="field" role="radiogroup" aria-labelledby="scn-h"><div class="lab" id="scn-h">Режим игры</div><div class="talents">'+scns+'</div></div>'+
     '<div class="field" role="radiogroup" aria-labelledby="tal-h"><div class="lab" id="tal-h">Твой талант</div><div class="talents">'+talents+'</div><p class="muted" style="font-size:14px">Талант открывает особые варианты ответа в нескольких сценах. Попробуй другой в следующий раз.</p></div>'+
     '<div class="field" role="radiogroup" aria-labelledby="dif-h"><div class="lab" id="dif-h">Сложность</div><div class="seg">'+diffs+'</div></div>'+
-    '<div class="field"><label for="classcode">Код класса <span class="muted" style="font-weight:500">(необязательно)</span></label><input class="input" id="classcode" type="text" maxlength="16" autocomplete="off" placeholder="Например, 8Б-ПЕЧАТЬ" value="'+esc(o.code)+'"><p class="muted" style="font-size:14px">Если учитель назвал код, введи его. Тогда у всех в классе будут одинаковые события и спрос, и результаты можно честно сравнивать.</p></div>'+
+    '<div class="field"><label for="classcode">Код класса <span class="muted" style="font-weight:500">(необязательно)</span></label><input class="input" id="classcode" type="text" maxlength="16" autocomplete="off" placeholder="Например, 8Б-ПЕЧАТЬ" value="'+esc(o.code)+'"><div><button class="btn small ghost" data-act="daycode" type="button">Код дня: все игроки сегодня получают одинаковые события</button></div><p class="muted" style="font-size:14px">Если учитель назвал код, введи его. Тогда у всех в классе будут одинаковые события и спрос, и результаты можно честно сравнивать.</p></div>'+
     '<div class="row"><button class="btn" data-act="setupback">'+ico('left')+' Назад</button><button class="btn primary" data-act="setupdone" id="setupgo">Дальше'+ico('right')+'</button></div></div>'+
     '<aside class="setup-prev card lined stack" aria-label="Предпросмотр"><div id="signart">'+signSVG(cleanShopName(o.shop)||'Слой за слоем')+'</div>'+
-    '<div class="pstats"><div class="pstat"><b>Стартовый капитал</b><span class="num">'+rub(d.cash)+'</span></div><div class="pstat"><b>Сложность</b><span>'+d.name+'</span></div></div>'+
+    '<div class="pstats"><div class="pstat"><b>Стартовый капитал</b><span class="num">'+((o.scn&&o.scn!=='story'&&o.scn!=='sandbox'&&o.scn!=='craft'&&o.scn!=='giant')?'зависит от режима':rub(d.cash))+'</span></div><div class="pstat"><b>Цель</b><span class="num">'+rub(SCENARIOS[o.scn||'story'].goal)+'</span></div><div class="pstat"><b>Режим</b><span>'+SCENARIOS[o.scn||'story'].name+'</span></div><div class="pstat"><b>Сложность</b><span>'+d.name+'</span></div></div>'+
     (tal?'<div class="callout ok">'+ico(tal.icon)+'<div><b>'+tal.name+'.</b> '+tal.desc+'</div></div>':'<div class="callout">'+ico('info')+'<div>Выбери талант, и здесь появится его описание.</div></div>')+'</aside></section>';
 }
 
@@ -339,7 +342,7 @@ function sceneHTML(){
 
 /* ---------- планирование ---------- */
 function prepareMonth(){
-  var plan=S.plan; makeBoard(S); goalsFor(S);
+  var plan=S.plan; ensureState(S); refreshUnlocks(S); makeBoard(S); goalsFor(S);
   PROD_IDS.forEach(function(id){
     var b=priceBounds(S,id,plan.mode), p=S.month===1||!plan.price[id]?refPrice(S,id):plan.price[id];
     plan.price[id]=clamp(Math.round(p/5)*5,b.min,b.max);
@@ -376,15 +379,56 @@ function modsHTML(){
   });
   return out.length?'<div class="chips">'+out.join('')+'</div>':'';
 }
+var TABS=[
+ {id:'orders',name:'Заказы',icon:'doc',what:'Договоры с клиентами: цена и количество известны заранее.',use:'Принимай выгодные, торгуйся, отказывайся от лишнего.'},
+ {id:'quests',name:'Задания',icon:'target',what:'Цепочки целей на несколько месяцев с наградами.',use:'Бери задания и планируй под них печать и покупки.',show:function(){ return S.month>=2; }},
+ {id:'biz',name:'Печать',icon:'printer',what:'Главный экран месяца: сколько и по какой цене печатать, режим и реклама.',use:'Раздели часы печати между товарами и проверь прогноз.'},
+ {id:'stock',name:'Склад',icon:'box',what:'Пластик и готовые изделия: закупка, остатки, распродажа.',use:'Закупай пластик, когда он дешёвый, и не копи лишнего.'},
+ {id:'market',name:'Рынок',icon:'chart',what:'Спрос по месяцам, цены конкурентов и что влияет на покупателей.',use:'Планируй печать на месяц вперёд.'},
+ {id:'shop',name:'Развитие',icon:'wrench',what:'Лаборатория, принтеры, помощники, помещение и каналы продаж.',use:'Вкладывайся в то, что окупится.'},
+ {id:'team',name:'Команда',icon:'users',what:'Специалисты с зарплатой и постоянными бонусами.',use:'Нанимай тех, кто решает твою узкую проблему.',show:function(){ return S.month>=3; }},
+ {id:'fin',name:'Финансы',icon:'safe',what:'Налоги, вклады, кредит и фонд.',use:'Деньги тоже должны работать.'}
+];
+function allTabs(){ return TABS.filter(function(x){ return !x.show || x.show(); }); }
+function tabDot(id){
+  var seen=U.seen||{};
+  if(id==='orders'){ var n=openOffers().length; return n?{n:n,k:'n'}:null; }
+  if(id==='stock'){ var tr=filTrend(S); if(S.fil.kg>FIL_WET) return {n:'!',k:'w'}; if(!seen.stock && tr.rel<0.96 && S.month>1) return {n:'↓',k:'n'}; return null; }
+  if(id==='shop'){ var L=labOf(S); if(!seen.shop && L.active.length<labSlots(S) && S.month>=2 && RESEARCH.some(function(r){ return canResearch(S,r.id).ok; })) return {n:'!',k:'n'}; return null; }
+  if(id==='quests'){ var qa=questsAvailable(S).length; return (!seen.quests && qa)?{n:qa,k:'n'}:null; }
+  if(id==='team'){ return (!seen.team && S.month>=3 && SPEC_IDS.some(function(k){ return canHire(S,k).ok; }))?{n:'!',k:'n'}:null; }
+  return null;
+}
+/* что сделать дальше: подсказка и переход */
+function nextStep(){
+  var seen=U.seen||{}, b=makeBoard(S), open=b.offers.filter(function(o){ return o.state==='open'; }).length, pv=previewMonth(S,S.plan,1), free=pv.H-pv.hours;
+  if(open && !seen.deal) return {text:'Загляни в «Заказы»: есть '+open+' '+plural(open,'предложение','предложения','предложений')+' от клиентов', tab:'orders'};
+  var q=questStep(); if(q) return q;
+  if(!seen.biz) return {text:'Реши, что и сколько печатать', tab:'biz'};
+  if(S.month>=2 && !seen.shop && labOf(S).active.length<labSlots(S) && RESEARCH.some(function(r){ return canResearch(S,r.id).ok; })) return {text:'Лаборатория свободна: можно начать исследование', tab:'shop'};
+  if(S.fil.kg>FIL_WET) return {text:'На складе слишком много пластика: он отсыреет', tab:'stock'};
+  if(free>pv.H*0.3 && pv.hours>=0) return {text:'Свободно '+Math.round(free)+' ч печати: занять их товаром или заказом', tab:'biz'};
+  return {text:'Всё готово: можно запускать печать', go:true};
+}
+function navHTML(){
+  var n=nextStep();
+  return '<div class="nav"><span class="nav-l">'+ico('target')+'<b>Что дальше:</b> '+n.text+'</span>'+(n.go?'<button class="btn small primary" data-act="go">Запустить печать'+ico('play')+'</button>':'<button class="btn small" data-act="tab" data-t="'+n.tab+'">Перейти'+ico('right')+'</button>')+'</div>';
+}
+function mapHTML(){
+  return '<div class="stack"><p class="muted">Всё, что нужно в месяце, находится на этих вкладках. Нажми на название, чтобы открыть.</p><div class="maplist">'+allTabs().map(function(x){
+    return '<button class="mapitem" data-act="tabgo" data-t="'+x.id+'"><span class="fico">'+ico(x.icon)+'</span><span><b>'+x.name+'</b><small>'+x.what+'</small><small class="muted">'+x.use+'</small></span></button>'; }).join('')+'</div>'+
+    '<div class="callout">'+ico('info')+'<div>Вверху страницы всегда есть строка «Что дальше»: она подскажет следующий шаг. А кнопка «Запустить печать» закрывает месяц.</div></div></div>';
+}
 function planHTML(){
-  var ch=CHAPTERS[chapterOf(S.month)], t=U.tab||'orders', open=openOffers().length;
-  var tabs=[['orders','Заказы','doc',open],['biz','Печать','printer',0],['stock','Склад','box',0],['market','Рынок','chart',0],['shop','Развитие','wrench',0],['fin','Финансы','safe',0]];
+  var ch=CHAPTERS[chapterOf(S.month)], t=U.tab||'orders', tabs=allTabs();
   var mods=modsHTML();
-  var h='<section class="card flat lined stack"><div class="row between"><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · акт «'+ch.name+'»</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(26px,4vw,36px)">Планирование месяца</h1></div><button class="btn small" data-act="help">'+ico('info')+' Как это работает</button></div>'+(mods?mods:'')+
-    stepsHTML()+'<div class="goals" id="goals-box">'+goalsInner()+'</div></section>';
-  h+='<div class="tabs" role="tablist" aria-label="Разделы планирования">'+tabs.map(function(x){ return '<button class="tab" role="tab" data-act="tab" data-t="'+x[0]+'" aria-selected="'+(t===x[0])+'">'+ico(x[2])+'<span>'+x[1]+'</span>'+(x[3]?'<i class="tbadge" aria-hidden="true">'+x[3]+'</i><span class="sr-only"> (новых заказов: '+x[3]+')</span>':'')+'</button>'; }).join('')+'</div>';
+  var cur=tabs.filter(function(x){ return x.id===t; })[0]||tabs[0];
+  var h='<section class="card flat lined stack"><div class="row between"><div><div class="eyebrow">'+MONTH_NAMES[S.month-1]+' · акт «'+ch.name+'»</div><h1 id="pagetitle" tabindex="-1" style="font-size:clamp(26px,4vw,36px)">Планирование месяца</h1></div><div class="row" style="gap:8px"><button class="btn small" data-act="mapopen">'+ico('grid')+' Где что?</button><button class="btn small" data-act="help">'+ico('info')+' Как это работает</button></div></div>'+(mods?mods:'')+
+    stepsHTML()+'<div id="nav-box">'+navHTML()+'</div><div class="goals" id="goals-box">'+goalsInner()+'</div></section>';
+  h+='<div class="tabs" role="tablist" aria-label="Разделы планирования">'+tabs.map(function(x){ var d=tabDot(x.id); return '<button class="tab" role="tab" data-act="tab" data-t="'+x.id+'" aria-selected="'+(t===x.id)+'">'+ico(x.icon)+'<span>'+x.name+'</span>'+(d?'<i class="tbadge'+(d.k==='w'?' warn':'')+'" aria-hidden="true">'+d.n+'</i><span class="sr-only"> (есть новое)</span>':'')+'</button>'; }).join('')+'</div>';
+  h+='<p class="tabnote"><b>'+cur.name+'.</b> '+cur.what+' <span class="muted">'+cur.use+'</span></p>';
   h+=coachHTML(t);
-  h+= t==='orders'?ordersHTML():(t==='biz'?bizHTML():(t==='market'?marketHTML():(t==='stock'?stockHTML():(t==='shop'?shopHTML():finHTML()))));
+  h+= t==='orders'?ordersHTML():(t==='biz'?bizHTML():(t==='market'?marketHTML():(t==='stock'?stockHTML():(t==='shop'?shopHTML():(t==='fin'?finHTML():(t==='quests'?questsHTML():(t==='team'?teamHTML():'')))))));
   return h;
 }
 /* ---------- заказы, рынок, цели месяца ---------- */
@@ -406,11 +450,17 @@ function hagglePanel(o){
     HAGGLE.map(function(h,i){ return '<button class="btn small" data-act="hagp" data-id="'+o.id+'" data-i="'+i+'"><b>'+h.label+'</b> · '+rub(nicePrice(o.base*(1+h.pct)))+'</button>'; }).join('')+
     '<button class="btn ghost small" data-act="hagno">Не торговаться</button></div></div>';
 }
+function negPanel(o){
+  var N=o.neg, th=negThemes(S,o,N.round), c=CLIENTS[o.client];
+  return '<div class="hag" role="group" aria-label="Переговоры"><p><b>Переговоры, раунд '+(N.round+1)+' из 3.</b> '+NEG_ROUND[N.round]+'</p><p class="muted" style="font-size:14px">Клиент: '+esc(clientLikes(o.client))+'.</p>'+
+    N.log.map(function(l){ return '<p class="neglog '+(l.d>0?'good':(l.d<0?'bad':''))+'">'+ico(l.d>0?'check':(l.d<0?'warn':'info'))+'<span>'+esc(c.who)+': «'+esc(l.t)+'»</span></p>'; }).join('')+
+    '<div class="negopts">'+th.map(function(k){ return '<button class="btn small" data-act="negp" data-id="'+o.id+'" data-th="'+k+'"><span class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.06em">'+THEME_NAME[k]+'</span><span>'+NEG_TEXT[k][N.round]+'</span></button>'; }).join('')+'</div></div>';
+}
 function offerCard(o, mph){
   var cl=CLIENTS[o.client], K=KINDS[o.kind], P=PRODUCTS[o.prod], e=orderEcon(S,o), chk=o.state==='open'?orderCheck(S,o):{ok:true,why:''};
   var anon = o.kind==='trap';
   var h='<article class="card offer '+o.state+' k-'+o.kind+'" id="of-'+o.id+'" aria-label="Заказ: '+esc(cl.name)+', '+K.name+'">';
-  h+='<header class="of-head">'+cbadge(o.client)+'<div class="of-who"><h3>'+esc(cl.name)+'</h3><div class="of-sub"><span>'+esc(cl.who)+'</span>'+(anon?'':heartsHTML(trustOf(S,o.client)))+'</div></div><span class="chip '+K.chip+'">'+ico(K.icon)+' '+K.name+'</span></header>';
+  h+='<header class="of-head">'+cbadge(o.client)+'<div class="of-who"><h3>'+esc(cl.name)+'</h3><div class="of-sub"><span>'+esc(cl.who)+'</span>'+(anon?'':heartsHTML(trustOf(S,o.client)))+'</div>'+(anon?'':'<div class="of-likes">'+esc(clientLikes(o.client))+'</div>')+'</div><span class="chip '+K.chip+'">'+ico(K.icon)+' '+K.name+'</span></header>';
   if(o.state==='gone' || o.state==='declined'){
     h+='<p class="of-text muted">'+(o.state==='gone'?'Клиент ушёл к другой мастерской: торг не удался.':'Заказ отклонён.')+'</p>';
     if(o.msg) h+='<div class="of-msg res-'+o.msg.res+'">'+esc(o.msg.who)+': «'+esc(o.msg.t)+'»</div>';
@@ -431,9 +481,11 @@ function offerCard(o, mph){
     return h+'</article>';
   }
   if(o.msg) h+='<div class="of-msg res-'+o.msg.res+'">'+esc(o.msg.who)+': «'+esc(o.msg.t)+'»</div>';
+  if(o.neg && o.neg.round<3){ h+=negPanel(o); return h+'</article>'; }
   if(U.hag===o.id){ h+=hagglePanel(o); return h+'</article>'; }
   h+='<div class="of-actions"><button class="btn primary small" data-act="oacc" data-id="'+o.id+'"'+(chk.ok?'':' disabled aria-describedby="why-'+o.id+'"')+'>Принять заказ</button>'+
-    (!o.tried && o.kind!=='charity' ? '<button class="btn small" data-act="ohag" data-id="'+o.id+'">'+ico('percent')+' Торговаться</button>' : '')+
+    (negAvailable(o) ? '<button class="btn small" data-act="oneg" data-id="'+o.id+'">'+ico('users')+' Переговоры</button>' : '')+
+    (!o.tried && o.kind!=='charity' && !negAvailable(o) ? '<button class="btn small" data-act="ohag" data-id="'+o.id+'">'+ico('percent')+' Торговаться</button>' : '')+
     '<button class="btn ghost small" data-act="ono" data-id="'+o.id+'">Отказаться</button></div>';
   if(!chk.ok) h+='<p class="of-why" id="why-'+o.id+'">'+ico('lock')+' '+esc(chk.why)+'</p>';
   return h+'</article>';
@@ -489,6 +541,12 @@ function marketHTML(){
   function fac(name,v,why){ return '<div class="fac"><b>'+name+'</b><span class="num '+(v>1.005?'gain-t':(v<0.995?'loss-t':''))+'">×'+f1(v)+'</span><small class="muted">'+why+'</small></div>'; }
   var h='<section class="card stack"><div><div class="eyebrow">Сезонность</div><h2 style="font-size:22px">Спрос по месяцам</h2></div><p class="muted">Линия показывает, как спрос меняется за 16 месяцев. Оранжевая точка это текущий месяц, множитель — на сколько спрос выше или ниже обычного.</p><div class="mrows">'+rows+'</div>'+
     (adv.length?'<div class="callout tip">'+avatarSVG('phil','happy',40)+'<div><b>Совет Фила.</b> '+adv.join(' ')+'</div></div>':'')+'</section>';
+  var hist=S.compHist||[], crow=PROD_IDS.filter(function(id){ return isAvailable(S,id); }).map(function(id){
+    var cp=compPrice(S,id), my=plan.price[id], d=Math.round((my/cp-1)*100);
+    return '<div class="crow"><div class="mprod">'+productSVG(id,30)+'<div><b>'+PRODUCTS[id].short+'</b><span class="k">'+(compSide(id)==='mega'?'«МегаПринт»':'Макс')+': '+rub(cp)+'</span></div></div><div class="num">твоя цена '+rub(my)+'</div><span class="chip '+(d>6?'warn':(d<-6?'gain':'info'))+'">'+(Math.abs(d)<=3?'вровень':(d>0?'дороже на '+d+'%':'дешевле на '+(-d)+'%'))+'</span></div>'; }).join('');
+  function csp(key,col){ var n=hist.length; if(n<2) return ''; var pts=hist.map(function(x,i){ return (6+i*(168/Math.max(1,n-1))).toFixed(1)+','+(34-(x[key]-0.76)/(0.46)*28).toFixed(1); }).join(' '); return '<svg class="spark" viewBox="0 0 180 40" role="img" aria-label="Динамика цен"><line x1="6" x2="174" y1="20" y2="20" stroke="var(--edge-strong)" stroke-dasharray="4 4"/><polyline points="'+pts+'" fill="none" stroke="var(--c-'+col+')" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/></svg>'; }
+  h+='<section class="card stack"><div><div class="eyebrow">Конкуренты</div><h2 style="font-size:22px">Цены Макса и «МегаПринта»</h2></div><p class="muted">Макс печатает брелоки, подставки, фигурки, ночники и игрушки. «МегаПринт» делает запчасти и прототипы (со второй половины года). Если твоя цена выше, часть покупателей уходит к ним, если ниже, приходят чаще.</p>'+
+    '<div class="two" style="gap:12px"><div class="stack"><b>Макс · сейчас ×'+f1(S.comp?S.comp.max:1)+'</b>'+csp('max','orange')+'</div><div class="stack"><b>«МегаПринт» · сейчас ×'+f1(S.comp?S.comp.mega:1)+'</b>'+csp('mega','violet')+'</div></div><div class="crows">'+crow+'</div></section>';
   h+='<section class="card stack"><div><div class="eyebrow">Что влияет на спрос</div><h2 style="font-size:22px">Из чего складывается спрос</h2></div><div class="facs">'+
     fac('Репутация',repM,'сейчас '+Math.round(S.rep)+' из 100')+fac('Реклама',adM,ADS[plan.ad].name.toLowerCase())+fac('Качество печати',qM,MODES[plan.mode].name.toLowerCase())+fac('Каналы продаж',chM,(S.channel.market||S.channel.site)?'подключены':'пока свои')+fac('События и модели',evM,'сюжет и качество моделей')+'</div>'+
     '<p class="muted" style="font-size:14.5px">Пластик сейчас стоит ≈ '+rub(filMarket(S))+' за кг, а запас у тебя обошёлся в ≈ '+rub(S.fil.kg>0?S.fil.val/S.fil.kg:0)+' за кг. '+(S.rate&&S.rate.u?'Рейтинг мастерской: '+f1d(S.rate.s/S.rate.u)+' из 5.':'')+'</p></section>';
@@ -627,6 +685,53 @@ function myqHTML(){
     (Q.picked!=null?'<div class="callout '+(Q.opts[Q.picked]===Q.ans?'ok':'bad')+'" role="status">'+ico(Q.opts[Q.picked]===Q.ans?'check':'info')+'<div><b>'+(Q.opts[Q.picked]===Q.ans?'Верно, +'+rub(MYQ_REWARD)+'. ':'Правильный ответ: '+fmt(Q.ans)+'. ')+'</b>'+Q.why+'</div></div>':'')+'</section>';
 }
 var MYQ_REWARD = 300;
+/* ---------- задания и команда ---------- */
+function questCard(q){
+  var st=questsOf(S)[q.id], state=questState(S,q.id), cl=q.client?CLIENTS[q.client]:null;
+  var badge=cl?cbadge(q.client):'<span class="cbadge" style="--cc:var(--c-violet)">'+ico(q.icon)+'</span>';
+  var h='<article class="card quest '+state+'">'+'<header class="of-head">'+badge+'<div class="of-who"><h3>'+esc(q.name)+'</h3><div class="of-sub"><span>'+(cl?esc(cl.name):'Личная цель мастерской')+'</span></div></div><span class="chip '+(state==='done'?'gain':(state==='failed'?'loss':(state==='active'?'brand':'info')))+'">'+({new:'новое',active:'в работе',done:'выполнено',failed:'не успели'}[state])+'</span></header>';
+  h+='<p class="of-text">'+esc(q.intro)+'</p><ol class="qstages">'+q.stages.map(function(g,i){
+    var done=st&&(st.state==='done'||i<st.stage), cur=st&&st.state==='active'&&i===st.stage;
+    return '<li class="'+(done?'done':(cur?'now':''))+'"><span class="tn">'+(done?ico('check'):(i+1))+'</span><span>'+esc(g.text)+'<small class="muted"> награда '+rub(g.reward)+(cur?' · осталось '+st.left+' '+plural(st.left,'месяц','месяца','месяцев'):(st?'':' · '+g.months+' '+plural(g.months,'месяц','месяца','месяцев')))+'</small></span></li>'; }).join('')+'</ol>';
+  if(state==='new'){ var why=questsActive(S).length>=QUEST_MAX?'Одновременно можно вести '+QUEST_MAX+' задания. Сначала закончи одно из них.':''; h+='<div class="of-actions"><button class="btn primary small" data-act="qtake" data-id="'+q.id+'"'+(why?' disabled':'')+'>Взять задание</button></div>'+(why?'<p class="of-why">'+ico('lock')+' '+why+'</p>':''); }
+  if(state==='done') h+='<div class="callout ok">'+ico('star')+'<div>'+esc(q.final)+' Бонус за всё задание: '+rub(q.stages.length*1000)+' и репутация +3.</div></div>';
+  return h+'</article>';
+}
+function questsHTML(){
+  var act=questsActive(S), av=questsAvailable(S), fin=QUESTS.filter(function(q){ var s=questState(S,q.id); return s==='done'||s==='failed'; });
+  var h='<section class="card lined stack"><div class="row between"><div><div class="eyebrow">Долгие цели</div><h2 style="font-size:22px">Задания</h2></div><span class="chip '+(act.length?'brand':'info')+'">'+ico('target')+' в работе: '+act.length+' из '+QUEST_MAX+'</span></div>'+
+    '<p class="muted">Задание это цепочка из нескольких шагов на несколько месяцев. За каждый шаг платят сразу, а за весь путь ещё бонус и репутация. Если срок на шаг выйдет, задание считается проваленным, поэтому планируй заранее.</p></section>';
+  if(act.length) h+='<div class="offers">'+act.map(questCard).join('')+'</div>';
+  if(av.length){ h+='<h3 style="font-size:18px">Новые задания</h3><div class="offers">'+av.map(questCard).join('')+'</div>'; }
+  if(!act.length && !av.length) h+='<section class="card flat"><p class="muted">Пока заданий нет. Новые появятся по ходу игры.</p></section>';
+  if(fin.length) h+='<h3 style="font-size:18px">Завершённые</h3><div class="offers">'+fin.map(questCard).join('')+'</div>';
+  return h;
+}
+function questStep(){
+  var seen=U.seen||{}; if(!seen.quests && questsAvailable(S).length && questsActive(S).length<QUEST_MAX && S.month>=2) return {text:'Есть новые задания с наградами', tab:'quests'};
+  return null;
+}
+function specCard(id){
+  var P=SPECS[id], has=hasSpec(S,id), c=canHire(S,id);
+  var h='<article class="card upg'+(has?' owned':'')+'"><header><span class="cbadge" style="--cc:var(--c-'+P.col+')">'+ico(P.icon)+'</span><div><h3>'+esc(P.name)+'</h3><p class="muted">'+P.role+'</p></div></header><p>'+P.about+'</p>'+
+    '<div class="chips"><span class="chip gain">'+P.perk+'</span><span class="chip warn">'+rub(P.salary*S.infl)+' в месяц</span>'+(has?'':'<span class="chip">оформление '+rub(P.hire)+'</span>')+'</div>';
+  if(has) return h+'<button class="btn small" data-act="sfire" data-id="'+id+'">Уволить</button></article>';
+  return h+'<button class="btn primary small" data-act="shire" data-id="'+id+'"'+(c.ok?'':' disabled')+'>Нанять</button>'+(c.ok?'':'<span class="loss-t" style="font-size:13.5px;font-weight:600">'+c.why+'</span>')+'</article>';
+}
+function teamHTML(){
+  var lim=TEAM_LIMIT[S.space]||2, mine=SPEC_IDS.filter(function(id){ return hasSpec(S,id); }), rest=SPEC_IDS.filter(function(id){ return !hasSpec(S,id); });
+  var h='<section class="card lined stack"><div class="row between"><div><div class="eyebrow">Люди</div><h2 style="font-size:22px">Команда специалистов</h2></div><span class="chip info">'+ico('users')+' '+mine.length+' из '+lim+' мест</span></div>'+
+    '<p class="muted">Специалист получает зарплату каждый месяц, даже когда заказов мало, зато даёт постоянный бонус. Нанимай того, кто решает именно твою узкую проблему. В помещении '+lim+' '+plural(lim,'место','места','мест')+' для команды: в гараже их больше. Зарплаты сейчас: '+rub(teamSalary(S))+' в месяц.</p></section>';
+  if(mine.length) h+='<h3 style="font-size:18px">В команде</h3><div class="grid-auto">'+mine.map(specCard).join('')+'</div>';
+  h+='<h3 style="font-size:18px">Можно нанять</h3><div class="grid-auto">'+rest.map(specCard).join('')+'</div>';
+  return h;
+}
+function questReportHTML(r){
+  var qs=r.quests||[]; if(!qs.length) return '';
+  return '<section class="card lined stack"><h2 style="font-size:20px">Задания</h2><div class="orows">'+qs.map(function(x){
+    var cls=x.kind==='fail'?'bad':'ok';
+    return '<div class="orow '+cls+'"><span class="cbadge" style="--cc:var(--c-'+(x.kind==='fail'?'rose':'lime')+')">'+ico(x.kind==='fail'?'warn':(x.kind==='done'?'star':'check'))+'</span><div class="ostat"><b>'+esc(x.name)+'</b><span class="k">'+(x.kind==='stage'?'шаг выполнен: ':(x.kind==='done'?'задание выполнено: ':''))+esc(x.text)+'</span></div><div class="omoney">'+(x.reward?'<b class="num gain-t">+'+rub(x.reward)+'</b>':'')+'</div></div>'; }).join('')+'</div></section>';
+}
 function sliderCtl(opt){
   return '<div class="ctl"><div class="ctl-head"><label for="'+opt.id+'">'+opt.label+'</label><span class="ctl-val num" id="'+opt.vid+'">'+opt.val+'</span></div>'+
     '<div class="ctl-row"><button class="step-btn" data-act="step" data-k="'+opt.k+'" data-id="'+opt.pid+'" data-d="-'+opt.step+'" aria-label="'+opt.label+': меньше"'+(opt.minusOff?' disabled':'')+'>'+ico('minus')+'</button>'+
@@ -645,7 +750,7 @@ function pstatsHTML(id, pv, lo, hi, bestId){
   var third = short>2 ? '<div class="pstat"><b>Не хватит товара</b><span class="loss-t num">≈ '+Math.round(short)+' шт.</span></div>' : (over>2 ? '<div class="pstat"><b>Останется на складе</b><span class="loss-t num">≈ '+Math.round(over)+' шт.</span></div>' : '<div class="pstat"><b>Товара</b><span class="gain-t">хватает</span></div>');
   var perH = r.perHour;
   return '<div class="pstat"><b>Покупателей</b><span class="num">'+dtxt+' шт.</span></div>'+
-    '<div class="pstat"><b>Себестоимость</b><span class="num">'+rub(r.unit+PACK[id]*S.infl)+'</span></div>'+
+    '<div class="pstat"><b>Себестоимость</b><span class="num">'+rub(r.unit+packOf(S,id))+'</span></div>'+
     '<div class="pstat"><b>Прибыль за час</b><span class="num '+(perH>0?'gain-t':'loss-t')+'">'+rub(perH)+'</span>'+(bestId===id?'<span class="chip brand" style="margin-top:4px">'+ico('star')+' лучший за час</span>':'')+'</div>'+third;
 }
 function productCard(id, pv, lo, hi, bestId){
@@ -655,7 +760,7 @@ function productCard(id, pv, lo, hi, bestId){
   }
   var b=priceBounds(S,id,plan.mode), maxQ=maxQtyFor(S,plan,id), lock=lockQty(S,id), ref=refPrice(S,id), hpu=hoursPerUnit(S,id,plan.mode);
   return '<article class="card pcard" id="pc-'+id+'" aria-label="'+P.name+'"><div class="pcard-top"><div class="pcard-art">'+productSVG(id,40)+'</div><div><h3>'+P.name+'</h3><div class="pcard-sub">'+f1d(hpu)+' ч печати на штуку · пластика '+Math.round(gramsPerUnit(S,id,plan.mode))+' г</div></div><div class="curve-box" id="cv-'+id+'" role="img" aria-label="Кривая спроса: чем выше цена, тем меньше покупателей">'+curveSVG(S,id,plan)+'</div></div>'+
-    '<div class="ctls">'+sliderCtl({id:'pr-'+id,vid:'pv-'+id,pid:id,k:'price',label:'Цена',val:rub(plan.price[id]),v:plan.price[id],min:b.min,max:b.max,step:5,lo:rub(b.min),mid:'рынок ≈ '+rub(ref),hi:rub(b.max)})+
+    '<div class="ctls">'+sliderCtl({id:'pr-'+id,vid:'pv-'+id,pid:id,k:'price',label:'Цена',val:rub(plan.price[id]),v:plan.price[id],min:b.min,max:b.max,step:5,lo:rub(b.min),mid:'рынок '+rub(ref)+' · конкурент '+rub(compPrice(S,id)),hi:rub(b.max)})+
     sliderCtl({id:'qr-'+id,vid:'qv-'+id,pid:id,k:'qty',label:'Сколько напечатать',val:pcs(plan.qty[id]),v:plan.qty[id],min:lock,max:Math.max(lock,maxQ),step:1,lo:pcs(lock),mid:'на складе '+pcs(S.inv[id]),hi:pcs(maxQ)+' по часам'})+'</div>'+
     '<div class="qf" role="group" aria-label="Быстрый выбор количества: '+P.short+'"><button class="btn small ghost" data-act="qfdem" data-id="'+id+'">Под спрос</button><button class="btn small ghost" data-act="qffill" data-id="'+id+'">Все свободные часы</button><button class="btn small ghost" data-act="qfzero" data-id="'+id+'">Не печатать</button></div>'+
     (lock?'<div class="lockrow">'+ico('lock')+' По заказу нужно напечатать не меньше '+pcs(lock)+'</div>':'')+
@@ -733,7 +838,7 @@ function tutorialState(){
 }
 function bizHTML(){
   var plan=S.plan, pv=previewMonth(S,plan,1), lo=previewMonth(S,plan,0.92), hi=previewMonth(S,plan,1.08), best=bestHourId(pv);
-  var modes=['draft','std','fine'], mdesc={draft:'печать на 30% быстрее · качество ниже · брак +3 п.п.',std:'золотая середина',fine:'печать на 55% дольше · качество выше · спрос растёт'};
+  var modes=S.noDraft?['std','fine']:['draft','std','fine'], mdesc={draft:'печать на 30% быстрее · качество ниже · брак +3 п.п.',std:'золотая середина',fine:'печать на 55% дольше · качество выше · спрос растёт'};
   var h='<section class="card stack"><div class="row between"><h3>Как идёт месяц: откуда → куда</h3><span class="muted" style="font-size:13.5px">Нажми на блок, чтобы узнать подробнее</span></div><div id="flow-box">'+flowHTML(pv,false)+'</div></section>';
   h+='<div class="plan"><div class="plan-main">';
   h+='<section class="card"><div class="ctl-head"><h3 id="modetitle">Режим печати</h3><span class="chip info">слой <span id="layerval">'+MODES[plan.mode].layer+'</span></span></div><div class="seg" role="radiogroup" aria-labelledby="modetitle" style="margin-top:12px">'+
@@ -758,6 +863,7 @@ function liveUpdate(){
     if(pr){ if(pr!==act) pr.value=plan.price[id]; pr.setAttribute('aria-valuetext',rub(plan.price[id])); }
   });
   var gb=$('#goals-box'); if(gb) gb.innerHTML=goalsInner();
+  var nb=$('#nav-box'); if(nb) nb.innerHTML=navHTML();
   var fb2=$('#flow-box'); if(fb2) fb2.innerHTML=flowHTML(pv,false);
   var st2=$('#steps-box'); if(st2) st2.innerHTML=stepsInner();
   var hb=$('#hours-box'); if(hb) hb.innerHTML=hoursHTML(pv);
@@ -939,7 +1045,7 @@ function reportHTML(){
   h+='<div class="two"><section class="card stack"><h2 style="font-size:20px">Как получилась прибыль</h2><div class="wf">'+rows+'<div class="wf-row sum"><span>Прибыль</span><b class="num '+(r.profit>=0?'gain-t':'loss-t')+'">'+rub(r.profit)+'</b></div></div></section>'+
     '<section class="card stack"><h2 style="font-size:20px">Твоя башня слоёв</h2><div class="tower-wrap">'+towerSVG(S.history,{animateLast:true})+'</div><p class="muted" style="font-size:14px">Каждый месяц это слой. Ширина слоя зависит от выручки, зелёный цвет значит прибыль, штриховка значит убыток.</p></section></div>';
   h+='<section class="card stack"><h2 style="font-size:20px">Что и как продавалось</h2><div class="prows">'+prods+'</div></section>';
-  h+=ordersReportHTML(r); h+=goalsReportHTML(r);
+  h+=ordersReportHTML(r); h+=goalsReportHTML(r); h+=questReportHTML(r);
   (r.labDone||[]).forEach(function(x){ h+='<div class="callout ok">'+ico('check')+'<div><b>Исследование завершено: '+x.name+'.</b> Эффект: '+x.effect+'.</div></div>'; });
   if(r.wet) h+='<div class="callout warn">'+ico('warn')+'<div><b>Пластик отсыревает.</b> Запас больше '+FIL_WET+' кг впитывает влагу, и в следующем месяце брак выше на 2 п.п.</div></div>';
   var pg=r.progress||{ach:[],mile:[]};
@@ -1013,6 +1119,12 @@ function finalHTML(){
 function monthMapHTML(){
   var nodes=[['news','Сцена','случается событие, ты выбираешь вариант'],['doc','Заказы','клиенты предлагают сделки с готовой ценой'],['printer','Планирование','что печатать, цены, склад, развитие'],['play','Печать','месяц проходит, считаются продажи'],['coin','Итоги','прибыль, отзывы, цели и вопросы']];
   return '<div class="flow v" aria-label="Схема одного месяца">'+nodes.map(function(n,i){ return '<div class="fnode"'+(i===4?' data-end="1"':'')+'><span class="fico">'+ico(n[0])+'</span><b>'+(i+1)+'. '+n[1]+'</b><span>'+n[2]+'</span></div>'; }).join('')+'</div>';
+}
+function aboutHTML(){
+  return '<div class="stack"><p><b>«Слой за слоем»</b>, версия '+APP_VERSION+'. Экономическая игра про бизнес на 3D-принтерах: цены и спрос, заказы и клиенты, склад, исследования и команда. Рассчитана на два школьных урока.</p>'+
+    '<div class="callout ok">'+ico('shield')+'<div><b>Конфиденциальность.</b> Игра работает без интернета, не просит разрешений и ничего не отправляет. Прогресс хранится только на этом устройстве. Рекламы и покупок внутри нет.</div></div>'+
+    '<p class="muted">Все числа, имена и события выдуманные. Игра учит принципам экономики: себестоимость, спрос, конкуренция, риск, налоги, кредит, инфляция. Она не является финансовым советом.</p>'+
+    '<div class="row"><button class="btn small" data-act="wipe">Стереть сохранение</button><button class="btn primary small" data-act="closemodal">Закрыть</button></div></div>';
 }
 function helpHTML(){
   return '<div class="stack"><div class="eyebrow">Как проходит каждый месяц</div>'+monthMapHTML()+'<div class="lesson">'+avatarSVG('phil','happy',44)+'<div><b>Как это работает.</b> У тебя ограниченное число <b>часов печати</b>. Каждый товар занимает разное время и приносит разную прибыль.</div></div>'+
@@ -1090,7 +1202,7 @@ var A={
  start:function(){
    var sv=readSave(); if(sv && !U.confirmNew){ U.confirmNew=true; render(true); return; }
    var nm=($('#pname').value||'').trim()||'Мастер'; U.confirmNew=false;
-   S=newState(nm); U={screen:'intro', slide:0}; hudPrev={}; sfx('coin'); render();
+   S=newState(nm); setGoal(S); U={screen:'intro', slide:0}; hudPrev={}; sfx('coin'); render();
  },
  continue:function(){ var sv=readSave(); if(sv){ applySave(sv); hudPrev={}; render(); } },
  loadcode:function(){ openModal('Загрузить игру','<p class="muted">Вставь код сохранения, который был показан в конце прошлого урока.</p><div class="field"><label for="loadcode">Код сохранения</label><textarea class="input" id="loadcode" rows="5" placeholder="Вставь код сюда"></textarea></div><p class="loss-t" id="loaderr" role="alert"></p><div><button class="btn primary" data-act="doload">Загрузить</button></div>'); },
@@ -1103,6 +1215,8 @@ var A={
  introskip:function(){ if(!S.setupDone){ toSetup(); return; } U.slide=introSlides().length-1; render(); },
  setupback:function(){ U.screen='intro'; U.slide=2; render(); },
  rname:function(){ var cur=U.setup.shop, pool=SHOP_NAMES.filter(function(x){ return x!==cur; }); U.setup.shop=pool[Math.floor(Math.random()*pool.length)]; render(true); var e=$('#shopname'); if(e) e.focus(); },
+ pscn:function(el){ U.setup.scn=el.getAttribute('data-k'); render(true); var e=$('[data-act=pscn][data-k='+U.setup.scn+']'); if(e) e.focus(); },
+ daycode:function(){ var d=new Date(); U.setup.code='ДЕНЬ-'+('0'+d.getDate()).slice(-2)+('0'+(d.getMonth()+1)).slice(-2); render(true); },
  ptalent:function(el){ U.setup.talent=el.getAttribute('data-k'); render(true); var e=$('[data-act=ptalent][data-k='+U.setup.talent+']'); if(e) e.focus(); },
  pdiff:function(el){ U.setup.diff=el.getAttribute('data-k'); render(true); var e=$('[data-act=pdiff][data-k='+U.setup.diff+']'); if(e) e.focus(); },
  setupdone:function(){
@@ -1132,7 +1246,14 @@ var A={
    var n=$('.lesson'); if(n && n.scrollIntoView && !reduced) n.scrollIntoView({behavior:'smooth',block:'center'});
  },
  scenenext:function(){ var v=sceneView(); if((U.stage||0)<v.n-1){ U.stage=(U.stage||0)+1; U.view=null; render(); } else toPlan(); },
+ about:function(){ openModal('О игре',aboutHTML()); },
+ wipe:function(){ if(!U.wipeAsk){ U.wipeAsk=true; var b=$('[data-act=wipe]'); if(b) b.textContent='Нажми ещё раз, чтобы стереть'; return; } U.wipeAsk=false; try{ localStorage.removeItem(KEY); localStorage.removeItem('lbl-board'); }catch(e){} closeModal(); S=null; U={screen:'title'}; hudPrev={}; render(); toast('Сохранение стёрто'); },
  help:function(){ openModal('Как это работает', helpHTML()); },
+ mapopen:function(){ openModal('Где что находится',mapHTML()); },
+ qtake:function(el){ var r=takeQuest(S,el.getAttribute('data-id')); if(r.ok){ sfx('coin'); toast('Задание взято'); addTerm('kpi'); } else toast(r.why); render(true); },
+ shire:function(el){ var id=el.getAttribute('data-id'), r=hireSpec(S,id); if(r.ok){ sfx('coin'); toast('В команде: '+SPECS[id].name); addTerm('labor'); fitCash(); } else toast(r.why); render(true); },
+ sfire:function(el){ fireSpec(S,el.getAttribute('data-id')); toast('Сотрудник уволен'); S.plan.qty=sanitizePlan(S,S.plan).qty; fitCash(); render(true); },
+ tabgo:function(el){ closeModal(); U.tab=el.getAttribute('data-t'); U.seen=U.seen||{}; U.seen[U.tab]=true; U.hag=null; render(true); window.scrollTo(0,0); },
  tab:function(el){ U.tab=el.getAttribute('data-t'); U.seen=U.seen||{}; U.seen[U.tab]=true; U.hag=null; render(true); window.scrollTo(0,0); },
  oacc:function(el){
    var id=el.getAttribute('data-id'), r=acceptOffer(S,id); U.seen=U.seen||{};
@@ -1146,6 +1267,8 @@ var A={
    if(res && res.lesson){ addTerm('ip'); sfx('good'); toast('Верное решение: репутация +1'); }
    render(true);
  },
+ oneg:function(el){ var id=el.getAttribute('data-id'); U.seen=U.seen||{}; U.seen.deal=true; if(negStart(S,id)){ addTerm('bargain'); } render(true); var b=$('.negopts button'); if(b) b.focus(); },
+ negp:function(el){ var id=el.getAttribute('data-id'), r=negPick(S,id,el.getAttribute('data-th')); if(r){ sfx(r.d>0?'good':(r.d<0?'bad':'click')); if(r.done){ sfx(r.res==='gone'?'bad':'win'); if(r.res==='win') toast('Переговоры удались: '+rub(r.price)+' за штуку'); } } fitCash(); render(true); var b=$('.negopts button'); if(b) b.focus(); },
  ohag:function(el){ U.hag=el.getAttribute('data-id'); render(true); var b=$('.hag button'); if(b) b.focus(); },
  hagno:function(){ U.hag=null; render(true); },
  hagp:function(el){
@@ -1208,7 +1331,7 @@ var A={
    if(slicerNeeded(S) && !U.slicerDone){ U.slicer={t:215,v:60,f:30,tries:[],left:SLICER_TRIES,target:slicerTarget(S)}; U.screen='slicer'; render(); return; }
    U.slicerDone=false;
    var before=S.cash, r=runMonth(S); r.cashBefore=before; r.cashAfter=S.cash;
-   settleGoals(S,r); if(r.goals&&r.goals.list.length) addTerm('kpi'); if((r.orders||[]).some(function(o){ return o.trust>=1; })) addTerm('trust');
+   settleGoals(S,r); questTick(S,r); if(r.goals&&r.goals.list.length) addTerm('kpi'); if((r.orders||[]).some(function(o){ return o.trust>=1; })) addTerm('trust');
    r.progress=checkProgress(S,r); r.fact=factFor(S,'m'+r.month); r.reviews=makeReviews(S,r); S.rate=S.rate||{u:0,s:0}; S.rate.u+=r.reviews.units; S.rate.s+=r.reviews.avg*r.reviews.units;
    r.slicerGrade=U.slicerGrade||null; U.slicerGrade=null; U.myq=myqBuild(r);
    U.report=r; U.screen=reduced?'report':'run'; U.tab='biz';
@@ -1305,6 +1428,13 @@ function boot(){
   soundOn = lsGet(SND_KEY)==='1';
   U={screen:'title'}; S=null; render();
   window.__game={get S(){ return S; }, get U(){ return U; }, A:A, render:render, setState:function(s,u){ S=s; U=u; render(); }};
+  /* кнопка «Назад» в приложении Android: true — нажатие обработано игрой, false — можно закрывать приложение */
+  window.__appBack=function(){
+    if($('#modal .modal')){ closeModal(); return true; }
+    if(!S || U.screen==='title') return false;
+    if(U.screen==='teacher'){ U={screen:'title'}; S=null; render(); return true; }
+    var sv=readSave(); U={screen:'title'}; S=null; hudPrev={}; render(); toast('Прогресс сохранён: нажми «Продолжить»'); return true;
+  };
 }
 boot();
 })();

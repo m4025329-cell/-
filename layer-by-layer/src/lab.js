@@ -31,6 +31,9 @@ var RESEARCH = [
   {id:'brand',  name:'Фирменный стиль',         icon:'star',    cost:14000, months:2, from:5,
    text:'Логотип, упаковка и страница в соцсетях: мастерскую запоминают.', effect:'репутация +6 и спрос +2%',
    apply:function(s){ s.rep=clamp(s.rep+6,0,100); addModB2C(s,1.02,99,'Фирменный стиль'); }},
+  {id:'led',    name:'Подсветка и электроника', icon:'bolt',    cost:16000, months:2, from:4,
+   text:'Учишься встраивать светодиоды и платы: открывается новый товар, ночники и светильники.', effect:'открывает ночники и светильники',
+   apply:function(s){ s.unlocked.lamp=true; s.rep=clamp(s.rep+2,0,100); }},
   {id:'farm',   name:'Умная ферма',             icon:'safe',    cost:42000, months:3, from:8,
    text:'Камеры и датчики следят за печатью: остановка при ошибке, меньше брака и простоя.', effect:'+5% часов печати, брак меньше на 2 п.п.',
    apply:function(s){ addMod(s,'hours',1.05,99,'Умная ферма'); addMod(s,'fail',-0.02,99,'Умная ферма'); }}
@@ -83,7 +86,7 @@ function buyFil(s, kg, sup){
   var c=canBuyFil(s,kg,sup); if(!c.ok) return c;
   s.cash-=c.cost; s.fil.kg+=kg; s.fil.val+=c.cost; s.filBought=(s.filBought||0)+kg;
   if(sup==='opt') addMod(s,'fail',0.02,2,'Дешёвый поставщик');
-  if(sup==='eco'){ s.rep=clamp(s.rep+1,0,100); addMod(s,'dem',1.02,2,'Эко-пластик'); }
+  if(sup==='eco'){ s.ecoBought=(s.ecoBought||0)+kg; s.rep=clamp(s.rep+1,0,100); addMod(s,'dem',1.02,2,'Эко-пластик'); }
   return c;
 }
 /* цена пластика относительно «обычной» с учётом месяца: ниже 1 — выгодно закупать впрок */

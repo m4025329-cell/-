@@ -18,10 +18,10 @@ const T=[ // [fg, bg, min, описание]
  ['gain-fg','gain-bg',4.5],['loss-fg','loss-bg',4.5],['info-fg','info-bg',4.5],['warn-fg','warn-bg',4.5],
  ['gain-fg','surface',4.5],['loss-fg','surface',4.5],['loss-fg','surface-2',4.5],['gain-fg','surface-2',4.5],
  ['info-fg','surface',4.5],['warn-fg','surface',4.5],
- ['c-cyan-text','surface',4.5],['c-orange-text','surface',4.5],['c-magenta-text','surface',4.5],['c-lime-text','surface',4.5],['c-violet-text','surface',4.5],
+ ['c-cyan-text','surface',4.5],['c-orange-text','surface',4.5],['c-magenta-text','surface',4.5],['c-lime-text','surface',4.5],['c-violet-text','surface',4.5],['c-teal-text','surface',4.5],['c-rose-text','surface',4.5],
  /* границы и значки (3:1) */
  ['edge-strong','surface',3],['edge-strong','surface-2',3],['edge-strong','ground',3],['brand-edge','surface',3],/* brand везде с контуром brand-edge */
- ['c-cyan','surface',3],['c-orange','surface',3],['c-magenta','surface',3],['c-lime','surface',3],['c-violet','surface',3],
+ ['c-cyan','surface',3],['c-orange','surface',3],['c-magenta','surface',3],['c-lime','surface',3],['c-violet','surface',3],['c-teal','surface',3],['c-rose','surface',3],
  ['info-fg','surface',3]
 ];
 let bad=0;
