@@ -12,7 +12,7 @@ for(let seed=1;seed<=N;seed++){
     for(let m=1;m<=TOTAL;m++){
       s.month=m; if(m>=9) s.flags.expand=1; if(m>=2) s.flags.arsenMet=1; s.flags.sonyaMet=m>=5; s.flags.damirMet=m>=9;
       for(let k=0;k<25;k++){
-        const a=Math.floor(R()*22), o=ids();
+        const a=Math.floor(R()*29), o=ids();
         switch(a){
           case 0: A_menu(s,pick(DISHES).id); break; case 1: A_price(s,pick(DISHES).id,R()*1500-100); break; case 2: A_lab(s,pick(DISHES).id); break;
           case 3: A_hire(s,o,pick(['cook','wait','bar','cln'])); break; case 4: A_fire(s,o,pick(['cook','wait','bar','cln'])); break;
@@ -24,6 +24,7 @@ for(let seed=1;seed<=N;seed++){
           case 16: A_open(s,pick(CITY_IDS),pick(['cafe','rest']),'Т'); break; case 17: A_franchise(s,pick(CITY_IDS)); break;
           case 18: if(s.outlets.length>1&&R()<0.3) A_close(s,o); break; case 19: A_tax(s,pick(['6','15'])); A_here(s,o); break;
           case 20: { const b=makeBoard(s); if(b.offers.length){ const of=pick(b.offers); pick([A_accept,A_haggle,A_decline,A_unaccept])(s,of.id); } break; }
+          case 22: A_dep(s,R()*400000); break; case 23: A_undep(s,R()*300000); break; case 24: A_insure(s); break; case 25: A_forward(s); break; case 26: A_hol(s,o); break; case 27: A_special(s,o,pick(DISHES).id); break; case 28: goalsFor(s); break;
           case 21: { const sc=SCENE_BY_M[m]; if(sc&&sc.ch.length&&R()<0.5){ sc.ch.forEach(q=>{ const op=pick(q.opts); const out=op.chk?(R()<0.5?op.chk(s).ok:op.chk(s).bad):op; applyFx(s,out.fx); }); } break; }
         }
       }

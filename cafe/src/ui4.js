@@ -19,7 +19,7 @@ A.goforce=function(){ closeModal(); U.goOK=true; A.go(); };
 function doGo(){
   U.snap=JSON.stringify(S); U.snapU={tab:U.tab,outlet:U.outlet};
   var R=simMonth(S,{}); R.cashBefore=S.cash; U.report=R; U.repOutlet=null;
-  applyMonth(S,R); U.newAch=checkAch(S,R); U.pv=null;
+  applyMonth(S,R); U.newAch=checkAch(S,R); U.newAch.forEach(function(a){ logEv(S,'ach','Награда «'+a.n+'»'); }); U.pv=null;
   if(S.emerg>600000 || (S.emerg>0 && S.debt+S.emerg>2600000)){ S.bankrupt=R.m; }
   U.screen='run'; U.runT0=Date.now(); render(); sfx('bell');
   if(!reduced) later(function(){ if(U.screen==='run') A.runskip(); },4600); else later(function(){ if(U.screen==='run') A.runskip(); },600);
@@ -27,7 +27,7 @@ function doGo(){
 function runHTML(){
   var R=U.report, r=R.outlets.filter(function(x){ return x.days&&x.days.length; })[0], days=(r&&r.days)||[], mx=Math.max.apply(null,days.concat([1])), out='';
   var cells=days.map(function(v,i){ var h=Math.round(v/mx*100); return '<i class="'+(h>66?'hi ':'')+'" style="--i:'+i+';--h:'+h+'">'+(i+1)+'</i>'; }).join('');
-  return '<article class="card" style="text-align:center"><h2>Идёт месяц: '+MONTHS[R.m-1]+'</h2><p class="muted">Каждая клетка — день. Чем краснее, тем больше выручка.</p><div class="cal" style="max-width:420px;margin:10px auto" aria-hidden="true">'+cells+'</div><p class="muted">'+(r?esc(CITIES[r.city].n)+': ':'')+'гостей <b class="num" id="run-g">0</b>, выручка <b class="num" id="run-r">0 ₽</b></p><button class="btn secondary" data-act="runskip">Показать итоги '+ico('right')+'</button></article>';
+  return '<article class="card" style="text-align:center"><h2>Идёт месяц: '+MONTHS[R.m-1]+'</h2><p class="muted">Каждая клетка — день. Чем краснее, тем больше выручка.</p><div class="cal" style="max-width:420px;margin:10px auto" aria-hidden="true">'+cells+'</div><div class="fact">'+ico('sparkle')+'<span><b>Знаете ли вы?</b> '+esc(FACTS[(R.m*5+hashStr(S.seed))%FACTS.length])+'</span></div><p class="muted">'+(r?esc(CITIES[r.city].n)+': ':'')+'гостей <b class="num" id="run-g">0</b>, выручка <b class="num" id="run-r">0 ₽</b></p><button class="btn secondary" data-act="runskip">Показать итоги '+ico('right')+'</button></article>';
 }
 function runAnim(){
   var R=U.report, g=$('#run-g'), rr=$('#run-r'); if(!g) return;
@@ -42,13 +42,14 @@ function funnelHTML(r){
   function row(t,v,cls,sub){ return '<div class="fun '+(cls||'')+'"><span class="t">'+t+'</span><b class="num">'+Math.round(v).toLocaleString('ru-RU').replace(/,/g,' ')+'</b><div class="bar"><i style="width:'+clamp(v/pool*100,0,100).toFixed(1)+'%"></i></div>'+(sub?'<small>'+sub+'</small>':'')+'</div>'; }
   return '<div class="funnel">'+row('Были поблизости',pool,'')+row('Узнали и заинтересовались',a,'','Не узнали о вас: '+Math.round(m.aware))+row('Меню и цена подошли',w,'','Ушли из-за меню и цены: '+Math.round(m.menuprice))+row('Обслужили',s,'','Не хватило мест, людей или кухни: '+Math.round(m.cap))+'</div>';
 }
+function dlt(cur,prev,fmtf){ if(prev==null||!isFinite(prev)||Math.abs(prev)<1) return ''; var d=(cur-prev)/Math.abs(prev); if(Math.abs(d)<0.005) return ''; return '<span class="delta '+(d>0?'up':'dn')+'">'+(d>0?'▲ +':'▼ −')+Math.abs(Math.round(d*100))+'%</span>'; }
 function reportHTML(){
-  var R=U.report; if(!R) return ''; var r=reportOutlet(), h='', t=R.total, mx=Math.max(1,R.revTotal);
+  var R=U.report; if(!R) return ''; var prevH=S.hist.length>=2?S.hist[S.hist.length-2]:null; var r=reportOutlet(), h='', t=R.total, mx=Math.max(1,R.revTotal);
   var multi=R.outlets.length>1;
   h+='<div class="ticket"><div class="tag">Итоги месяца</div><h2>'+MONTHS[R.m-1]+' · месяц '+R.m+' из '+TOTAL+'</h2>'+
    '<div class="row" style="justify-content:center;margin:8px 0">'+starsSVG(R.rating,20)+'<b class="num">'+f1d(R.rating)+'</b></div>'+
    '<div class="pl-row total" style="border-top:0;margin:0"><span>Прибыль</span><b class="num '+(R.profit>=0?'gain-t':'loss-t')+'" id="rp-prof">'+sgn(R.profit)+'</b></div>'+
-   '<div class="kpi" style="margin-top:12px">'+metric('Выручка',rubk(R.revTotal))+metric('Гостей',Math.round(R.guests).toLocaleString('ru-RU').replace(/,/g,' '),'за месяц')+metric('Фуд-кост',pct(t.cogs/Math.max(1,t.rev)),'продукты',t.cogs/Math.max(1,t.rev)>0.36?'bad':'ok')+metric('Прайм-кост',pct((t.cogs+t.wages)/Math.max(1,t.rev)),'продукты + зарплаты',(t.cogs+t.wages)/Math.max(1,t.rev)>0.67?'bad':'ok')+'</div>'+plHTML(R)+'<p class="small muted" style="text-align:center;margin:8px 0 0">В кассе: '+rub(S.cash)+'</p></div>';
+   '<div class="kpi" style="margin-top:12px">'+metric('Выручка',rubk(R.revTotal),'к прошлому месяцу '+(prevH?dlt(R.revTotal,prevH.rev)||'без изменений':'—'))+metric('Гостей',Math.round(R.guests).toLocaleString('ru-RU').replace(/,/g,' '),'за месяц '+(prevH?dlt(R.guests,prevH.guests):''))+metric('Фуд-кост',pct(t.cogs/Math.max(1,t.rev)),'продукты',t.cogs/Math.max(1,t.rev)>0.36?'bad':'ok')+metric('Прайм-кост',pct((t.cogs+t.wages)/Math.max(1,t.rev)),'продукты + зарплаты',(t.cogs+t.wages)/Math.max(1,t.rev)>0.67?'bad':'ok')+'</div>'+plHTML(R)+(R.depInterest>0?'<p class="small muted" style="text-align:center;margin:6px 0 0">Проценты по вкладу: +'+rub(R.depInterest)+' (идут в капитал)</p>':'')+'<p class="small muted" style="text-align:center;margin:8px 0 0">В кассе: '+rub(S.cash)+'</p></div>';
   if(multi) h+='<div class="outsel" role="group" aria-label="Заведение в отчёте">'+R.outlets.map(function(x){ return '<button aria-pressed="'+(r&&r.id===x.id)+'" data-act="repout" data-o="'+x.id+'">'+ico('building','sm')+' '+esc(CITIES[x.city].n)+(x.building?' (стройка)':'')+'</button>'; }).join('')+'</div>';
   if(r && !r.building){
     h+=card('«'+esc(CITIES[r.city].n)+'»: как прошёл месяц','<div class="kpi">'+metric('Выручка',rubk(r.rev))+metric('Гостей в день',Math.round(r.guests/30),'')+metric('Средний чек',rub(r.avgCheck),'')+metric('Загрузка',pct(r.utilK),r.utilK>1?'спрос выше возможностей':'есть запас',r.utilK>1?'bad':'ok')+'</div><div class="row">'+starsSVG(r.rating,18)+'<span class="small muted">'+(r.rating>r.ratingOld+0.02?'рейтинг вырос':(r.rating<r.ratingOld-0.02?'рейтинг упал':'рейтинг стабилен'))+'</span></div>',{ic:'building'});
@@ -60,6 +61,9 @@ function reportHTML(){
     if(r.reviews&&r.reviews.length) h+=card('Отзывы',r.reviews.map(function(rv){ return '<div class="review">'+starsSVG(rv.st,14)+'<div><div class="who">Гость</div><p>'+esc(rv.t)+'</p></div></div>'; }).join(''),{ic:'chat'});
     if(r.banNote&&r.banNote.length) h+=card('Банкеты и заказы',r.banNote.map(function(b){ return '<div class="pl-row '+(b.ok?'plus':'minus')+'"><span>'+esc(b.name)+' <span class="hint">'+(b.ok?'справились':'не справились: вернули часть денег')+'</span></span><b class="num">'+rub(b.rev)+'</b></div>'; }).join(''),{ic:'gift'});
   }
+  if(R.goals&&R.goals.length){ var gs=R.goals, got=gs.filter(function(x){ return x.ok; }); h+=card('Задания месяца: '+got.length+' из '+gs.length,'<div class="questres">'+gs.map(function(x){ var q=QUEST_BY_ID[x.id]; return '<div class="qr '+(x.ok?'ok':'')+'">'+ico(x.ok?'check':'x')+'<span><b>'+esc(q.n)+'</b><div class="small muted">'+esc(q.d)+'</div></span><b class="num '+(x.ok?'gain-t':'')+'">'+(x.ok?'+'+rub(q.rew):'—')+'</b></div>'; }).join('')+'</div>',{ic:'target'}); }
+  if(R.regs&&R.regs.length){ h+=card('Постоянные гости','<div class="regs">'+R.regs.map(function(x){ var d=REG_BY_ID[x.id]; return '<div class="reg">'+avatarSVG(d.who,x.h>=3?'happy':'',42)+'<div class="grow"><b>'+esc(d.n)+'</b> '+heartsHTML(x.h)+'<div class="small muted">'+(x.gift?'Стал другом кафе! '+esc(d.gift)+' +10 000 ₽':(x.dh>0?'Стал ближе: ему понравилось меню':(x.dh<0?'Скучает по любимому блюду':'Всё по-прежнему')))+'</div></div></div>'; }).join('')+'</div>',{ic:'heart'}); }
+  if(S.hq.upg.secret && R.outlets.some(function(x){ return !x.building&&x.dims; })){ h+=card('Отчёт тайного гостя','<div class="insights-list">'+R.outlets.filter(function(x){ return !x.building&&x.dims; }).map(function(x){ var names={food:'вкус',svc:'сервис',cln:'чистоту',atmo:'уют',val:'цену и качество'}, w=Object.keys(x.dims).sort(function(a,b){ return x.dims[a]-x.dims[b]; })[0]; return '<div class="insight info"><span class="ico">'+ico('eye')+'</span><div><b>«'+esc(CITIES[x.city].n)+'»: слабее всего '+names[w]+'</b><p>Оценка '+Math.round(x.dims[w])+' из 100. Вкус '+Math.round(x.dims.food)+', сервис '+Math.round(x.dims.svc)+', чистота '+Math.round(x.dims.cln)+', уют '+Math.round(x.dims.atmo)+'.</p></div></div>'; }).join('')+'</div>',{ic:'eye'}); }
   var ins=monthInsights(S,R); ins.forEach(function(x){ if(x.term) addTerm(x.term); });
   if(ins.length) h+=card('Подсказки Борща и Арсена','<div>'+ins.map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p>'+(x.term?termChip(x.term):'')+'</div></div>'; }).join('')+'</div>',{ic:'sparkle'});
   var ev=[]; if(U.newAch&&U.newAch.length) U.newAch.forEach(function(a){ ev.push('<div class="award on"><span class="fico">'+ico(a.icon)+'</span><div><b>Награда: '+esc(a.n)+'</b><small>'+esc(a.d)+'</small></div></div>'); });
@@ -97,7 +101,7 @@ A.tofinal=function(){ finishGame(); };
 function finishGame(){
   var f=forkScore(S); if(f.tier==='gold') S.flags.goldFork=1;
   if((f.tier!=='none'||goalMet(S)) && S.recs.indexOf(7)<0) S.recs.push(7);
-  S.final=true; checkAch(S,S.lastR?{outlets:[],profit:0}:null); saveRecord(); U.screen='final'; sfx(goalMet(S)?'win':'good'); if(goalMet(S)||f.tier==='gold') burst(120); render();
+  S.final=true; var fa=checkAch(S,S.lastR?{outlets:[],profit:0}:null); fa.forEach(function(a){ logEv(S,'ach','Награда: '+a.n); }); saveRecord(); U.screen='final'; sfx(goalMet(S)?'win':'good'); if(goalMet(S)||f.tier==='gold') burst(120); render();
 }
 function gameInsights(){
   var out=[], h=S.hist, g=goalNow(S);
@@ -118,7 +122,9 @@ function finalHTML(){
    '<div class="kpi" style="max-width:560px;margin:14px auto">'+metric('Капитал',rubk(g.cap),'цель '+rubk(g.needCap),g.okCap?'ok':'bad')+metric('Города',g.cities+' из '+g.needCities,'',g.okCities?'ok':'bad')+metric('Рейтинг сети',f1d(g.rating),'нужно '+f1d(g.needRating),g.okRating?'ok':'bad')+metric('Гид',FORK_NAMES[f.tier],'')+'</div>'+
    (goalMet(S)?'<p class="chip gain">'+ico('check','sm')+' Цель достигнута</p>':'<p class="chip warn">Цель пока не достигнута</p>')+'</div>';
   var sp=S.hist.map(function(x){ return x.cap; }); if(sp.length>1) h+=card('Капитал по месяцам',sparkSVG(sp.slice(-10),S.hist.slice(-10).map(function(x){ return MONTHS_SHORT[x.m-1]; })),{ic:'chart'});
+  h+=card('Диплом','<p class="sub">Его можно сфотографировать или сделать скриншот.</p>'+diplomaSVG(S.name,S.cafe,v.name,['Капитал сети: '+rubk(g.cap)+' · городов: '+g.cities,'Рейтинг сети: '+f1d(g.rating)+' · гид: '+FORK_NAMES[f.tier],'Рецептов в тетради: '+S.recs.length+' из 7'],S.awn),{ic:'award'});
   h+=card('Города на карте Тамары',mapSVG(S,null),{ic:'map'});
+  var chron=(S.log||[]).slice(-14); if(chron.length) h+=card('Хроника партии','<ul class="chron">'+chron.map(function(x){ return '<li><b>'+esc(x.t)+'</b><small>'+MONTHS[Math.min(15,x.m-1)]+', месяц '+x.m+'</small></li>'; }).join('')+'</ul>',{ic:'calendar'});
   h+=card('Разбор партии','<div>'+gameInsights().map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p></div></div>'; }).join('')+'</div>',{ic:'sparkle'});
   h+=card('Награды ('+got.length+' из '+ACH.length+')','<div class="awards">'+got.map(function(a){ return '<div class="award on"><span class="fico">'+ico(a.icon)+'</span><div><b>'+esc(a.n)+'</b><small>'+esc(a.d)+'</small></div></div>'; }).join('')+'</div>',{ic:'award'});
   h+=card('Для учителя','<p class="small muted">Скопируйте строку и отправьте учителю: он соберёт общую таблицу класса.</p><textarea class="code" readonly id="resline" aria-label="Результат">'+esc(line)+'</textarea><div class="row"><button class="btn small secondary" data-act="copyres">'+ico('copy')+' Скопировать результат</button></div>',{ic:'chart'});
@@ -167,6 +173,9 @@ A.spec=function(el){ ok(A_spec(S,el.getAttribute('data-id'),oid())); };
 A.supplier=function(el){ ok(A_set(S,oid(),'sup',el.getAttribute('data-v'))); };
 A.stockdec=function(){ var o=curO(); ok(A_set(S,o.id,'stock',Math.max(1,o.stock-1))); }; A.stockinc=function(){ var o=curO(); ok(A_set(S,o.id,'stock',Math.min(6,o.stock+1))); };
 A.buyeq=function(el){ var r=A_eq(S,oid(),el.getAttribute('data-e')); if(r.ok) sfx('coin'); ok(r); };
+A.hol=function(){ ok(A_hol(S,oid())); };
+A.dep=function(el){ ok(A_dep(S,+el.getAttribute('data-v'))); }; A.undep=function(el){ ok(A_undep(S,+el.getAttribute('data-v'))); };
+A.insure=function(){ ok(A_insure(S)); }; A.forward=function(){ var r=A_forward(S); if(r.ok) sfx('coin'); ok(r); };
 A.special=function(el){ ok(A_special(S,oid(),el.getAttribute('data-d'))); };
 A.mk=function(el){ ok(A_mk(S,oid(),el.getAttribute('data-m'))); };
 A.accept=function(el){ ok(A_accept(S,el.getAttribute('data-id'))); }; A.haggle=function(el){ ok(A_haggle(S,el.getAttribute('data-id'))); }; A.decline=function(el){ ok(A_decline(S,el.getAttribute('data-id'))); }; A.unaccept=function(el){ ok(A_unaccept(S,el.getAttribute('data-id'))); };
@@ -217,7 +226,7 @@ function readSetup(){ var st=U.setup||(U.setup={}); var a=$('#f-name'), b=$('#f-
 A.startgame=function(){
   readSetup(); var st=U.setup, name=(st.name||'').trim()||'Хозяин', cafe=(st.cafe||'').trim()||'Первый столик', code=(st.code||'').trim();
   var seed=code?('cls:'+code.toLowerCase()):randomSeed();
-  S=newState({name:name,cafe:cafe,talent:st.talent,diff:st.diff,code:code,seed:seed}); hudPrev={};
+  S=newState({name:name,cafe:cafe,talent:st.talent,diff:st.diff,code:code,seed:seed}); S.awn=st.awn||'#D1361A'; hudPrev={};
   U={seen:{},actSeen:{},tab:'home'}; enterMonth();
 };
 A.togglesound=function(){ soundOn=!soundOn; lsSet(SND_KEY,soundOn?'1':'0'); if(soundOn) sfx('good'); renderTools(); };
@@ -233,7 +242,7 @@ function renderTools(){
 function stageHTML(){
   switch(U.screen){
     case 'title': return titleHTML(); case 'intro': return introHTML(); case 'setup': return setupHTML(); case 'act': return actHTML(); case 'last': return lastHTML();
-    case 'scene': return sceneHTML(); case 'event': return eventHTML(); case 'rush': return rushHTML();
+    case 'scene': return sceneHTML(); case 'event': return eventHTML(); case 'rush': return rushHTML(); case 'fifo': return fifoHTML(); case 'change': return changeHTML();
     case 'plan': return planHTML(); case 'run': return runHTML(); case 'report': return reportHTML(); case 'quiz': return quizHTML();
     case 'lessonEnd': return lessonEndHTML(); case 'finale': return finaleHTML(); case 'final': return finalHTML(); case 'teacher': return teacherHTML();
   }

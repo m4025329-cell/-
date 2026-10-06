@@ -1,14 +1,5 @@
 /* ===== Интерфейс, часть 3: планирование месяца (вкладки) ===== */
-var TAMARA_CITY={
- tula:'«Тула. Тут я родилась, тут и первый столик. Пряник с мёдом печётся к приходу гостей, не раньше».',
- nnov:'«Нижний. На вокзале ночью пекли кулебяку. Я выпросила рецепт у проводницы за два пирожка».',
- kazan:'«Казань. Эчпочмак нужно есть горячим и руками. Всё остальное не по-настоящему».',
- spb:'«Петербург. Пышки с пудрой на Большой Конюшенной. Дождь, пудра, радость».',
- ekb:'«Екатеринбург. Пельмени на двадцать пятом градусе мороза. Я их до сих пор вижу».',
- sochi:'«Сочи. Хачапури у моря. Жара, соль и ни одного нормального полотенца».',
- kgd:'«Калининград. Марципан в лавке с колокольчиком. Дверь звякнет, и ты уже счастлива».',
- msk:'«Москва. Звезда на карте. Там всё очень быстро и очень дорого. Вернись, когда соберёшь силы».'
-};
+
 function getPV(){ if(!U.pv){ var c=cloneState(S); c.accepted=S.accepted.slice(); try{ U.pv=simMonth(c,{preview:true}); }catch(e){ U.pv=null; } } return U.pv; }
 function pvOut(o){ var R=getPV(); return R&&R.outlets.filter(function(x){ return x.id===o.id; })[0]||null; }
 function outletSelector(kind){
@@ -29,15 +20,45 @@ function newsCardHTML(){
   var mods=S.mods.filter(function(m){ return m.why; });
   return card('Новости города',body,{ic:'chat'});
 }
+function heartsHTML(n){ var s=''; for(var i=1;i<=5;i++) s+='<svg class="heart'+(i<=n?' on':'')+'" viewBox="0 0 24 24" aria-hidden="true"><path d="'+ICONS.heart+'"/></svg>'; return '<span class="hearts" role="img" aria-label="'+n+' из 5">'+s+'</span>'; }
+function holidayCard(o){
+  var cal=CAL[S.month-1], H=HOLIDAYS[cal], on=!!o.hol;
+  var segs=SEGS.filter(function(g){ return (H.seg[g]||0)!==0; }).map(function(g){ return chip(H.seg[g]>0?'gain':'loss',SEGN[g]+' '+(H.seg[g]>0?'+':'−')+Math.round(Math.abs(H.seg[g])*100)+'%'); }).join(''), cats=Object.keys(H.cat).map(function(c){ return chip('info','интерес: '+CATN[c].toLowerCase()); }).join('');
+  addTerm('holiday');
+  return card('Праздник месяца: '+esc(H.n),'<p class="sub">'+esc(H.d)+'</p><div class="chips">'+segs+cats+'</div><div class="row between" style="margin-top:10px"><div><b>Праздничная кампания</b><div class="small muted">'+rub(H.cost)+' за месяц: украшения, меню, афиша</div></div><div class="toggle-wrap"><button class="toggle" role="switch" aria-checked="'+on+'" aria-label="Праздничная кампания" data-act="hol"></button></div></div>',{ic:'gift',cls:on?'':'soft'});
+}
+function questsCard(){
+  var g=goalsFor(S), R=getPV(), st=goalStatus(S,R), rows=g.list.map(function(id,i){ var q=QUEST_BY_ID[id], ok=st[i]&&st[i].ok; return '<li class="'+(ok?'ok':'')+'">'+ico(ok?'check':'target')+'<span><b>'+esc(q.n)+'</b> — '+esc(q.d)+' <span class="dim">Награда '+rub(q.rew)+(ok?' · по прогнозу выйдет':'')+'</span></span></li>'; }).join('');
+  addTerm('quests');
+  return '<div class="chalk"><h3>'+ico('flag')+'Задания месяца</h3><ul>'+rows+'</ul><p class="dim">Выполнено за игру: '+S.stats.goalsDone+'. Награда приходит с итогами месяца.</p></div>';
+}
+function regularsHTML(full){
+  var list=activeRegulars(S); if(!list.length) return '<p class="muted">Первые постоянные гости появятся к третьему месяцу.</p>';
+  var f=flagship(S), have={}; outletDishes(S,f).forEach(function(d){ have[d.id]=1; });
+  return '<div class="regs">'+list.map(function(r){ var x=S.reg[r.id]||{h:0}, fav=regFavId(S,r), favName=fav.indexOf('loc_')===0?localDish(f).n:(DISH[fav]?DISH[fav].n:fav), known=x.h>=2||x.gift;
+    return '<div class="reg">'+avatarSVG(r.who,x.h>=3?'happy':'',full?52:42)+'<div class="grow"><b>'+esc(r.n)+'</b> '+heartsHTML(x.h)+'<div class="small muted">'+(known?'любит: '+esc(favName)+(have[fav]?' (есть в меню)':' (нет в меню)'):esc(r.hint))+'</div>'+(x.gift?'<div class="small gain-t">'+ico('check','sm')+' стал другом кафе</div>':'')+'</div></div>'; }).join('')+'</div>';
+}
+function seasonBarsHome(o){
+  var c=CITIES[o.city], cal=CAL[S.month-1], out=[], mx=0;
+  for(var k=0;k<6;k++){ var m=(cal+k)%12, v=0, tot=0; SEGS.forEach(function(g,i){ v+=c.seg[i]*(g==='tur'?c.tur[m]:SEGSEAS[g][m]); tot+=c.seg[i]; }); out.push({m:m,v:v/tot}); mx=Math.max(mx,v/tot); }
+  var names=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  var h='<svg viewBox="0 0 260 70" class="spark" style="height:70px" role="img" aria-label="Сезонный спрос на ближайшие 6 месяцев">';
+  out.forEach(function(x,i){ var hh=x.v/mx*40; h+='<rect x="'+(8+i*42)+'" y="'+(48-hh)+'" width="30" height="'+hh+'" rx="5" fill="'+(i===0?'var(--brand)':'var(--edge-strong)')+'"/><text x="'+(23+i*42)+'" y="64" text-anchor="middle">'+names[x.m]+'</text><text x="'+(23+i*42)+'" y="'+(44-hh)+'" text-anchor="middle">'+Math.round(x.v*100)+'</text>'; });
+  return h+'</svg>';
+}
 function homeHTML(){
   var o=curO(), R=getPV(), r=pvOut(o)||{}, last=S.lastR&&S.lastR.outlets.filter(function(x){ return x.id===o.id; })[0];
   var guestsViz=last?clamp(Math.round((last.guests/30)/Math.max(1,(last.caps?last.caps.seat:60))*7*1.4),1,7):2, queue=(last&&last.utilK>1.05)?2:0;
   var h=outletSelector('home');
-  h+='<div class="cafe-hero">'+cafeSVG(o,{cal:CAL[S.month-1],guests:guestsViz,queue:queue})+'<div class="caption"><div><b>'+esc(o.nm||S.cafe)+'</b><div class="small muted">'+ico('pin','sm')+' '+esc(CITIES[o.city].n)+' · '+esc(FORMATS[o.fmt].name)+(o.built?' · строится':'')+'</div></div><div class="row" style="gap:8px">'+starsSVG(stars(o.rep),18)+'<b class="num">'+f1d(stars(o.rep))+'</b></div></div></div>';
+  h+='<div class="cafe-hero">'+cafeSVG(o,{cal:CAL[S.month-1],guests:guestsViz,queue:queue,awn:S.awn})+'<div class="caption"><div><b>'+esc(o.nm||S.cafe)+'</b><div class="small muted">'+ico('pin','sm')+' '+esc(CITIES[o.city].n)+' · '+esc(FORMATS[o.fmt].name)+(o.built?' · строится':'')+'</div></div><div class="row" style="gap:8px">'+starsSVG(stars(o.rep),18)+'<b class="num">'+f1d(stars(o.rep))+'</b></div></div></div>';
   var ns=nextStep();
   h+=coachCard('Что дальше?',esc(ns.t),ns.tab?'<button class="btn small" data-act="tab" data-tab="'+ns.tab+'">'+esc(ns.b)+'</button>':'');
   h+=goalChalk();
+  h+=questsCard();
+  h+=holidayCard(o);
   if(R){ h+=card('Прогноз на этот месяц','<div class="kpi">'+metric('Выручка',rubk(R.revTotal))+metric('Прибыль',sgn(Math.round(R.profit/1000)*1000).replace(/ ₽$/,'')+' ₽',R.profit>0?'в плюс':'в минус',R.profit>0?'ok':'bad')+metric('Гостей в день',Math.round((r.guests||0)/30),'в «'+esc(CITIES[o.city].n)+'»')+metric('Рейтинг',f1d(r.rating||stars(o.rep)),'после месяца')+'</div><p class="small muted" style="margin:0">Прогноз считается по текущим настройкам. Случайности (погода, новости) могут сдвинуть его на 5–10%.</p>',{ic:'trend'}); }
+  h+=card('Сезонный спрос','<p class="sub">Индекс спроса в «'+esc(CITIES[o.city].n)+'» на ближайшие 6 месяцев (100 — средний уровень группы гостей).</p>'+seasonBarsHome(o)+termChip('season'),{ic:'calendar'});
+  h+=card('Постоянные гости',regularsHTML(false)+'<button class="btn secondary small" data-act="tab" data-tab="guests" style="margin-top:8px">Подробнее</button>',{ic:'heart'});
   h+=newsCardHTML();
   h+=card('Тетрадь Тамары','<p class="muted">Открыто рецептов: <b>'+S.recs.length+' из 7</b>. Они появляются по ходу истории и дают блюда с особым вкусом.</p><button class="btn secondary small" data-act="recipes">'+ico('book')+' Читать тетрадь</button>',{ic:'book'});
   var lastRev=S.hist.slice(-6);
@@ -131,6 +152,10 @@ function placeHTML(){
 function guestsHTML(){
   var o=curO(), r=pvOut(o), h=outletSelector('guests'), last=U.report&&U.report.outlets&&U.report.outlets.filter(function(x){ return x.id===o.id; })[0];
   h+=card('Кто приходит','<div class="chips"><span class="chip info">Известность: '+Math.round(o.awr*100)+'%</span><span class="chip info">Постоянные: '+Math.round(o.loy*100)+'%</span><span class="chip '+(o.rep>=64?'gain':'warn')+'">Рейтинг '+f1d(stars(o.rep))+'</span></div><div class="pgrid" style="margin-top:12px">'+SEGS.map(function(sg,i){ var v=r&&r.segServed?r.segServed[sg]/30:0, tot=r?r.guests/30:1, p=tot?v/tot:0; return '<div class="prow"><span><b>'+SEGN[sg]+'</b></span><div class="t"><i style="width:'+Math.round(p*100)+'%"></i></div><b class="num">'+Math.round(v)+'</b></div>'; }).join('')+'</div><p class="small muted" style="margin:6px 0 0">Прогноз гостей в день по группам. '+SEGD.stu+' Меняйте меню и рекламу под тех, кого хотите видеть чаще.</p>',{ic:'people'});
+  h+=card('Постоянные гости',regularsHTML(true)+'<p class="small muted" style="margin:8px 0 0">Если их любимое блюдо в меню, они приходят чаще и приводят друзей. Через два месяца вы узнаете, что они любят.</p>'+termChip('regulars'),{ic:'heart'});
+  var rv=rivalsFor(S,o.city), ownP=(r&&r.rW)||1;
+  h+=card('Конкуренты в «'+esc(CITIES[o.city].n)+'»','<div class="rivals">'+rv.map(function(x){ var cheaper=ownP-x.p>0.04, dearer=x.p-ownP>0.04; return '<div class="rival"><div><b>'+esc(x.n)+'</b><div class="small muted">'+esc(x.style)+'</div></div>'+starsSVG(x.stars,15)+'<div class="chips" style="margin:0">'+chip(cheaper?'loss':(dearer?'gain':'info'),cheaper?'дешевле вас':(dearer?'дороже вас':'цены как у вас'))+chip(x.q>o.rep?'warn':'gain',x.q>o.rep?'качество выше':'качество ниже')+'</div></div>'; }).join('')+'</div><p class="small muted" style="margin:6px 0 0">Когда ваше качество выше, а цена не выше, вы забираете гостей у соседей. Если слабее и дороже, гости уходят к ним.</p>'+termChip('rivals'),{ic:'building'});
+  h+=holidayCard(o);
   /* реклама */
   var mk=MKT.map(function(ch){ var on=!!o.mk[ch.id], cost=ch.cost*(hasSpec(S,'polina')?1:1); var tg=SEGS.filter(function(g){ return ch.reach[g]>=0.06; }).map(function(g){ return chip('info',SEGN[g]); }).join('');
     return '<div class="mk '+(on?'on':'')+'"><div><b>'+esc(ch.n)+'</b><div class="small muted">'+(ch.cost?rub(ch.cost)+' в месяц':'бесплатно')+(ch.id==='deliv'?', комиссия '+(o.eq.deliv?'12':'25')+'%':'')+'</div></div><div class="toggle-wrap"><button class="toggle" role="switch" aria-checked="'+on+'" aria-label="'+esc(ch.n)+'" data-act="mk" data-m="'+ch.id+'"></button></div><p>'+ch.d+'</p>'+(tg?'<div class="reach">'+tg+'</div>':'')+'</div>'; }).join('');
@@ -172,7 +197,10 @@ function moneyHTML(){
   var lim=loanLimit(S), room=lim-S.debt;
   h+=card('Кредит','<div class="kpi">'+metric('Кредит банка',rubk(S.debt),'под 1,6% в месяц')+metric('Проценты в месяц',rubk(S.debt*BANK.rate+S.emerg*0.035),'')+metric('Можно взять ещё',rubk(Math.max(0,room)),'лимит '+rubk(lim))+metric('Экстренный долг',rubk(S.emerg),S.emerg?'3,5% в месяц':'нет',S.emerg?'bad':'')+'</div><div class="row"><button class="btn small" data-act="borrow" data-v="250000"'+(room<250000?' disabled':'')+'>Взять 250 000 ₽</button><button class="btn small secondary" data-act="repay" data-v="250000"'+(S.debt+S.emerg<=0?' disabled':'')+'>Погасить 250 000 ₽</button>'+(S.debt+S.emerg>0?'<button class="btn small ghost" data-act="repay" data-v="all">Погасить всё возможное</button>':'')+'</div><p class="small muted" style="margin:8px 0 0">Кредит даёт деньги сейчас, но проценты платятся каждый месяц, пока долг не вернули.</p>'+termChip('loan'),{ic:'bank'});
   if(S.month>=9||S.flags.expand){ h+=card('Инвестор','<p>'+(S.invest?'Артём Викторович в деле: он получает 20% чистой прибыли каждый месяц.':'Артём Викторович готов вложить '+rub(INVESTOR.sum)+' за 20% чистой прибыли навсегда.')+'</p>'+(S.invest?'':'<button class="btn small" data-act="invest">Взять инвестора</button>')+'<div style="margin-top:8px">'+termChip('equity')+'</div>',{ic:'handshake'}); }
+  h+=card('Вклад','<div class="kpi">'+metric('На вкладе',rubk(S.dep||0),'растёт на 0,9% в месяц')+metric('Проценты в месяц',rub((S.dep||0)*0.009),'')+'</div><div class="row"><button class="btn small" data-act="dep" data-v="250000"'+(S.cash<250000?' disabled':'')+'>Положить 250 000 ₽</button><button class="btn small secondary" data-act="undep" data-v="250000"'+((S.dep||0)<=0?' disabled':'')+'>Снять 250 000 ₽</button></div><p class="small muted" style="margin:8px 0 0">Свободные деньги на вкладе приносят проценты и входят в капитал. Но на заведения их надо будет снять.</p>'+termChip('deposit'),{ic:'bank'});
+  h+=card('Страховка и закупка впрок','<div class="row between"><div><b>Страховка кафе</b><div class="small muted">'+rub(7000*ownOutlets(S).length)+' в месяц. Возвращает 40% неожиданных убытков от случаев.</div></div><div class="toggle-wrap"><button class="toggle" role="switch" aria-checked="'+(!!S.insured)+'" aria-label="Страховка" data-act="insure"></button></div></div><hr style="border:0;border-top:2px dotted var(--edge);margin:12px 0"><div class="row between"><div><b>Закупка впрок</b><div class="small muted">'+((S.flags.fwdUntil||0)>=S.month?'Действует до '+MONTHS[Math.min(15,S.flags.fwdUntil)]+': продукты дешевле на 6%.':'Фиксируете цену на 3 месяца: −6%. Взнос '+rub(forwardFee(S))+'. Если цены упадут, вы переплатите.')+'</div></div><button class="btn small secondary" data-act="forward"'+((S.flags.fwdUntil||0)>=S.month?' disabled':'')+'>Подписать</button></div>'+termChip('insurance')+' '+termChip('forward'),{ic:'shield'});
   var hist=S.hist.slice(-8);
+  if(hist.length>1) h+=card('Месяц за месяцем','<div style="overflow:auto"><table class="mtable"><thead><tr><th>Месяц</th><th>Выручка</th><th>Прибыль</th><th>Рейтинг</th></tr></thead><tbody>'+hist.slice().reverse().map(function(x){ return '<tr><td>'+MONTHS_SHORT[x.m-1]+'</td><td class="num">'+rubk(x.rev)+'</td><td class="num '+(x.profit>=0?'gain-t':'loss-t')+'">'+sgn(Math.round(x.profit/1000)*1000).replace(/ ₽$/,'')+'</td><td class="num">'+f1d(x.rating)+'</td></tr>'; }).join('')+'</tbody></table></div>',{ic:'calendar'});
   if(hist.length>1) h+=card('Деньги по месяцам','<p class="sub">Прибыль</p>'+sparkSVG(hist.map(function(x){ return x.profit; }),hist.map(function(x){ return MONTHS_SHORT[x.m-1]; }))+'<p class="sub" style="margin-top:10px">Капитал</p>'+sparkSVG(hist.map(function(x){ return x.cap; }),hist.map(function(x){ return MONTHS_SHORT[x.m-1]; })),{ic:'chart'});
   h+=card('Из чего состоит капитал','<div class="pl"><div class="pl-row"><span>Деньги в кассе</span><b class="num">'+rub(S.cash)+'</b></div><div class="pl-row"><span>Оборудование и ремонт <span class="hint">55% от стоимости</span></span><b class="num">'+rub(ownerOutletValue(S))+'</b></div><div class="pl-row minus"><span>Долги</span><b class="num">−'+rub(S.debt+S.emerg).replace('−','')+'</b></div><div class="pl-row total"><span>Капитал</span><b class="num">'+rub(capital(S))+'</b></div></div>',{ic:'coins'});
   return h;

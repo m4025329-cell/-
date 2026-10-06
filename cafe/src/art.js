@@ -166,6 +166,8 @@ function skylineG(id, fill){
    case 'ekb': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><rect x="26" y="92" width="22" height="48"/><rect x="58" y="70" width="26" height="70"/><rect x="94" y="104" width="30" height="36"/><rect x="146" y="60" width="30" height="80"/><rect x="152" y="46" width="18" height="16"/><path d="M152 46h18l-9-12z"/><rect x="198" y="96" width="28" height="44"/><rect x="236" y="112" width="40" height="28"/><rect x="288" y="82" width="26" height="58"/><rect x="320" y="106" width="24" height="34"/></g>';
    case 'sochi': return '<g '+f+'><path d="M0 138V90l36-26 28 22 34-34 40 38 36-18 42 24 46-20 38 22v38z"/><rect x="0" y="140" width="360" height="30"/><path d="M24 140c0-18 3-30 6-40M30 100c-8 0-14 4-18 10M30 100c8-2 14 0 20 6M30 100c-3-7-9-10-14-10M30 100c4-7 10-10 16-8" stroke="'+fill+'" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M322 140c0-18-3-30-6-40M316 100c8 0 14 4 18 10M316 100c-8-2-14 0-20 6M316 100c3-7 9-10 14-10M316 100c-4-7-10-10-16-8" stroke="'+fill+'" stroke-width="3" fill="none" stroke-linecap="round"/></g>';
    case 'kgd': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><rect x="40" y="100" width="18" height="40"/><path d="M38 100h22l-11-24z"/><rect x="72" y="106" width="18" height="34"/><path d="M70 106h22l-11-22z"/><rect x="56" y="112" width="24" height="28"/><rect x="130" y="112" width="60" height="28"/><path d="M130 112l30-18 30 18z"/><rect x="214" y="90" width="26" height="50"/><path d="M214 90l13-18 13 18z"/><rect x="262" y="108" width="38" height="32"/><path d="M262 108h38l-6-10h-26z"/></g>';
+   case 'nsk': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><path d="M110 140v-30c0-22 20-34 40-34s40 12 40 34v30z"/><rect x="146" y="64" width="8" height="14"/><path d="M142 66h16l-8-14z"/><rect x="214" y="104" width="30" height="36"/><rect x="254" y="92" width="24" height="48"/><rect x="288" y="112" width="40" height="28"/><rect x="30" y="108" width="26" height="32"/><rect x="64" y="96" width="24" height="44"/><path d="M0 130h360" stroke="'+fill+'" stroke-width="3"/></g>';
+   case 'vvo': return '<g '+f+'><path d="M0 138V104l40-24 36 26 40-34 44 30 30-16 40 24 40-20 50 28v22z"/><rect x="0" y="140" width="360" height="30"/><rect x="214" y="46" width="6" height="94"/><rect x="290" y="46" width="6" height="94"/><path d="M217 48C240 100 268 100 293 48M217 48L150 138M293 48L360 138" stroke="'+fill+'" stroke-width="2.4" fill="none"/><path d="M150 130h210" stroke="'+fill+'" stroke-width="5"/></g>';
    case 'msk': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><rect x="20" y="106" width="46" height="34"/><circle cx="43" cy="98" r="9"/><rect x="40" y="82" width="6" height="12"/><path d="M36 96c0-10 3-18 7-18s7 8 7 18z"/><rect x="76" y="112" width="30" height="28"/><path d="M80 112c0-14 4-22 11-22s11 8 11 22z"/><rect x="130" y="90" width="24" height="50"/><rect x="136" y="70" width="12" height="22"/><path d="M134 70h16l-8-20z"/><rect x="176" y="100" width="40" height="40"/><rect x="236" y="62" width="30" height="78"/><rect x="242" y="48" width="18" height="16"/><path d="M242 48h18l-9-14z"/><rect x="286" y="104" width="50" height="36"/></g>';
   }
   return '';
@@ -210,7 +212,7 @@ function cafeSVG(o, ctx){
   out+='<rect x="'+dx+'" y="'+(by+(rest?44:34))+'" width="'+dw+'" height="'+(170-by-(rest?44:34))+'" rx="5" fill="#8A4B2A" stroke="#5E3119" stroke-width="2.4"/><rect x="'+(dx+6)+'" y="'+(by+(rest?50:40))+'" width="'+(dw-12)+'" height="22" rx="3" fill="url(#'+id+'w)" stroke="#5E3119" stroke-width="1.6"/><circle cx="'+(dx+dw-9)+'" cy="'+(by+(rest?96:86))+'" r="2.4" fill="#F2C94C"/>';
   /* навес */
   var ay=by+(rest?36:24)-18;
-  var stripes=''; var n=Math.round((bw+10)/18), sw=(bw+10)/n; for(var k=0;k<n;k++) stripes+='<path d="M'+(bx-5+k*sw)+' '+ay+'h'+sw+'v16a'+(sw/2)+' '+(sw/2)+' 0 0 1 -'+sw+' 0z" fill="'+(k%2?'#FFF6E6':'var(--brand)')+'"/>';
+  var stripes=''; var n=Math.round((bw+10)/18), sw=(bw+10)/n; for(var k=0;k<n;k++) stripes+='<path d="M'+(bx-5+k*sw)+' '+ay+'h'+sw+'v16a'+(sw/2)+' '+(sw/2)+' 0 0 1 -'+sw+' 0z" fill="'+(k%2?'#FFF6E6':(ctx.awn||'var(--brand)'))+'"/>';
   out+='<g class="awning">'+stripes+'<rect x="'+(bx-5)+'" y="'+(ay-4)+'" width="'+(bw+10)+'" height="6" rx="2" fill="#7A2A18"/></g>';
   /* вывеска */
   if(!rest) out+='<rect x="'+(bx+bw/2-62)+'" y="'+(by-12)+'" width="124" height="22" rx="7" fill="#3B2A22" stroke="#C9A25A" stroke-width="2"/>';
@@ -239,12 +241,12 @@ function cafeSVG(o, ctx){
 
 /* ---------- карта Тамары ---------- */
 function mapSVG(s, sel){
-  var out='<svg class="map-svg" viewBox="0 0 380 250" role="img" aria-label="Карта Тамары с городами"><defs><pattern id="mp" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="var(--map-dot)"/></pattern></defs>';
-  out+='<rect width="380" height="250" rx="18" fill="var(--map-sea)"/>';
-  out+='<path d="M18 92c6-20 22-34 44-40 14-24 38-36 66-34 20-6 44-4 62 4 34-8 74-4 100 14 36 6 62 28 70 62-8 26-6 50-24 72-26 8-40-2-62 8-26 14-48 22-86 10-20 8-48 6-66-2-18-10-30-26-52-30-20-8-48-16-52-64z" fill="var(--map-land)" stroke="var(--map-edge)" stroke-width="2.4" stroke-linejoin="round"/>';
-  out+='<path d="M18 92c6-20 22-34 44-40 14-24 38-36 66-34 20-6 44-4 62 4 34-8 74-4 100 14 36 6 62 28 70 62-8 26-6 50-24 72-26 8-40-2-62 8-26 14-48 22-86 10-20 8-48 6-66-2-18-10-30-26-52-30-20-8-48-16-52-64z" fill="url(#mp)"/>';
+  var out='<svg class="map-svg" viewBox="0 0 480 250" role="img" aria-label="Карта Тамары с городами"><defs><pattern id="mp" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="var(--map-dot)"/></pattern></defs>';
+  out+='<rect width="480" height="250" rx="18" fill="var(--map-sea)"/>';
+  out+='<path d="M18 98C24 72 44 56 68 52C84 28 112 16 140 18C166 10 196 12 218 22C250 12 292 12 322 28C356 22 392 30 424 44C452 52 472 78 470 108C474 134 466 160 450 186C436 204 412 212 392 206C368 214 340 204 312 210C280 220 252 232 214 220C186 228 150 226 126 214C100 206 82 190 60 184C40 178 24 160 20 136C16 118 16 108 18 98Z" fill="var(--map-land)" stroke="var(--map-edge)" stroke-width="2.4" stroke-linejoin="round"/>';
+  out+='<path d="M18 98C24 72 44 56 68 52C84 28 112 16 140 18C166 10 196 12 218 22C250 12 292 12 322 28C356 22 392 30 424 44C452 52 472 78 470 108C474 134 466 160 450 186C436 204 412 212 392 206C368 214 340 204 312 210C280 220 252 232 214 220C186 228 150 226 126 214C100 206 82 190 60 184C40 178 24 160 20 136C16 118 16 108 18 98Z" fill="url(#mp)"/>';
   out+='<ellipse cx="150" cy="232" rx="60" ry="14" fill="var(--map-sea)"/><path d="M0 128c10-4 20-4 24 2" stroke="var(--map-edge)" stroke-width="1.5" fill="none" stroke-dasharray="3 4"/>';
-  var route=['tula','nnov','kazan','ekb'], d='';
+  var route=['tula','nnov','kazan','ekb','nsk','vvo'], d='';
   route.forEach(function(k,i){ var c=CITIES[k]; d+=(i?'L':'M')+c.x+' '+c.y; });
   out+='<path d="'+d+'" stroke="var(--brand)" stroke-width="2.4" stroke-dasharray="2 6" stroke-linecap="round" fill="none" opacity=".75"/>';
   out+='<path d="M'+CITIES.tula.x+' '+CITIES.tula.y+'L'+CITIES.sochi.x+' '+CITIES.sochi.y+'M'+CITIES.tula.x+' '+CITIES.tula.y+'L'+CITIES.spb.x+' '+CITIES.spb.y+'M'+CITIES.spb.x+' '+CITIES.spb.y+'L'+CITIES.kgd.x+' '+CITIES.kgd.y+'" stroke="var(--brand)" stroke-width="2.4" stroke-dasharray="2 6" stroke-linecap="round" fill="none" opacity=".75"/>';
@@ -259,7 +261,7 @@ function mapSVG(s, sel){
     else if(st==='build'||st==='fb') out+='<path d="M'+(c.x-3)+' '+(c.y-4)+'h6l-3 4 3 4h-6l3-4z" fill="var(--ink)"/>';
     else if(st==='fran') out+='<path d="M'+c.x+' '+(c.y-5)+'l5 5-5 5-5-5z" fill="#fff"/>';
     else if(st==='lock') out+='<rect x="'+(c.x-3.4)+'" y="'+(c.y-1)+'" width="6.8" height="5" rx="1" fill="var(--map-lock-line)"/><path d="M'+(c.x-2.2)+' '+(c.y-1)+'v-2a2.2 2.2 0 0 1 4.4 0v2" stroke="var(--map-lock-line)" stroke-width="1.4" fill="none"/>';
-    var LB={msk:[-13,-9,'end'],nnov:[2,-15,'middle'],sochi:[0,-16,'middle'],kgd:[-6,25,'start'],spb:[0,24,'middle'],tula:[0,24,'middle'],kazan:[0,24,'middle'],ekb:[0,24,'middle']}[k]||[0,23,'middle'], lx=c.x+LB[0], ly=c.y+LB[1], anchor=LB[2];
+    var LB={msk:[-13,-9,'end'],nnov:[2,-15,'middle'],sochi:[0,-16,'middle'],kgd:[-6,25,'start'],spb:[0,24,'middle'],tula:[0,24,'middle'],kazan:[0,24,'middle'],ekb:[0,24,'middle'],nsk:[0,24,'middle'],vvo:[10,24,'end']}[k]||[0,23,'middle'], lx=c.x+LB[0], ly=c.y+LB[1], anchor=LB[2];
     out+='<text class="plabel" x="'+lx+'" y="'+ly+'" text-anchor="'+anchor+'" font-size="11" font-weight="800">'+esc(c.n.replace('Санкт-Петербург','Петербург').replace('Нижний Новгород','Н. Новгород'))+'</text></g>';
   });
   return out+'</svg>';
@@ -273,4 +275,23 @@ function introArt(k){
   if(k==='book') return base+'<rect width="320" height="180" rx="16" fill="var(--surface-2)"/><path d="M80 40h70a10 10 0 0 1 10 10v94a10 10 0 0 0-10-10H80z" fill="#FFF8EA" stroke="#8A5A1C" stroke-width="2.4"/><path d="M240 40h-70a10 10 0 0 0-10 10v94a10 10 0 0 1 10-10h70z" fill="#FFF8EA" stroke="#8A5A1C" stroke-width="2.4"/><path d="M96 62h50M96 78h42M96 94h48M96 110h30" stroke="#C9A97C" stroke-width="3" stroke-linecap="round"/><circle cx="200" cy="70" r="6" fill="var(--brand)"/><circle cx="228" cy="104" r="6" fill="var(--brand)"/><circle cx="188" cy="118" r="6" fill="var(--brand)"/><path d="M200 70L228 104L188 118" stroke="var(--brand)" stroke-width="2" stroke-dasharray="2 5" fill="none" stroke-linecap="round"/></svg>';
   if(k==='train') return base+'<rect width="320" height="180" rx="16" fill="var(--surface-2)"/><rect x="0" y="130" width="320" height="50" fill="#C9BCA3"/><path d="M0 140h320" stroke="#8A7A63" stroke-width="3"/><rect x="40" y="70" width="240" height="62" rx="10" fill="#B5362A"/><rect x="40" y="108" width="240" height="8" fill="#F2B233"/><g fill="#FFE9A8" stroke="#6B1E15" stroke-width="2"><rect x="58" y="82" width="34" height="22" rx="4"/><rect x="104" y="82" width="34" height="22" rx="4"/><rect x="150" y="82" width="34" height="22" rx="4"/><rect x="196" y="82" width="34" height="22" rx="4"/><rect x="242" y="82" width="26" height="22" rx="4"/></g><circle cx="80" cy="138" r="9" fill="#2B1810"/><circle cx="240" cy="138" r="9" fill="#2B1810"/><text x="160" y="58" text-anchor="middle" font-size="14" font-weight="800" fill="var(--ink)" font-family="Playfair Display,serif">Вагон-ресторан</text></svg>';
   return base+'</svg>';
+}
+
+/* диплом в конце игры */
+function diplomaSVG(name, cafe, verdictName, lines, awn){
+  awn=awn||'#D1361A'; var out='<svg class="diploma" viewBox="0 0 600 420" role="img" aria-label="Диплом: '+esc(verdictName)+', '+esc(name)+'">';
+  out+='<defs><linearGradient id="dp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFBF0"/><stop offset="1" stop-color="#F6E7C8"/></linearGradient></defs>';
+  out+='<rect x="6" y="6" width="588" height="408" rx="16" fill="url(#dp)" stroke="'+awn+'" stroke-width="6"/><rect x="22" y="22" width="556" height="376" rx="10" fill="none" stroke="#B9791A" stroke-width="2"/><rect x="30" y="30" width="540" height="360" rx="6" fill="none" stroke="'+awn+'" stroke-width="1.4" stroke-dasharray="3 5"/>';
+  [[40,40],[560,40],[40,380],[560,380]].forEach(function(c){ out+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="9" fill="'+awn+'"/><circle cx="'+c[0]+'" cy="'+c[1]+'" r="4" fill="#FFF6E6"/>'; });
+  out+='<rect x="190" y="40" width="220" height="20" fill="'+awn+'"/>'; for(var i=0;i<9;i++) out+='<rect x="'+(190+i*24.4)+'" y="40" width="12.2" height="20" fill="#FFF6E6" opacity=".85"/>';
+  out+='<text x="300" y="104" text-anchor="middle" font-size="40" font-weight="900" fill="#2B1810" font-family="Playfair Display,Georgia,serif">ДИПЛОМ</text>';
+  out+='<text x="300" y="132" text-anchor="middle" font-size="15" fill="#5B4033" font-family="Nunito,sans-serif" font-weight="700">владельца сети «'+esc(cafe)+'»</text>';
+  var nm=String(name), fs=nm.length>16?30:42;
+  out+='<text x="300" y="196" text-anchor="middle" font-size="'+fs+'" fill="'+awn+'" font-family="Caveat,cursive" font-weight="700">'+esc(nm)+'</text>';
+  out+='<line x1="130" x2="470" y1="208" y2="208" stroke="#B9791A" stroke-width="1.4"/>';
+  out+='<text x="300" y="238" text-anchor="middle" font-size="22" font-weight="800" fill="#2B1810" font-family="Playfair Display,Georgia,serif">'+esc(verdictName)+'</text>';
+  lines.slice(0,3).forEach(function(l,k){ out+='<text x="300" y="'+(268+k*22)+'" text-anchor="middle" font-size="15" fill="#5B4033" font-family="Nunito,sans-serif" font-weight="700">'+esc(l)+'</text>'; });
+  out+='<g transform="translate(60 322)"><circle cx="36" cy="36" r="34" fill="'+awn+'"/><circle cx="36" cy="36" r="28" fill="none" stroke="#FFF6E6" stroke-width="2"/><path transform="translate(18 18) scale(1.5)" d="'+ICONS.fork+'" fill="none" stroke="#FFF6E6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>';
+  out+='<text x="470" y="352" text-anchor="middle" font-size="30" fill="#2B1810" font-family="Caveat,cursive" font-weight="700">Тамара</text><line x1="400" x2="540" y1="360" y2="360" stroke="#B9791A" stroke-width="1.2"/><text x="470" y="378" text-anchor="middle" font-size="11" fill="#7D6253" font-family="Nunito,sans-serif">хранитель тетради</text>';
+  return out+'</svg>';
 }

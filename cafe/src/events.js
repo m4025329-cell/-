@@ -145,7 +145,7 @@ var EVENT_BY_ID = {}; EVENTS.forEach(function(e){ EVENT_BY_ID[e.id]=e; });
 /* какие случаи ждут в этом месяце: не больше двух, одинаковые подряд не повторяются */
 function pickEvents(s){
   var m=s.month, rng=rngFor(s,'ev'+m), seen=s.seen||{}, out=[];
-  var n=(m<=2?0:(m<=8?1:(rng()<0.6?2:1)));
+  var n=(m<=2?0:(m<=5?1:(rng()<0.65?2:1)));
   if(m===1||m===16) n=0;
   var pool=EVENTS.filter(function(e){ if(e.min && m<e.min) return false; if(e.max && m>e.max) return false; if(e.ok && !e.ok(s)) return false; if(seen['ev_'+e.id]) return false; return true; });
   for(var i=0;i<n && pool.length;i++){

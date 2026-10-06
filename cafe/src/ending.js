@@ -25,6 +25,20 @@ var ACH = [
  {id:'clean',  n:'Образцовая чистота', d:'Санитарная проверка пройдена без замечаний.', icon:'shield', t:function(s,R){ return !!s.flags.inspectOK; }},
  {id:'stars3', n:'Меню звёзд',         d:'В меню три блюда-«звезды» одновременно.',  icon:'star',    t:function(s,R){ var r=R&&R.outlets[0]; return r && r.mix && r.mix.filter(function(x){ return x.cls==='star'; }).length>=3; }},
  {id:'nowar',  n:'Не продаёмся',       d:'Отказались от рецептов за деньги.',        icon:'shield',  t:function(s,R){ return !!(s.flags.nazWar || (s.month>=8 && !s.flags.nazPartner && !s.flags.nazMerge)); }},
+ {id:'goals5',  n:'Исполнительный владелец', d:'Выполнено 5 заданий месяца.',          icon:'target', t:function(s,R){ return s.stats.goalsDone>=5; }},
+ {id:'goals15', n:'Мастер заданий',     d:'Выполнено 15 заданий месяца.',            icon:'target', t:function(s,R){ return s.stats.goalsDone>=15; }},
+ {id:'reg1',   n:'Друг кафе',          d:'Один из постоянных гостей стал другом.',  icon:'heart',  t:function(s,R){ return s.stats.reg5>=1; }},
+ {id:'reg3',   n:'Своя компания',      d:'Три постоянных гостя стали друзьями.',    icon:'heart',  t:function(s,R){ return s.stats.reg5>=3; }},
+ {id:'dep',    n:'Копилка',            d:'На вкладе лежит 300 000 ₽ и больше.',     icon:'bank',   t:function(s,R){ return (s.dep||0)>=300000; }},
+ {id:'ins',    n:'Подушка безопасности',d:'Включена страховка.',                    icon:'shield', t:function(s,R){ return !!s.insured; }},
+ {id:'build',  n:'Своя земля',         d:'Куплено здание кафе.',                    icon:'building',t:function(s,R){ return !!s.flags.ownBuilding; }},
+ {id:'city6',  n:'Шесть городов',      d:'Заведения в шести городах.',              icon:'map',    t:function(s,R){ return cityCountOpenWithFran(s)>=6; }},
+ {id:'menu12', n:'Богатое меню',       d:'В меню двенадцать блюд и больше.',        icon:'book',   t:function(s,R){ return s.menu.length>=12; }},
+ {id:'hol3',   n:'Праздничный владелец',d:'Три праздничные кампании.',              icon:'gift',   t:function(s,R){ return s.stats.holidays>=3; }},
+ {id:'hq6',    n:'Большой штаб',       d:'Шесть улучшений штаб-квартиры.',          icon:'factory',t:function(s,R){ return Object.keys(s.hq.upg).length>=6; }},
+ {id:'rev2m',  n:'Два миллиона выручки',d:'Выручка сети за месяц выше 2 млн ₽.',    icon:'trend',  t:function(s,R){ return R && R.revTotal>=2000000; }},
+ {id:'mini',   n:'Золотые руки',       d:'Золото в двух мини-играх.',               icon:'award',  t:function(s,R){ return s.stats.miniGold>=2; }},
+ {id:'rival',  n:'Лучше соседей',      d:'Рейтинг флагмана выше всех конкурентов города.',icon:'star',t:function(s,R){ var f=flagship(s); return rivalsFor(s,f.city).every(function(r){ return f.rep>r.q; }) && s.month>=4; }},
  {id:'fork',   n:'Золотая вилка',      d:'Гид признал ваше заведение лучшим.',       icon:'fork',    t:function(s,R){ return !!s.flags.goldFork; }}
 ];
 function checkAch(s,R){
@@ -80,6 +94,7 @@ function verdict(s){
   if(met && fork.tier==='gold') return {id:'legend', name:'Легенда «Первого столика»', text:'Карта Тамары собрана, гид признал вас, а в каждом городе стоит столик, за которым ждут. Тамара гордилась бы вами.'};
   if(met) return {id:'network', name:'Сеть мечты', text:'Вы построили сеть заведений в разных городах и удержали рейтинг. Цель достигнута.'};
   if(g.cities>=3 && g.cap>=DIFFS[s.diff].cap*0.6) return {id:'growing', name:'Растущая сеть', text:'Сеть уже работает в нескольких городах. До цели чуть-чуть не хватило, но дорога выбрана верно.'};
+  if(g.cities>=3) return {id:'young', name:'Молодая сеть', text:'Заведения открыты в '+g.cities+' городах, но расходы на запуск ещё не окупились и капитала мало. Дайте сети время или погасите долги.'};
   if(g.cities>=2) return {id:'two', name:'Два города', text:'У вас два города и твёрдая основа. Для сети нужно больше времени и денег, но это сильное начало.'};
   if(g.cap>=800000) return {id:'cafe', name:'Любимое кафе города', text:'Одно кафе, но какое: гости идут издалека. Сеть можно строить и дальше.'};
   return {id:'first', name:'Первые шаги', text:'Вы дошли до конца пути. Теперь знаете, где терялись деньги и гости, и сможете сыграть лучше.'};

@@ -156,7 +156,7 @@ p{margin:0 0 .6em} a{color:var(--brand-soft-ink)} b,strong{font-weight:800}
 .chalk p{margin:0 0 .3em;color:var(--chalk-ink)} .chalk .dim{color:var(--chalk-dim);font-size:19px}
 .chalk .btn{font-family:var(--font-b)}
 .chalk ul{margin:.2em 0;padding:0;list-style:none} .chalk li{display:flex;gap:10px;align-items:flex-start;padding:2px 0}
-.chalk li .ic{margin-top:2px;color:#FFE79A;width:20px;height:20px} .chalk li.done{color:var(--chalk-dim);text-decoration:line-through;text-decoration-thickness:2px}
+.chalk li .ic{margin-top:2px;color:#FFE79A;width:20px;height:20px} .chalk li.ok{color:#C6F0C9} .chalk li.done{color:var(--chalk-dim);text-decoration:line-through;text-decoration-thickness:2px}
 .chalk .bar{height:12px;border-radius:8px;background:rgba(255,255,255,.14);overflow:hidden;margin:6px 0} .chalk .bar i{display:block;height:100%;background:#FFE79A;border-radius:8px;transition:width var(--d-enter) var(--ease-out)}
 .coach{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:var(--r-card);background:var(--warn-bg);color:var(--warn-ink);border:2px solid color-mix(in srgb,var(--warn-ink) 25%,transparent);margin:12px 0}
 .coach .avatar{margin-top:2px} .coach b{display:block;font-size:15px} .coach p{margin:2px 0 6px;font-size:15px;line-height:1.45;color:inherit} .coach .btn{margin-top:4px}
@@ -265,7 +265,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .pl-row.total{border-bottom:0;border-top:3px double var(--ink);padding-top:10px;margin-top:4px;font-size:18px} .pl-row.sub{opacity:.86;font-size:14.5px}
 .pl-row .hint{font-size:12.5px;color:var(--ink-3);font-weight:600}
 .kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
-.kpi div{padding:10px 12px;border:2px solid var(--edge);border-radius:14px;background:var(--surface-2)} .kpi small{display:block;font-size:12px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.03em} .kpi b{font-size:20px;display:block;line-height:1.2} .kpi i{font-style:normal;font-size:12.5px;color:var(--ink-3);font-weight:700}
+.kpi div{padding:10px 12px;border:2px solid var(--edge);border-radius:14px;background:var(--surface-2)} .kpi small{display:block;font-size:12px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.03em} .kpi b{font-size:20px;display:block;line-height:1.2;overflow-wrap:anywhere} .kpi i{font-style:normal;font-size:12.5px;color:var(--ink-3);font-weight:700}
 .kpi .ok{border-color:var(--basil)} .kpi .bad{border-color:var(--brand)}
 .spark{width:100%;height:80px;display:block} .spark .a{stroke:var(--brand);fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round} .spark .f{fill:var(--brand-soft);opacity:.8} .spark .g{stroke:var(--edge-strong);stroke-dasharray:4 5;stroke-width:1.5}
 .spark text{font-size:10px;fill:var(--ink-3);font-weight:700;font-family:var(--font-b)}
@@ -341,6 +341,20 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 #fx{position:fixed;inset:0;pointer-events:none;z-index:110;width:100%;height:100%}
 textarea.code{width:100%;min-height:110px;border-radius:14px;border:2px solid var(--edge-strong);background:var(--surface-2);padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 
+/* ---- v2: задания, постоянные гости, конкуренты, мини-игры, диплом ---- */
+.hearts{display:inline-flex;gap:2px;vertical-align:-3px} .heart{width:16px;height:16px;fill:var(--edge);stroke:var(--edge-strong);stroke-width:1.6;stroke-linejoin:round} .heart.on{fill:var(--brand);stroke:var(--brand-dark)}
+.regs{display:grid;gap:8px} .reg{display:flex;gap:12px;align-items:center;padding:8px 10px;border:2px solid var(--edge);border-radius:14px;background:var(--surface-2)}
+.rivals{display:grid;gap:8px} .rival{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:8px 10px;border:2px solid var(--edge);border-radius:14px;background:var(--surface-2)} .rival .chips{grid-column:1/-1}
+.mtable{width:100%;border-collapse:collapse;font-size:14.5px} .mtable th{text-align:left;color:var(--ink-3);font-size:12px;text-transform:uppercase;letter-spacing:.03em;padding:4px 6px} .mtable td{padding:7px 6px;border-top:2px dotted var(--edge)} .mtable td.num,.mtable th:not(:first-child){text-align:right}
+.crates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0} @media (min-width:600px){ .crates{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.crate{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:112px;padding:10px;border-radius:16px;border:2px solid var(--edge-strong);background:var(--surface);cursor:pointer;box-shadow:0 4px 0 var(--edge);touch-action:manipulation;transition:transform var(--d-fast),opacity var(--d-base)} .crate:active{transform:translateY(3px);box-shadow:0 1px 0 var(--edge)} .crate.gone{opacity:.25;pointer-events:none;transform:scale(.92)}
+.receipt{display:grid;gap:4px;padding:14px;margin:12px 0;background:#FFFEF9;color:#2B1810;border:2px dashed #D7C7AE;border-radius:12px;font-size:18px}
+.awn-pick{display:flex;gap:10px;flex-wrap:wrap} .sw{width:48px;height:48px;border-radius:50%;border:3px solid var(--edge);background:var(--c);cursor:pointer;display:grid;place-items:center;color:#fff;transition:transform var(--d-fast) var(--ease-spring)} .sw[aria-pressed="true"]{border-color:var(--ink);transform:scale(1.12)} .sw .ic{width:24px;height:24px}
+.diploma{display:block;width:100%;height:auto;border-radius:16px;filter:drop-shadow(0 10px 18px rgba(43,24,16,.3));animation:rise var(--d-enter) var(--ease-out) both}
+.chron{list-style:none;margin:0;padding:0 0 0 14px;border-left:3px solid var(--edge)} .chron li{position:relative;margin:0 0 12px 8px;padding-left:4px} .chron li::before{content:'';position:absolute;left:-23px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--brand);border:3px solid var(--surface)} .chron b{display:block} .chron small{color:var(--ink-3)}
+.delta{display:inline-block;margin-left:4px;font-size:12px;font-weight:900} .delta.up{color:var(--gain-ink)} .delta.dn{color:var(--loss-ink)} .ticket .delta.up{color:#14632F} .ticket .delta.dn{color:#9A1F10}
+.fact{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:16px;background:var(--info-bg);color:var(--info-ink);text-align:left;margin:12px auto;max-width:480px;font-weight:700}
+.questres{display:grid;gap:6px} .qr{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;border:2px solid var(--edge);background:var(--surface-2)} .qr.ok{border-color:var(--basil)}
 /* ---- нижняя панель действий ---- */
 .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px var(--gutter) calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:2px solid var(--edge);box-shadow:0 -10px 28px -18px rgba(43,24,16,.5)}
 .actionbar[hidden]{display:none}
@@ -492,7 +506,27 @@ var DISHES = [
  {id:'lemonade', n:'Домашний лимонад',    cat:'cold',   cost:24,  ref:190, tier:3, prep:.3, tg:['kids','trendy'],    h:1,    g:'glass', u:'start'},
  {id:'smoothie', n:'Смузи',               cat:'cold',   cost:48,  ref:270, tier:3, prep:.5, tg:['trendy','healthy'], h:1,    g:'glass', u:'lab', lab:6000, min:3},
  {id:'icedlatte',n:'Айс-латте',           cat:'cold',   cost:40,  ref:240, tier:3, prep:.5, tg:['trendy','fast'],    h:1,    g:'glass', u:'lab', lab:5000, min:3},
- {id:'kvass',    n:'Домашний квас',       cat:'cold',   cost:12,  ref:110, tier:3, prep:.1, tg:['cheap','classic'],  h:1,    g:'glass', u:'start'}
+ {id:'kvass',    n:'Домашний квас',       cat:'cold',   cost:12,  ref:110, tier:3, prep:.1, tg:['cheap','classic'],  h:1,    g:'glass', u:'start'},
+ {id:'flatwhite',n:'Флэт уайт',          cat:'coffee', cost:46,  ref:260, tier:4, prep:.9, tg:['trendy','premium'],          g:'cup',   u:'lab', lab:11000, min:4},
+ {id:'mocha',    n:'Мокко',               cat:'coffee', cost:48,  ref:270, tier:3, prep:.9, tg:['sweet','trendy'],            g:'cup',   u:'lab', lab:9000,  min:5},
+ {id:'chai',     n:'Масала-чай',          cat:'coffee', cost:32,  ref:220, tier:4, prep:.7, tg:['healthy','trendy'],          g:'tea',   u:'lab', lab:8000,  min:4},
+ {id:'vatrushka',n:'Ватрушка с творогом', cat:'bake',   cost:28,  ref:150, tier:3, prep:.6, tg:['cheap','classic','kids'],    g:'pie',   u:'lab', lab:5000,  min:3},
+ {id:'pizza',    n:'Пицца маргарита',     cat:'bake',   cost:70,  ref:400, tier:3, prep:1.2,tg:['trendy','hearty','kids'],    need:'oven', g:'pie', u:'lab', lab:12000, min:5},
+ {id:'samsa',    n:'Самса с мясом',       cat:'bake',   cost:44,  ref:240, tier:3, prep:.8, tg:['hearty','fast','cheap'],     need:'oven', g:'pie', u:'lab', lab:7000,  min:6},
+ {id:'granola',  n:'Гранола с йогуртом',  cat:'brek',   cost:36,  ref:230, tier:3, prep:.4, tg:['healthy','trendy','fast'],   g:'bowl',  u:'lab', lab:6000,  min:3},
+ {id:'shakshuka',n:'Шакшука',             cat:'brek',   cost:52,  ref:310, tier:4, prep:1,  tg:['trendy','hearty'],           g:'egg',   u:'lab', lab:9000,  min:5},
+ {id:'ukha',     n:'Уха по-тамарински',   cat:'soup',   cost:66,  ref:340, tier:4, prep:1.1,tg:['hearty','classic'], c:1,     g:'bowl',  u:'lab', lab:8000,  min:6},
+ {id:'plov',     n:'Плов',                cat:'main',   cost:72,  ref:360, tier:3, prep:1.3,tg:['hearty','classic'],          g:'plate', u:'lab', lab:9000,  min:5},
+ {id:'shawarma', n:'Шаурма',              cat:'main',   cost:60,  ref:300, tier:3, prep:.8, tg:['cheap','fast','hearty'],     g:'sandwich', u:'lab', lab:8000, min:4},
+ {id:'bowl',     n:'Боул с курицей',      cat:'main',   cost:84,  ref:390, tier:3, prep:1,  tg:['healthy','trendy'],          g:'salad', u:'lab', lab:9500,  min:6},
+ {id:'duck',     n:'Утка с яблоками',     cat:'main',   cost:230, ref:880, tier:5, prep:2.2,tg:['premium','hearty'],          g:'plate', u:'rest'},
+ {id:'olivier',  n:'Оливье',              cat:'salad',  cost:38,  ref:240, tier:3, prep:.4, tg:['classic','cheap','hearty'],  g:'salad', u:'lab', lab:5000,  min:3},
+ {id:'hering',   n:'Сельдь под шубой',    cat:'salad',  cost:40,  ref:250, tier:3, prep:.4, tg:['classic','local','cheap'],   g:'salad', u:'lab', lab:5000,  min:4},
+ {id:'tiramisu', n:'Тирамису',            cat:'dess',   cost:66,  ref:330, tier:4, prep:.5, tg:['sweet','trendy','premium'],  g:'cake',  u:'lab', lab:10000, min:6},
+ {id:'medovik',  n:'Медовик',             cat:'dess',   cost:48,  ref:260, tier:4, prep:.5, tg:['classic','sweet'],           g:'cake',  u:'lab', lab:7000,  min:4},
+ {id:'macaron',  n:'Макаронс',            cat:'dess',   cost:54,  ref:300, tier:3, prep:.4, tg:['trendy','premium','sweet'],  need:'oven', g:'cake', u:'lab', lab:9000, min:7},
+ {id:'milkshake',n:'Молочный коктейль',   cat:'cold',   cost:42,  ref:250, tier:3, prep:.5, tg:['kids','sweet'],     h:1,    g:'glass', u:'lab', lab:5500,  min:4},
+ {id:'kombucha', n:'Комбуча',             cat:'cold',   cost:30,  ref:220, tier:3, prep:.2, tg:['healthy','trendy'],          g:'glass', u:'lab', lab:6000,  min:5}
 ];
 /* себестоимость блюда около трети цены: заданные выше числа умножаются на коэффициент */
 var COST_K = 1.75, PRICE_K = 1.15;
@@ -565,9 +599,13 @@ var SPECS = {
   anton: {id:'anton', name:'Антон',            role:'Управляющий',  wage:100000, hire:25000, min:9, where:'outlet', fx:'Заведение не теряет качество без вас и работает на 6% лучше стандартного управляющего.', desc:'Десять лет проработал в сети кофеен. Любит порядок и таблицы.'},
   gleb:  {id:'gleb',  name:'Глеб',             role:'Закупщик',     wage:70000, hire:10000, min:7, where:'hq', fx:'Продукты дешевле на 5% во всех заведениях.', desc:'Знает всех поставщиков по именам. Торгуется так, что те сами делают скидку.'},
   polina:{id:'polina',name:'Полина',           role:'Маркетолог',   wage:65000, hire:10000, min:6, where:'hq', fx:'Реклама эффективнее на 30% во всех заведениях.', desc:'Раньше делала рекламу для сети магазинов. Умеет объяснять, почему акция сработала.'},
-  emma:  {id:'emma',  name:'Эмма Григорьевна', role:'Бухгалтер',    wage:45000, hire:5000, min:3, where:'hq', fx:'Налоги на 8% меньше и без штрафов, показывает налоговый прогноз.', desc:'Двадцать лет с цифрами. Говорит мало, но всегда по делу.'}
+  emma:  {id:'emma',  name:'Эмма Григорьевна', role:'Бухгалтер',    wage:45000, hire:5000, min:3, where:'hq', fx:'Налоги на 8% меньше и без штрафов, показывает налоговый прогноз.', desc:'Двадцать лет с цифрами. Говорит мало, но всегда по делу.'},
+  mila:  {id:'mila',  name:'Мила',             role:'Администратор зала', wage:52000, hire:6000, min:6, where:'outlet', fx:'Сервис лучше на 7 баллов, команда спокойнее: настроение выше.', desc:'Работала администратором в гостинице. Улыбается даже тогда, когда на кухне горит масло.'},
+  ruslan:{id:'ruslan',name:'Руслан',           role:'Пекарь',       wage:56000, hire:6000, min:7, where:'outlet', fx:'Выпечка вкуснее на 0,3 балла и продаётся на 20% лучше. Работает вместе с кондитером.', desc:'Встаёт в четыре утра, чтобы булочки были тёплыми к открытию.'},
+  vera:  {id:'vera',  name:'Вера',             role:'SMM-менеджер', wage:60000, hire:8000, min:8, where:'hq', fx:'Соцсети и блогеры работают в 1,4 раза сильнее во всех заведениях.', desc:'Знает, какие ролики смотрят до конца, и умеет объяснять, почему.'},
+  oleg:  {id:'oleg',  name:'Олег',             role:'Технолог',     wage:68000, hire:9000, min:9, where:'hq', fx:'Порча продуктов меньше на 2,5 пункта, продукты дешевле на 2%.', desc:'Считает граммы на порцию и знает, сколько нужно соли на тонну супа.'}
 };
-var SPEC_IDS = ['arsen','lera','sonya','damir','anton','gleb','polina','emma'];
+var SPEC_IDS = ['arsen','lera','sonya','damir','anton','gleb','polina','emma','mila','ruslan','vera','oleg'];
 
 /* маркетинг заведения: ежемесячные включатели */
 var MKT = [
@@ -578,6 +616,10 @@ var MKT = [
   {id:'fest',  n:'Стенд на городской ярмарке',cost:20000, d:'Туристы и гурманы пробуют ваши блюда на месте.',                  reach:{stu:.03,off:.02,fam:.05,tur:.12,gou:.06}, awr:.060},
   {id:'happy', n:'Счастливые часы',           cost:0,     d:'Скидка 15% в тихие часы: гостей больше, чек немного ниже.',        reach:{stu:.08,off:0,fam:.06,tur:.02,gou:0},      awr:.010},
   {id:'loyal', n:'Карта лояльности',          cost:6000,  d:'Постоянные гости приходят чаще. Скидка по карте 3% от чека.',      reach:{stu:.02,off:.02,fam:.03,tur:0,gou:0},       awr:.010},
+  {id:'lunch', n:'Бизнес-ланч',               cost:4000,  d:'Суп, горячее и напиток по набору со скидкой. Офисные гости приходят в обед.',  reach:{stu:.03,off:.18,fam:0,tur:0,gou:0},     awr:.020},
+  {id:'class', n:'Мастер-классы',             cost:7000,  d:'Гости сами лепят пирожки и пекут сырники. Узнаваемость и тёплые отзывы.',     reach:{stu:.04,off:0,fam:.08,tur:.05,gou:.06},   awr:.035},
+  {id:'merch', n:'Мерч и подарочные наборы',  cost:5000,  d:'Кружки с котом Борщом и коробки пирожков. Немного денег и много улыбок.',     reach:{stu:.03,off:.01,fam:.04,tur:.08,gou:.02}, awr:.020},
+  {id:'cater', n:'Выездной кейтеринг',        cost:10000, d:'Вы привозите еду на праздники. Больше предложений на банкеты.',                reach:{stu:0,off:.04,fam:.03,tur:0,gou:.04},      awr:.020},
   {id:'deliv', n:'Доставка через сервис',     cost:0,     d:'Новые заказы без мест в зале, но сервис берёт комиссию 25% и нужна упаковка.', reach:{stu:0,off:0,fam:0,tur:0,gou:0},       awr:.010}
 ];
 var MKTD = {}; MKT.forEach(function(m){ MKTD[m.id]=m; });
@@ -613,12 +655,20 @@ var CITIES = {
            tur:[.6,.6,.7,.9,1.2,1.6,1.8,1.7,1.2,.8,.6,.8],        sky:'kgd',    climate:'морской, влажный',
            loc:{n:'Калининградский марципан', cat:'dess', cost:30, ref:220, tier:4, prep:.3, tg:['local','sweet','premium'], g:'cake'},
            note:'Летом туристы едут к морю, зимой город притихает. Далеко от остальных, поставки дороже.'},
+  nsk:    {id:'nsk',    n:'Новосибирск',     pop:'1,6 миллиона', seg:[48,38,26,10,10], inc:0.98, rent:85000,  comp:.40, cap:1.12, x:392, y:96,  kmHQ:3300, min:12,
+           tur:[.7,.7,.8,.9,1,1.1,1.2,1.2,1,.9,.8,.9],            sky:'nsk',    climate:'резко континентальный',
+           loc:{n:'Сибирский пирог с кедровым орехом', cat:'bake', cost:40, ref:230, tier:4, prep:.8, tg:['local','sweet'], g:'pie'},
+           note:'Город студентов и учёных: много молодёжи, зимой очень холодно, а люди всё равно идут в тёплые места.'},
+  vvo:    {id:'vvo',    n:'Владивосток',     pop:'600 тысяч',    seg:[26,28,24,26,10], inc:1.08, rent:90000,  comp:.35, cap:1.35, x:448, y:172, kmHQ:9000, min:13,
+           tur:[.6,.6,.7,.9,1.1,1.4,1.6,1.6,1.2,.8,.6,.7],        sky:'vvo',    climate:'морской, ветреный',
+           loc:{n:'Дальневосточный крабовый салат', cat:'salad', cost:70, ref:380, tier:4, prep:.6, tg:['local','premium'], g:'salad'},
+           note:'Конец маршрута Тамары: океан, мост и краб. Далеко от всех, продукты везут долго, зато туристы щедрые.'},
   msk:    {id:'msk',    n:'Москва',          pop:'13 миллионов', seg:[60,90,40,70,40], inc:1.50, rent:260000, comp:.80, cap:1.80, x:156, y:98,  kmHQ:190,  min:12,
            tur:[1,1,1,1,1.1,1.2,1.2,1.2,1.1,1,1,1.2],             sky:'msk',    climate:'умеренный',
            loc:{n:'Московский калач', cat:'bake', cost:28, ref:170, tier:4, prep:.5, tg:['local','classic'], g:'bread'},
            note:'Самый большой рынок и самая дорогая аренда. Здесь легко разориться и легко прославиться.'}
 };
-var CITY_IDS = ['tula','nnov','kazan','spb','ekb','sochi','kgd','msk'];
+var CITY_IDS = ['tula','nnov','kazan','spb','ekb','sochi','kgd','msk','nsk','vvo'];
 CITY_IDS.forEach(function(k){ var l=CITIES[k].loc; l.cost=Math.round(l.cost*COST_K); l.ref=Math.round(l.ref*PRICE_K/5)*5; });
 /* общая сезонность сегментов по календарным месяцам (янв…дек) */
 var SEGSEAS = {
@@ -656,6 +706,12 @@ var HQUP = [
   {id:'brand',  n:'Фирменный стиль и ребрендинг', cost:180000, min:1, d:'Узнаваемость сети растёт, новые заведения открываются с большей известностью.', ico:'palette'},
   {id:'central',n:'Центральная кухня',       cost:1200000,min:3, d:'Заготовки для всех заведений в одном месте: продукты дешевле на 7%, вкус ровнее.', ico:'factory', req:'buy'},
   {id:'fran',   n:'Пакет франшизы',          cost:300000, min:3, d:'Можно продавать франшизу в небольших городах: партнёр платит вам взнос и проценты.', ico:'handshake', req:'std'},
+  {id:'academy',n:'Академия поваров',        cost:380000, min:6, d:'Своя школа для поваров: во всех заведениях кухня работает как на пол-уровня выше.', ico:'cap', req:'school'},
+  {id:'logist', n:'Логистика и склад',       cost:260000, min:5, d:'Продукты привозят по графику: порча ниже на 2 пункта во всех заведениях.', ico:'truck', req:'buy'},
+  {id:'rd',     n:'Центр разработки меню',   cost:300000, min:5, d:'Новые рецепты разрабатываются вдвое дешевле.', ico:'whisk'},
+  {id:'mkthq',  n:'Отдел маркетинга',        cost:220000, min:4, d:'Вся реклама работает на 15% сильнее.', ico:'mega'},
+  {id:'fin',    n:'Финансовый отдел',        cost:180000, min:4, d:'Налог на 4% ниже, банк даёт кредит на 0,2 пункта дешевле.', ico:'coins'},
+  {id:'app',    n:'Приложение с баллами',    cost:340000, min:5, d:'Гости копят баллы во всех городах: постоянных больше, доставка выгоднее.', ico:'phone', req:'site'},
   {id:'charity',n:'Тамарин ужин для соседей',cost:60000,  min:1, d:'Раз в месяц бесплатный ужин для пенсионеров. Дорого, но город вас любит.', ico:'heart'}
 ];
 var HQUPD = {}; HQUP.forEach(function(u){ HQUPD[u.id]=u; });
@@ -679,7 +735,119 @@ var CHARS = {
   anton: {name:'Антон', role:'управляющий', skin:'#E5B791', hair:'#46362A', cloth:'#3C5A7C', acc:'tie'},
   polina:{name:'Полина', role:'маркетолог', skin:'#F2C8A6', hair:'#7A2E2E', cloth:'#C9792B', acc:'phone'},
   gleb:  {name:'Глеб', role:'закупщик', skin:'#E6BC98', hair:'#3C3C3C', cloth:'#556B3A', acc:'cap'},
-  artem: {name:'Артём Викторович', role:'инвестор', skin:'#E8BE9A', hair:'#7A7B7D', cloth:'#2D4A57', acc:'glasses'}
+  artem: {name:'Артём Викторович', role:'инвестор', skin:'#E8BE9A', hair:'#7A7B7D', cloth:'#2D4A57', acc:'glasses'},
+  mila:  {name:'Мила', role:'администратор зала', skin:'#F2C9A8', hair:'#9A5B2E', cloth:'#B04B6A', acc:'bun'},
+  ruslan:{name:'Руслан', role:'пекарь', skin:'#E2B48E', hair:'#3A2A22', cloth:'#F4EFE8', acc:'toque'},
+  vera:  {name:'Вера', role:'SMM-менеджер', skin:'#F3D0B2', hair:'#2E4A7A', cloth:'#3A8F8A', acc:'phone'},
+  oleg:  {name:'Олег', role:'технолог', skin:'#E6BC98', hair:'#6A5A4A', cloth:'#4A5B6C', acc:'glasses'},
+  tema:  {name:'Тёма', role:'студент, постоянный гость', skin:'#EBC09E', hair:'#5A3A2A', cloth:'#C0562B', acc:'cap'},
+  olga:  {name:'Ольга', role:'офис, постоянная гостья', skin:'#F0C6A4', hair:'#3C2A5A', cloth:'#4A4A8A', acc:'glasses'},
+  orlov: {name:'Семья Орловых', role:'постоянные гости', skin:'#E8BE9A', hair:'#8A6A3A', cloth:'#5A8A4A', acc:'none'},
+  efim:  {name:'Ефим Львович', role:'ресторанный критик', skin:'#E8C4A6', hair:'#C8C4BE', cloth:'#3A3A44', acc:'glasses'},
+  juan:  {name:'Хуан', role:'турист', skin:'#D9A87E', hair:'#2A1E18', cloth:'#D8892B', acc:'cap'},
+  nika:  {name:'Ника', role:'школьница, мастер-класс', skin:'#F4D2B6', hair:'#B05A3A', cloth:'#C9638A', acc:'bun'}
+};
+
+/* праздники: по календарным месяцам (0 = январь). seg — прирост спроса по группам, cat — интерес к категории блюд */
+var HOLIDAYS = [
+ {n:'Рождественские каникулы',   d:'Семьи гуляют, туристы приезжают на праздники.',          seg:{fam:.14,tur:.12,stu:0,off:0,gou:.04},  cat:{dess:.20,main:.08},        cost:9000},
+ {n:'Масленица и 23 февраля',    d:'Блины, чай и корпоративные обеды для коллег.',           seg:{fam:.08,off:.12,stu:.04,tur:0,gou:0},  cat:{brek:.25,dess:.10},        cost:7000},
+ {n:'8 Марта',                   d:'Десерты, цветы и столики на двоих.',                     seg:{fam:.10,gou:.12,stu:.06,off:.04,tur:0},cat:{dess:.28,coffee:.08},      cost:8000},
+ {n:'Пасха и весна',             d:'Куличи, пироги и семейные обеды.',                       seg:{fam:.14,tur:.06,stu:0,off:0,gou:.04},  cat:{bake:.25,dess:.12},        cost:7000},
+ {n:'Майские праздники',         d:'Длинные выходные, туристы и прогулки.',                  seg:{tur:.16,fam:.12,stu:.05,off:-.1,gou:.04},cat:{cold:.15,main:.06},      cost:9000},
+ {n:'Выпускные и День защиты детей',d:'Семьи с детьми и выпускники.',                        seg:{fam:.16,stu:.10,tur:.04,off:0,gou:0},  cat:{dess:.22,cold:.14},        cost:8000},
+ {n:'Жаркое лето',               d:'Холодные напитки, мороженое и террасы.',                 seg:{tur:.14,fam:.08,stu:.04,off:-.04,gou:0},cat:{cold:.30,dess:.12},       cost:7000},
+ {n:'Последние тёплые дни',      d:'Люди спешат насладиться концом лета.',                   seg:{fam:.12,tur:.10,stu:.05,off:0,gou:.03},cat:{cold:.18,main:.06},        cost:7000},
+ {n:'1 сентября',                d:'Студенты и школьники возвращаются, родители пьют кофе.', seg:{stu:.16,fam:.12,off:.04,tur:0,gou:0},   cat:{coffee:.14,bake:.14},      cost:8000},
+ {n:'Золотая осень',             d:'Тёплые супы, пироги и осенние прогулки.',                seg:{tur:.10,fam:.08,gou:.08,stu:0,off:0},  cat:{soup:.22,bake:.16},        cost:8000},
+ {n:'Чёрная пятница и ноябрь',   d:'Люди тратят больше, любят акции и подарки.',            seg:{stu:.10,fam:.10,off:.06,tur:0,gou:.04},cat:{dess:.14,main:.06},        cost:9000},
+ {n:'Новогодний месяц',          d:'Корпоративы, ёлки и подарки. Самый дорогой месяц года.', seg:{off:.16,fam:.16,tur:.10,stu:.06,gou:.08},cat:{dess:.24,soup:.10},      cost:12000}
+];
+
+/* задания месяца: проверяются по итогам. t(s,R,r) — выполнено ли; r — флагманский отчёт */
+var QUESTS = [
+ {id:'q_guests',n:'Полный зал',        d:'Принять 70 и больше гостей в день в флагмане.',   min:4, rew:12000, t:function(s,R,r){ return r&&r.guests/30>=70; }},
+ {id:'q_rating',n:'Рейтинг растёт',    d:'Поднять рейтинг флагмана за месяц.',               min:2, rew:9000,  t:function(s,R,r){ return r&&r.repNew>r.repOld+0.4; }},
+ {id:'q_food',  n:'Скупой повар',      d:'Фуд-кост сети не выше 31%.',                       min:3, rew:10000, t:function(s,R){ return R.total.rev>0&&R.total.cogs/R.total.rev<=0.31; }},
+ {id:'q_prime', n:'Здоровый прайм-кост',d:'Продукты и зарплаты вместе не больше 62% выручки.',min:4,rew:12000, t:function(s,R){ return R.total.rev>0&&(R.total.cogs+R.total.wages)/R.total.rev<=0.62; }},
+ {id:'q_stop',  n:'Ничего не кончилось',d:'Потери из-за стоп-листа не больше 2% в каждом заведении.',min:3,rew:8000,t:function(s,R){ return R.outlets.every(function(r){ return r.building||r.stockLoss==null||r.stockLoss<=0.02; }); }},
+ {id:'q_waste', n:'Ничего не пропало', d:'Порча продуктов не больше 6% в каждом заведении.',min:4, rew:9000,  t:function(s,R){ return R.outlets.every(function(r){ return r.building||r.waste==null||r.waste<=0.06; }); }},
+ {id:'q_profit1',n:'В плюс',           d:'Закончить месяц с прибылью.',                       min:1, rew:7000,  t:function(s,R){ return R.profit>0; }},
+ {id:'q_profit2',n:'Сто тысяч',        d:'Заработать за месяц 100 000 ₽ прибыли.',            min:5, rew:15000, t:function(s,R){ return R.profit>=100000; }},
+ {id:'q_profit3',n:'Четверть миллиона',d:'Заработать за месяц 250 000 ₽ прибыли.',            min:9, rew:25000, t:function(s,R){ return R.profit>=250000; }},
+ {id:'q_banq',  n:'Успешный банкет',   d:'Принять и успешно провести банкет.',               min:3, rew:12000, t:function(s,R){ return R.outlets.some(function(r){ return r.banNote&&r.banNote.some(function(b){ return b.ok; }); }); }},
+ {id:'q_stars', n:'Три звезды меню',   d:'Иметь в меню минимум три «звезды».',               min:4, rew:10000, t:function(s,R,r){ return r&&r.mix&&r.mix.filter(function(x){ return x.cls==='star'; }).length>=3; }},
+ {id:'q_util',  n:'Без очередей',      d:'Спрос не выше возможностей ни в одном заведении.', min:3, rew:10000, t:function(s,R){ return R.outlets.every(function(r){ return r.building||r.utilK==null||r.utilK<=1.0; }); }},
+ {id:'q_check', n:'Средний чек 420',   d:'Средний чек флагмана не ниже 420 ₽.',              min:4, rew:9000,  t:function(s,R,r){ return r&&r.avgCheck>=420; }},
+ {id:'q_clean', n:'Блестящая чистота', d:'Чистота флагмана не ниже 75 из 100.',               min:3, rew:8000,  t:function(s,R,r){ return r&&r.dims&&r.dims.cln>=75; }},
+ {id:'q_svc',   n:'Улыбки и скорость', d:'Сервис флагмана не ниже 70 из 100.',                min:4, rew:9000,  t:function(s,R,r){ return r&&r.dims&&r.dims.svc>=70; }},
+ {id:'q_atmo',  n:'Уютный зал',        d:'Уют флагмана не ниже 55 из 100.',                   min:3, rew:8000,  t:function(s,R,r){ return r&&r.dims&&r.dims.atmo>=55; }},
+ {id:'q_nolost',n:'Каждому место',     d:'Не потерять больше 5% гостей из-за нехватки мощности.',min:5,rew:12000,t:function(s,R){ return R.outlets.every(function(r){ return r.building||!r.m||r.m.want<=0||r.m.cap/r.m.want<=0.05; }); }},
+ {id:'q_menu',  n:'Большое меню',      d:'Держать в меню все места: больше выбора для гостей.',min:5, rew:7000,  t:function(s,R){ return s.menu.length>=menuSlots(s)-1; }},
+ {id:'q_loyal', n:'Свои люди',         d:'Довести постоянных гостей флагмана до 30%.',        min:4, rew:10000, t:function(s,R){ return flagship(s).loy>=0.3; }},
+ {id:'q_net',   n:'Две точки в плюсе', d:'Чтобы два заведения были в плюсе одновременно.',    min:10,rew:20000, t:function(s,R){ return R.outlets.filter(function(r){ return !r.building&&r.profitOp>0; }).length>=2; }}
+];
+var QUEST_BY_ID={}; QUESTS.forEach(function(q){ QUEST_BY_ID[q.id]=q; });
+
+/* постоянные гости: у каждого свой любимый «хит». hint — подсказка, пока не угадали */
+var REGULARS = [
+ {id:'maria', who:'maria', n:'Мария Сергеевна', seg:'fam', fav:'tpie',  alt:'pie',  hint:'любит пироги и выпечку по рецептам Тамары', from:2,  gift:'Банка варенья и открытка: «Тамара бы гордилась».'},
+ {id:'tema',  who:'tema',  n:'Тёма',            seg:'stu', fav:'latte', alt:'cookies', hint:'студент: любит кофе и что-нибудь недорогое к нему', from:3, gift:'Он выкладывает фото вашего кофе в студенческий чат.'},
+ {id:'olga',  who:'olga',  n:'Ольга',           seg:'off', fav:'chicksoup', alt:'borsch', hint:'обедает по расписанию: суп и горячее без очереди', from:4, gift:'Она приводит весь отдел на корпоративный обед.'},
+ {id:'orlov', who:'orlov', n:'Семья Орловых',   seg:'fam', fav:'syrniki', alt:'pancakes', hint:'по выходным завтракают с детьми', from:5, gift:'Дети нарисовали кафе. Рисунок висит у кассы.'},
+ {id:'juan',  who:'juan',  n:'Хуан',            seg:'tur', fav:'loc',  alt:'icecream', hint:'турист: пробует местное и любит мороженое', from:7, gift:'Он оставляет в соцсетях восторженный отзыв на трёх языках.'},
+ {id:'efim',  who:'efim',  n:'Ефим Львович',    seg:'gou', fav:'napoleon', alt:'cheesec', hint:'ресторанный критик: ценит классику и настоящие десерты', from:8, gift:'Короткая заметка в газете: «Наполеон — как в детстве».'}
+];
+var REG_BY_ID={}; REGULARS.forEach(function(r){ REG_BY_ID[r.id]=r; });
+
+/* соперники в городах: названия и характеры. Конкретные соперники строятся от кода класса и месяца */
+var RIVAL_NAMES = ['Кофе-Пойнт','Булка и Ко','Дом борща','Гастро-Лавка','Вилка и Ложка','Лимон и Мята','Тёплый хлеб','Кухня на углу','Зерно','Чайхана у моста','Сладкая ложка','Пирог на плите','Мята','Городская столовая','Уголок','Хлеб да соль'];
+var RIVAL_STYLES = ['кофейня','столовая','бистро','ресторан','пекарня'];
+
+/* факты для экрана «Идёт месяц» */
+var FACTS = [
+ 'В среднем кафе ингредиенты стоят от 28 до 35% цены блюда. Выше — почти нет прибыли.',
+ 'Гость запоминает последнюю ложку: поэтому десерт и чай в конце обеда часто решают, вернётся ли он.',
+ 'Кофе в зёрнах теряет аромат через несколько недель после обжарки. Поэтому его берут часто и понемногу.',
+ 'Цена на ценнике, заканчивающаяся на 90 или 95, кажется людям ниже. Это называют психологической ценой.',
+ 'Самые доходные блюда в меню — суп, салат и напитки. Они дёшево готовятся и хорошо берутся.',
+ 'У каждого повара есть любимый нож. Хорошие ножи в кафе точат каждый день.',
+ 'Лучшая реклама кафе — гость, который привёл друга. Про это говорят «сарафанное радио».',
+ 'Если стол пустует час, заведение теряет деньги. Поэтому в тихие часы придумывают скидки.',
+ 'Меню в 7–9 блюд на категорию — потолок: больше людям трудно выбрать, повару трудно держать качество.',
+ 'Яблочный пирог придумали задолго до того, как в Россию привезли первые яблоки с юга.',
+ 'Хлеб остаётся свежим около суток. Поэтому вчерашние булочки превращают в сухарики или тосты.',
+ 'Рестораны со звёздами гида проверяют инкогнито: проверяющие никогда не называют себя.',
+ 'Холодильная камера окупается за год, если в кафе портится больше десятой части продуктов.',
+ 'Постоянный гость тратит в год в несколько раз больше, чем случайный. Поэтому карты лояльности работают.',
+ 'Хорошая сдача — это не только деньги, а уважение к гостю. Касса без ошибок ценится.',
+ 'У приправ есть срок годности. Старая специя не портит блюдо, но и не придаёт ему вкуса.',
+ 'Меню читают сверху вниз по часовой стрелке. Выгодные блюда ставят в начало каждой категории.',
+ 'Когда за окном дождь, растут заказы на доставку: люди не хотят выходить.',
+ 'В жарком июле заказы напитков выше, чем в январе, в три-четыре раза.',
+ 'Рейтинг в 4,5 звезды в картах — почти потолок: пятёрки ставят редко, и их подозревают в накрутке.',
+ 'У шефа в большой кухне есть правило: «Минус один человек — минус одно блюдо в меню».',
+ 'Продукты на кухне хранят по правилу «первым пришёл — первым ушёл». Его сокращённо называют FIFO.',
+ 'Кофемашину после каждой смены нужно промывать: накипь портит вкус и сокращает срок её службы.',
+ 'Налоговая смотрит не только на выручку: ей важны чеки на продукты и зарплатные ведомости.',
+ 'Если расширяться слишком быстро, качество «уплывает»: гости замечают это раньше, чем владельцы.',
+ 'В хорошей кухне на каждое блюдо есть технологическая карта: сколько чего положить, сколько варить.',
+ 'Фермерские продукты свежее, но их цена зависит от погоды и урожая.',
+ 'Кофейни открываются у университетов и станций, потому что люди там торопятся и берут напитки с собой.'
+];
+
+/* заметки Тамары о городах: показываются на карте */
+var TAMARA_CITY={
+ tula:'«Тула. Тут я родилась, тут и первый столик. Пряник с мёдом печётся к приходу гостей, не раньше».',
+ nnov:'«Нижний. На вокзале ночью пекли кулебяку. Я выпросила рецепт у проводницы за два пирожка».',
+ kazan:'«Казань. Эчпочмак нужно есть горячим и руками. Всё остальное не по-настоящему».',
+ spb:'«Петербург. Пышки с пудрой на Большой Конюшенной. Дождь, пудра, радость».',
+ ekb:'«Екатеринбург. Пельмени на двадцать пятом градусе мороза. Я их до сих пор вижу».',
+ sochi:'«Сочи. Хачапури у моря. Жара, соль и ни одного нормального полотенца».',
+ kgd:'«Калининград. Марципан в лавке с колокольчиком. Дверь звякнет, и ты уже счастлива».',
+ nsk:'«Новосибирск. Пять часов на перроне и пельмени с кедровым орехом. Сибиряки смеются: «Тут холодно, зато сердце тёплое»».',
+ vvo:'«Владивосток. Конец дороги: океан, мост и краб. Дальше только назад, но я возвращалась с полной тетрадью».',
+ msk:'«Москва. Звезда на карте. Там всё очень быстро и очень дорого. Вернись, когда соберёшь силы».'
 };
 
 /* ===== «Первый столик»: экономический движок (без интерфейса) ===== */
@@ -716,7 +884,7 @@ function newState(o){
     menu:['espresso','latte','pie','oatmeal','chicksoup','cutlet','compote'], price:{}, lab:{}, recs:[1],
     outlets:[makeOutlet('o1','tula','cafe',(o.cafe||'Первый столик'))], hq:{brand:8, upg:{}, std:0, mkt:0, spec:{}},
     specs:{}, here:'o1', mods:[], flags:{leraMet:1}, rel:{arsen:0,lera:0,maria:0,kira:0,viktor:0,nazarov:0}, hist:[], terms:[], ach:{},
-    quizScore:[], orders:null, accepted:[], mini:[], seen:{}, tut:{}, rewinds:0, log:[], news:[], goalDone:{}, awards:0, repl:{}};
+    quizScore:[], orders:null, accepted:[], mini:[], seen:{}, tut:{}, rewinds:0, log:[], news:[], goalDone:{}, awards:0, repl:{}, dep:0, insured:0, goals:null, reg:{}, stats:{goalsDone:0, holidays:0, miniGold:0, reg5:0, events:0}, awn:'#D1361A'};
   s.outlets[0].openM=1;
   ensureState(s);
   return s;
@@ -725,7 +893,7 @@ function ensureState(s){
   if(!s.menu) s.menu=[]; if(!s.price) s.price={}; if(!s.lab) s.lab={}; if(!s.recs) s.recs=[1]; if(!s.hq) s.hq={brand:8,upg:{},std:0,mkt:0,spec:{}};
   if(!s.hq.upg) s.hq.upg={}; if(!s.specs) s.specs={}; if(!s.mods) s.mods=[]; if(!s.flags) s.flags={}; if(!s.rel) s.rel={}; if(!s.hist) s.hist=[];
   if(!s.terms) s.terms=[]; if(!s.ach) s.ach={}; if(!s.quizScore) s.quizScore=[]; if(!s.accepted) s.accepted=[]; if(!s.seen) s.seen={}; if(!s.tut) s.tut={};
-  if(!s.log) s.log=[]; if(!s.news) s.news=[]; if(!s.goalDone) s.goalDone={}; if(!s.repl) s.repl={};
+  if(s.dep==null) s.dep=0; if(!s.reg) s.reg={}; if(!s.stats) s.stats={goalsDone:0,holidays:0,miniGold:0,reg5:0,events:0}; if(!s.awn) s.awn='#D1361A'; if(!s.log) s.log=[]; if(!s.news) s.news=[]; if(!s.goalDone) s.goalDone={}; if(!s.repl) s.repl={};
   if(s.pidx==null) s.pidx=1; if(s.cidx==null) s.cidx=1; if(s.widx==null) s.widx=1; if(s.emerg==null) s.emerg=0;
   s.outlets.forEach(function(o){ if(!o.staff) o.staff={cook:1,wait:1,bar:1,cln:0}; if(!o.lvl) o.lvl={cook:1,wait:1,bar:1,cln:1}; if(!o.trained) o.trained={}; if(!o.mk) o.mk={}; if(!o.eq) o.eq={}; if(!o.specs) o.specs=[]; if(!o.hist) o.hist=[]; if(o.loc==null) o.loc=true; });
   if(!s.here || !outletById(s,s.here)) s.here=s.outlets[0].id;
@@ -755,25 +923,27 @@ function outletDishes(s,o){
 }
 function dishPrice(s,o,d){ var p=d.loc ? (o.lp||Math.round(d.ref*s.pidx*CITIES[o.city].inc/5)*5) : priceOf(s,d); return Math.max(10, Math.round(p*(1+(o.padj||0)/100))); }
 function refPrice(s,o,d){ return d.ref*s.pidx*CITIES[o.city].inc; }
-var PRICE_GAMMA=0.6, DEMAND_SCALE=0.97, INTEREST_MAX=2.1;
+var PRICE_GAMMA=0.6, DEMAND_SCALE=0.93, INTEREST_MAX=2.1;
 function pf(seg,r){ var c=PRICEK[seg]; return 1/(1+Math.pow(r/c.r,c.k)); }
 function supOf(s,o){ var p=SUPPLIERS[o.sup]; if(p && p.need && ownOutlets(s).length<p.need) return SUPPLIERS.whole; return p||SUPPLIERS.whole; }
 function cogsFactor(s,o){
   var f=supOf(s,o).cost*s.cidx*modM(s,'cogs',o.city);
-  var d=1; if(s.talent==='biz') d*=0.97; if(specAt(s,'arsen',o)) d*=0.96; if(hasSpec(s,'gleb')) d*=0.95; if(s.hq.upg.buy) d*=0.96; if(s.hq.upg.central) d*=0.93;
+  var d=1; if(s.talent==='biz') d*=0.97; if(specAt(s,'arsen',o)) d*=0.96; if(hasSpec(s,'gleb')) d*=0.95; if(hasSpec(s,'oleg')) d*=0.98; if(s.hq.upg.buy) d*=0.96; if(s.hq.upg.central) d*=0.93;
   return f*Math.max(0.78,d);
 }
-function cookEff(s,o){ var l=o.lvl.cook; if(specAt(s,'arsen',o)) l+=2; if(specAt(s,'damir',o)) l+=1; if(s.talent==='cook') l+=0.3; return l; }
+function cookEff(s,o){ var l=o.lvl.cook; if(specAt(s,'arsen',o)) l+=2; if(specAt(s,'damir',o)) l+=1; if(s.talent==='cook') l+=0.3; if(s.hq.upg.academy) l+=0.5; return l; }
 function dishAppeal(s,o,d,i,cal){
-  var tier=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) tier+=0.5; if(specAt(s,'lera',o) && d.cat==='coffee') tier+=0.3;
+  var tier=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) tier+=0.5; if(specAt(s,'ruslan',o) && (d.cat==='bake'||d.cat==='dess')) tier+=0.3; if(specAt(s,'lera',o) && d.cat==='coffee') tier+=0.3;
   var a=0.7+0.1*tier; d.tg.forEach(function(t){ a*=TAGS[t].v[i]; });
   if(d.h) a*=SEASONF.hot[cal]; if(d.c) a*=SEASONF.cold[cal];
   if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) a*=1.25;
+  if(specAt(s,'ruslan',o) && (d.cat==='bake'||d.cat==='dess')) a*=1.2;
+  if(o.hol){ var H=HOLIDAYS[cal]; if(H && H.cat[d.cat]) a*=1+H.cat[d.cat]; }
   if(d.loc && specAt(s,'damir',o)) a*=1.4;
   if(o.special && o.special===d.id) a*=1.35;
   return a;
 }
-function dishTier(s,o,d){ var t=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) t+=0.5; return t; }
+function dishTier(s,o,d){ var t=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) t+=0.5; if(specAt(s,'ruslan',o) && (d.cat==='bake'||d.cat==='dess')) t+=0.3; return t; }
 
 /* модель заведения: что и в каком количестве заказывает один гость каждого сегмента */
 function outletModel(s,o,cal){
@@ -815,19 +985,21 @@ function simOutlet(s, o, env, rng){
   var cf=cogsFactor(s,o), M=outletModel(s,o,cal);
   var hf=HOURS[o.hrs], demHrs=[0.88,1,1.07][o.hrs];
   /* средние показатели смеси блюд */
-  var polina=hasSpec(s,'polina')?1.3:1, lera=specAt(s,'lera',o)?1.5:1;
+  var polina=(hasSpec(s,'polina')?1.3:1)*(s.hq.upg.mkthq?1.15:1), lera=(specAt(s,'lera',o)?1.5:1)*(hasSpec(s,'vera')?1.4:1), HOL=o.hol?HOLIDAYS[cal]:null;
   var mkF={}, mkCost=0;
   SEGS.forEach(function(sg){ mkF[sg]=1; });
-  MKT.forEach(function(ch){ if(!o.mk[ch.id]) return; var e=polina*(ch.id==='smm'?lera:1); SEGS.forEach(function(sg){ mkF[sg]+=ch.reach[sg]*e; }); mkCost+=ch.cost; });
+  MKT.forEach(function(ch){ if(!o.mk[ch.id]) return; var e=polina*((ch.id==='smm'||ch.id==='blog')?lera:1); SEGS.forEach(function(sg){ mkF[sg]+=ch.reach[sg]*e; }); mkCost+=ch.cost; });
+  if(HOL) mkCost+=HOL.cost;
   if(o.mk.blog && !(env.blogOK)) { /* первый месяц блогера — если известность выше критической, обзор хороший */ }
   var absent=(!here && ownOutlets(s).length>1 && !o.mgr && o.fmt!=='fran'), steady=(s.hq.upg.secret?0.5:1)*(s.hq.upg.std?0.7:1);
   var mgrQ=o.mgr?(s.hq.upg.std?0:-2):0; if(o.mgr && specAt(s,'anton',o)) mgrQ=+3;
-  var repF=0.5+o.rep/100, awrF=0.42+0.95*o.awr, loyF=1+0.3*o.loy, compF=1-city.comp*0.32*(1.15-o.rep/100)*modM(s,'comp',o.city);
+  var regB=(o===flagship(s))?regularBonus(s):0, repF=0.5+o.rep/100, awrF=0.42+0.95*o.awr, loyF=1+0.3*o.loy+regB, compF=1-city.comp*0.32*(1.15-o.rep/100)*modM(s,'comp',o.city);
   var facF={stu:1,off:1,fam:1,tur:1,gou:1};
   if(o.eq.kids) facF.fam*=1.15; if(o.eq.wifi){ facF.stu*=1.12; facF.off*=1.05; }
   var deco=(o.eq.deco3?3:(o.eq.deco2?2:(o.eq.deco1?1:0)));
   facF.tur*=1+0.05*deco; facF.gou*=1+0.06*deco; if(o.eq.music){ facF.gou*=1.03; facF.fam*=1.02; }
-  if(o.mk.happy){ facF.stu*=1.0; }
+  if(HOL) SEGS.forEach(function(sg){ facF[sg]*=1+(HOL.seg[sg]||0); });
+  var rwAll=sumArr(SEGS.map(function(g){ return M.seg[g].rW; }))/SEGS.length, rv=rivalsFor(s,o.city), rvQ=sumArr(rv.map(function(x){ return x.q; }))/Math.max(1,rv.length), rvP=sumArr(rv.map(function(x){ return x.p; }))/Math.max(1,rv.length), rivalP=clamp(1+(rvQ-o.rep)/250+(rwAll-rvP)/4,0.92,1.12); compF/=rivalP; res.rivalP=rivalP;
   var base={}, pool0=0, interest=0, wantSeg={}, idx=0;
   SEGS.forEach(function(sg,i){
     var b=city.seg[i]*fmt.pot*DEMAND_SCALE*(sg==='tur'?city.tur[cal]:SEGSEAS[sg][cal])*diff.dem*modM(s,'dem',o.city)*modM(s,sg,o.city)*demHrs;
@@ -869,15 +1041,15 @@ function simOutlet(s, o, env, rng){
   var util=utilSum/30;
   /* заказы, потери по причинам */
   var stockLoss=clamp((0.16-0.04*o.stock)*(1+Math.max(0,util-0.8))*(o.sup==='market'?1.25:1)-(o.eq.pos?0.01:0),0,0.2);
-  var wasteBase=0.045+[ -0.010,0,0.012,0.030,0.055,0.090][clamp(o.stock,1,6)-1]*(o.eq.fridge?0.55:1)-(o.eq.fridge?0.02:0)-(o.eq.pos?0.015:0)+supOf(s,o).waste+Math.max(0,M.dishes.length-9)*0.004;
+  var wasteBase=0.045+[ -0.010,0,0.012,0.030,0.055,0.090][clamp(o.stock,1,6)-1]*(o.eq.fridge?0.55:1)-(o.eq.fridge?0.02:0)-(o.eq.pos?0.015:0)-(s.hq.upg.logist?0.02:0)-(hasSpec(s,'oleg')?0.025:0)+supOf(s,o).waste+Math.max(0,M.dishes.length-9)*0.004;
   var waste=clamp(wasteBase*modM(s,'waste',o.city),0.02,0.22);
   var guests=tot.served, delOrders=tot.del;
   var dineRev=guests*rpgA*(1-stockLoss); var avgCheck=rpgA;
-  var disc=(o.mk.loyal?0.03*0.4:0)+(o.mk.happy?0.15*0.22:0); dineRev*=(1-disc);
+  var disc=(o.mk.loyal?0.03*0.4:0)+(o.mk.happy?0.15*0.22:0)+(o.mk.lunch?0.03:0); dineRev*=(1-disc); var merch=o.mk.merch?dineRev*0.015:0; dineRev+=merch;
   var delRev=delOrders*rpgA*1.0*(1-stockLoss)*(1-disc);
-  var commission=o.mk.deliv?(o.eq.deliv?0.12:0.25)-(s.hq.upg.site?0.03:0):0;
+  var commission=o.mk.deliv?(o.eq.deliv?0.12:0.25)-(s.hq.upg.site?0.03:0)-(s.hq.upg.app?0.02:0):0;
   var delComm=delRev*commission, pack=delOrders*28;
-  var orders=guests+delOrders, cogs=(guests*cpgA+delOrders*cpgA)*(1-stockLoss)*(1+waste);
+  var orders=guests+delOrders, cogs=(guests*cpgA+delOrders*cpgA)*(1-stockLoss)*(1+waste)+merch*0.45;
   /* банкеты */
   var banRev=0, banCogs=0, banFail=0, banNote=[];
   s.accepted.forEach(function(a){ if(a.o!==o.id) return; var okCap=(banLoad+util*0.0)<0.75; var q=a.q||1; var good=okCap && util<1.15; banRev+=a.guests*a.price*(good?1:0.7); banCogs+=a.guests*a.price*0.34*cf/Math.max(0.9,s.cidx); if(!good) banFail++; banNote.push({id:a.id, ok:good, rev:a.guests*a.price*(good?1:0.7), name:a.name, bonus:a.bonus}); });
@@ -885,7 +1057,7 @@ function simOutlet(s, o, env, rng){
   var cE=cookEff(s,o), wE=o.lvl.wait+(specAt(s,'lera',o)?0.3:0), bE=o.lvl.bar+(specAt(s,'lera',o)?1:0);
   var food=clamp(22+11*tierA+4*(cE-1)+supOf(s,o).q+(o.eq.espro?2:0)+(o.mor-60)*0.08+(absent?-5*steady:0)+mgrQ*0.6,0,100);
   var wpen=clamp((util-0.9)*55,0,40);
-  var svcQ=clamp(46+5*(wE-1)+3*(bE-1)+(o.mor-60)*0.20+(o.eq.pos?3:0)-wpen+(s.talent==='host'?6:0)+(o.staff.bar<1?-8:0)+(absent?-6*steady:0)+mgrQ+(o.mgr&&specAt(s,'anton',o)?3:0),0,100);
+  var svcQ=clamp(46+5*(wE-1)+3*(bE-1)+(o.mor-60)*0.20+(o.eq.pos?3:0)-wpen+(s.talent==='host'?6:0)+(specAt(s,'mila',o)?7:0)+(o.staff.bar<1?-8:0)+(absent?-6*steady:0)+mgrQ+(o.mgr&&specAt(s,'anton',o)?3:0),0,100);
   var need=Math.max(0.5,Math.ceil(seatsNow(o,cal,0.5)/30)-(o.eq.dish?0.5:0)), clnR=Math.min(1,o.staff.cln/need), cln=clamp(40+45*clnR+4*(o.lvl.cln-1)+(o.eq.dish?3:0)+(absent?-3*steady:0),0,100);
   var atmo=clamp(38+deco*11+(o.eq.music?6:0)+(o.eq.terr&&cal>=4&&cal<=8?5:0)+(o.eq.kids?2:0)+(o.eq.wifi?1:0)+fmt.atmo+(o.fmt==='rest'?4:0)+modM(s,'atmo',o.city)*0-0,0,100);
   var val=clamp(80-(rWavg-1)*90,25,100);
@@ -897,9 +1069,9 @@ function simOutlet(s, o, env, rng){
   awrNew+=Math.min(0.03,guests/Math.max(1,seatsNow(o,cal,0.5)*fmt.turns*30)*0.04)*(s.talent==='host'?1.2:1)+(o.rep>70?0.008:0)+(o.eq.terr&&cal>=4&&cal<=8?0.006:0);
   if(s.hq.upg.brand) awrNew+=0.004; if(s.hq.upg.charity) awrNew+=0.006; awrNew+=(s.hq.brand/100)*0.008;
   awrNew=clamp(awrNew,0,1);
-  var loyNew=clamp(o.loy*0.96+(o.rep>58?(o.mk.loyal?0.075:0.035):0)+(s.hq.upg.site?0.01:0)+(s.hq.upg.charity?0.012:0),0,1);
+  var loyNew=clamp(o.loy*0.96+(o.rep>58?(o.mk.loyal?0.075:0.035):0)+(s.hq.upg.site?0.01:0)+(s.hq.upg.app?0.02:0)+(s.hq.upg.charity?0.012:0),0,1);
   /* затраты */
-  var wages=outletWages(s,o), rent=city.rent*fmt.rent*modM(s,'rent',o.city)*(s.flags.rentUp?1.12:1)*(s.flags.rentDeal?0.92:1);
+  var wages=outletWages(s,o), rent=city.rent*fmt.rent*modM(s,'rent',o.city)*(s.flags.rentUp?1.12:1)*(s.flags.rentDeal?0.92:1)*((s.flags.ownBuilding&&o===flagship(s))?0:1);
   var util2=fmt.util*s.cidx*(1+(cal<=1||cal===11?0.12:0))*(1+0.04*(o.eq.kitch2?1:0)+0.03*(o.eq.terr?1:0)), run=(o.eq.pos?EQD.pos.run:0)+(o.eq.music?EQD.music.run:0);
   var mk=mkCost+(o.mk.blog?0:0)+(s.flags.charityOn?0:0);
   var dineAll=dineRev+delRev+banRev, other=0.02*dineAll+run+pack;
@@ -966,19 +1138,20 @@ function simMonth(s, opts){
   franOutlets(s).forEach(function(o){ if(o.built){ return; } var r=simFranchise(s,o,env,rngFor(s,tag+m+'|'+o.id)); R.fran.push(r); tot.royalty+=r.royalty-r.support; });
   /* штаб-квартира */
   var n=own.length;
-  tot.hq=(n>=2?18000*(n-1)*s.cidx+0.012*tot.rev:0)+(s.hq.upg.charity?18000:0)+(s.hq.upg.site?6000:0)+(s.hq.upg.central?60000:0);
+  tot.hq=(n>=2?18000*(n-1)*s.cidx+0.012*tot.rev:0)+(s.hq.upg.charity?18000:0)+(s.hq.upg.site?6000:0)+(s.hq.upg.central?60000:0)+(s.insured?7000*n:0);
   Object.keys(s.specs).forEach(function(id){ if(SPECS[id].where==='hq') tot.hqWages+=SPECS[id].wage; });
   tot.hq+=tot.hqWages;
   var costsDeduct=tot.cogs-R.outlets.reduce(function(a,r){ return a+(r.deductCogs===0?r.cogs:0); },0)+tot.wages+tot.rent+tot.util+tot.mkt+tot.other+tot.delComm+tot.hq;
-  var interest=s.debt*(BANK.rate-(s.talent==='biz'?0.003:0))+s.emerg*0.035;
+  var interest=s.debt*(BANK.rate-(s.talent==='biz'?0.003:0)-(s.hq.upg.fin?0.002:0))+s.emerg*0.035;
   var revTax=tot.rev+tot.royalty;
   var tax6=0.06*revTax, tax15=Math.max(0.01*revTax, 0.15*Math.max(0,revTax-costsDeduct-interest)), tax=(s.tax==='15'?tax15:tax6);
   if(s.flags.emmaAuto) tax=Math.min(tax6,tax15);
+  if(s.hq.upg.fin) tax*=0.96;
   if(hasSpec(s,'emma')) tax*=0.92;
   var pre=tot.rev+tot.royalty-tot.cogs-tot.wages-tot.rent-tot.util-tot.mkt-tot.other-tot.delComm-tot.hq-interest;
   var div=(s.invest&&pre-tax>0)?(pre-tax)*INVESTOR.share:0; if(s.flags.nazMerge && pre-tax>0) div+=(pre-tax)*0.15;
   var profit=pre-tax-div;
-  R.total=tot; R.interest=interest; R.tax=tax; R.tax6=tax6; R.tax15=tax15; R.div=div; R.profit=profit; R.pre=pre; R.revTotal=revTax; R.costsDeduct=costsDeduct;
+  R.depInterest=s.dep*0.009; R.total=tot; R.interest=interest; R.tax=tax; R.tax6=tax6; R.tax15=tax15; R.div=div; R.profit=profit; R.pre=pre; R.revTotal=revTax; R.costsDeduct=costsDeduct;
   R.cashBefore=s.cash; R.guests=tot.guests;
   var wsum=0, rsum=0; R.outlets.forEach(function(r){ if(r.guests>0){ wsum+=r.guests; rsum+=r.rating*r.guests; } });
   R.rating=wsum?rsum/wsum:(flagship(s).rep?stars(flagship(s).rep):3);
@@ -987,18 +1160,18 @@ function simMonth(s, opts){
 /* применяет итоги месяца к состоянию (после просмотра пользователем «Печать»), без случайностей: всё уже посчитано в R */
 function applyMonth(s, R){
   var m=s.month, live=liveOutlets(s);
-  s.cash+=R.profit;
+  s.cash+=R.profit; s.dep+=(R.depInterest||0);
   s.outlets.forEach(function(o){
-    if(o.built){ o.built--; if(o.built===0){ o.openM=m+1; s.log.push({m:m, t:'Заведение в городе «'+CITIES[o.city].n+'» открылось.'}); } return; }
+    if(o.built){ o.built--; if(o.built===0){ o.openM=m+1; logEv(s,'city','Открылось заведение: '+CITIES[o.city].n); } return; }
     var r=null; R.outlets.forEach(function(x){ if(x.id===o.id) r=x; });
     if(!r || r.building) return;
     o.rep=r.repNew; o.awr=r.awrNew; o.loy=r.loyNew; o.trained={};
     (r.banNote||[]).forEach(function(b){ if(b.ok){ o.rep=clamp(o.rep+1.2+(b.bonus&&b.bonus.rep||0),0,100); o.awr=clamp(o.awr+(b.bonus&&b.bonus.awr||0),0,1); o.loy=clamp(o.loy+(b.bonus&&b.bonus.loy||0),0,1); if(b.bonus&&b.bonus.brand) s.hq.brand=clamp(s.hq.brand+b.bonus.brand,0,100); } else { o.rep=clamp(o.rep-3,0,100); } });
-    var u=r.utilK; var target=64+PAYS[o.pay].mor*1.6+(u>1.05?-14:(u<0.45?-4:4))+(s.talent==='host'?6:0)+(hasSpec(s,'arsen')?3:0)+(r.absent?-8:0)+(s.hq.upg.charity?2:0)+(o.mgr?3:0)+(s.hq.upg.school?3:0);
+    var u=r.utilK; var target=64+PAYS[o.pay].mor*1.6+(u>1.05?-14:(u<0.45?-4:4))+(s.talent==='host'?6:0)+(hasSpec(s,'arsen')?3:0)+(r.absent?-8:0)+(s.hq.upg.charity?2:0)+(o.mgr?3:0)+(s.hq.upg.school?3:0)+(specAt(s,'mila',o)?4:0);
     o.mor=clamp(o.mor+(target-o.mor)*0.4,0,100);
     o.hist.push({m:m, rev:r.rev, profit:r.profitOp, guests:r.guests, rating:r.rating}); if(o.hist.length>20) o.hist.shift();
     o.last={rev:r.rev, guests:r.guests, rating:r.rating, profit:r.profitOp};
-    o.mk.blog=0;
+    o.mk.blog=0; if(o.hol){ s.stats.holidays++; o.hol=0; }
   });
   franOutlets(s).forEach(function(o){ if(o.built){ o.built--; if(o.built===0){ o.openM=m+1; } } });
   /* инфляция */
@@ -1014,6 +1187,7 @@ function applyMonth(s, R){
   /* уходы персонала при низком настроении */
   R.quits=[];
   live.forEach(function(o){ if(o.mor<42){ var rr=rngFor(s,'quit'+m+'|'+o.id)(); if(rr<0.3){ var roles=['cook','wait','bar','cln'].filter(function(k){ return o.staff[k]>(k==='cln'?0:1); }); if(roles.length){ var role=roles[Math.floor(rngFor(s,'quitr'+m+o.id)()*roles.length)]; o.staff[role]--; R.quits.push({o:o.id, role:role}); } } } });
+  R.goals=settleGoals(s,R); R.regs=updateRegulars(s,R);
   s.hist.push({m:m, rev:R.revTotal, profit:R.profit, cash:s.cash, cap:capital(s), rating:R.rating, guests:R.guests, outlets:ownOutlets(s).length});
   if(R.profit>0 && R.profit>(s.best||0)) s.best=R.profit;
   s.lastR=slimR(R);
@@ -1024,7 +1198,7 @@ function applyMonth(s, R){
 
 function slimR(R){ return {m:R.m, rating:R.rating, profit:R.profit, total:R.total, tax6:R.tax6, tax15:R.tax15, interest:R.interest, outlets:R.outlets.map(function(r){ return {id:r.id, city:r.city, name:r.name, fmt:r.fmt, rev:r.rev, guests:r.guests, utilK:r.utilK, dims:r.dims, rating:r.rating, building:r.building, caps:r.caps}; })}; }
 function ownerOutletValue(s){ return sumArr(s.outlets.map(function(o){ return o.fmt==='fran'?0:0.55*(o.inv||0); })); }
-function capital(s){ return s.cash-s.debt-s.emerg+ownerOutletValue(s); }
+function capital(s){ return s.cash+(s.dep||0)-s.debt-s.emerg+ownerOutletValue(s); }
 function netWorth(s){ return capital(s); }
 function goalNow(s){
   var d=DIFFS[s.diff], cities=cityCountOpenWithFran(s);
@@ -1038,6 +1212,7 @@ function goalMet(s){ var g=goalNow(s); return g.okCities && g.okCap && g.okRatin
 
 /* ---------- действия игрока ---------- */
 function res(ok,msg){ return {ok:ok, msg:msg||''}; }
+function logEv(s,k,t){ s.log.push({m:s.month,k:k,t:t}); if(s.log.length>80) s.log.shift(); }
 function pay(s, sum, why){ if(s.cash<sum) return res(false,'Не хватает денег: нужно '+rub(sum)+', в кассе '+rub(s.cash)+'.'); s.cash-=sum; return res(true); }
 function A_menu(s,id,on){
   var d=DISH[id]; if(!d) return res(false); var i=s.menu.indexOf(id);
@@ -1046,7 +1221,7 @@ function A_menu(s,id,on){
   if(i>=0){ s.menu.splice(i,1); return res(true,'«'+d.n+'» убрано из меню.'); } return res(true);
 }
 function A_price(s,id,p){ var d=DISH[id]; if(!d) return res(false); p=Math.round(p); s.price[id]=clamp(p, Math.round(d.cost*s.cidx*1.0)+1, Math.round(d.ref*s.pidx*3)); return res(true); }
-function labCost(s,d){ return Math.round(d.lab*(s.talent==='cook'?0.67:1)/500)*500; }
+function labCost(s,d){ return Math.round(d.lab*(s.talent==='cook'?0.67:1)*(s.hq.upg.rd?0.5:1)/500)*500; }
 function A_lab(s,id){ var d=DISH[id]; if(!d || d.u!=='lab') return res(false); if(s.lab[id]) return res(true); if(s.month<d.min) return res(false,'Это блюдо можно разработать с '+d.min+'-го месяца.'); var c=labCost(s,d), r=pay(s,c); if(!r.ok) return r; s.lab[id]=1; return res(true,'Рецепт «'+d.n+'» разработан.'); }
 function A_hire(s,oid,role){ var o=outletById(s,oid), c=ROLES[role].hire; if(!o) return res(false); if(o.staff[role]>=8) return res(false,'Слишком много людей для одного заведения.'); var r=pay(s,c); if(!r.ok) return r; o.staff[role]++; return res(true,'Нанят: '+ROLES[role].n.toLowerCase()+'.'); }
 function A_fire(s,oid,role){ var o=outletById(s,oid); if(!o||o.staff[role]<=0) return res(false); if(o.staff[role]<=1 && (role==='cook'||role==='wait')) return res(false,'Нужен хотя бы один человек на этой должности.'); o.staff[role]--; return res(true); }
@@ -1059,12 +1234,12 @@ function eqCost(s,o,e){ return Math.round(e.cost*CITIES[o.city].cap/1000)*1000; 
 function A_eq(s,oid,id){ var o=outletById(s,oid), e=EQD[id]; if(!o||!e) return res(false); var have=o.eq[id]||0; if(e.max? have>=e.max : have) return res(false,'Это уже куплено.'); if(e.req && !o.eq[e.req]) return res(false,'Сначала нужно «'+EQD[e.req].n+'».'); var c=eqCost(s,o,e), r=pay(s,c); if(!r.ok) return r; o.eq[id]=have+1; o.inv=(o.inv||0)+c; return res(true,'Куплено: '+e.n.toLowerCase()+'.'); }
 function A_mgr(s,oid){ var o=outletById(s,oid); if(!o) return res(false); if(o.mgr){ o.mgr=0; return res(true,'Управляющий уволен.'); } var r=pay(s,MGR.hire); if(!r.ok) return r; o.mgr=1; return res(true,'Управляющий нанят.'); }
 function specAvail(s,id){ var sp=SPECS[id]; if(s.month<sp.min) return false; if(id==='arsen' && !s.flags.arsenMet) return false; if(id==='lera' && !s.flags.leraMet) return false; if(id==='sonya' && !s.flags.sonyaMet) return false; if(id==='damir' && !s.flags.damirMet) return false; if(id==='anton' && s.month<9) return false; return true; }
-function A_spec(s,id,oid){ var sp=SPECS[id]; if(!sp) return res(false); if(s.specs[id]){ delete s.specs[id]; var o0=outletById(s,s.specs[id]); return res(true,'Сотрудник ушёл из команды.'); } if(!specAvail(s,id)) return res(false,'Пока недоступен.'); var o=outletById(s,oid); if(sp.where==='outlet' && !o) return res(false); if(sp.where==='outlet'){ var busy=Object.keys(s.specs).filter(function(k){ return s.specs[k]===oid && SPECS[k].where==='outlet'; }).length; if(busy>=2) return res(false,'В одном заведении не больше двух особых людей.'); } var r=pay(s,sp.hire); if(!r.ok) return r; s.specs[id]=(sp.where==='hq'?'hq':oid); return res(true,sp.name+' теперь в команде.'); }
-function A_hq(s,id){ var u=HQUPD[id]; if(!u||s.hq.upg[id]) return res(false); if(s.month<u.min) return res(false,'Это откроется с '+u.min+'-го месяца.'); if(u.req && !s.hq.upg[u.req]) return res(false,'Сначала: «'+HQUPD[u.req].n+'».'); if(id==='central' && ownOutlets(s).length<3) return res(false,'Центральная кухня нужна от трёх заведений.'); if(id==='buy' && ownOutlets(s).length<2) return res(false,'Совместные закупки имеют смысл от двух заведений.'); var r=pay(s,u.cost); if(!r.ok) return r; s.hq.upg[id]=1; return res(true,'Готово: «'+u.n+'».'); }
+function A_spec(s,id,oid){ var sp=SPECS[id]; if(!sp) return res(false); if(s.specs[id]){ delete s.specs[id]; var o0=outletById(s,s.specs[id]); return res(true,'Сотрудник ушёл из команды.'); } if(!specAvail(s,id)) return res(false,'Пока недоступен.'); var o=outletById(s,oid); if(sp.where==='outlet' && !o) return res(false); if(sp.where==='outlet'){ var busy=Object.keys(s.specs).filter(function(k){ return s.specs[k]===oid && SPECS[k].where==='outlet'; }).length; if(busy>=2) return res(false,'В одном заведении не больше двух особых людей.'); } var r=pay(s,sp.hire); if(!r.ok) return r; s.specs[id]=(sp.where==='hq'?'hq':oid); logEv(s,'team',sp.name+' в команде'); return res(true,sp.name+' теперь в команде.'); }
+function A_hq(s,id){ var u=HQUPD[id]; if(!u||s.hq.upg[id]) return res(false); if(s.month<u.min) return res(false,'Это откроется с '+u.min+'-го месяца.'); if(u.req && !s.hq.upg[u.req]) return res(false,'Сначала: «'+HQUPD[u.req].n+'».'); if(id==='central' && ownOutlets(s).length<3) return res(false,'Центральная кухня нужна от трёх заведений.'); if(id==='buy' && ownOutlets(s).length<2) return res(false,'Совместные закупки имеют смысл от двух заведений.'); var r=pay(s,u.cost); if(!r.ok) return r; s.hq.upg[id]=1; logEv(s,'hq','Штаб: «'+u.n+'»'); return res(true,'Готово: «'+u.n+'».'); }
 function loanLimit(s){ return BANK.limit+(s.hq.brand>40?500000:0)+(ownOutlets(s).length>=3?500000:0); }
 function A_borrow(s,sum){ sum=Math.round(sum); if(sum<=0) return res(false); if(s.debt+sum>loanLimit(s)) return res(false,'Банк даёт не больше '+rub(loanLimit(s))+' всего.'); s.debt+=sum; s.flags.hadLoan=1; s.cash+=sum; return res(true,'Кредит получен: '+rub(sum)+'.'); }
 function A_repay(s,sum){ sum=Math.round(sum); var e=Math.min(sum,s.emerg); var rest=sum-e; var d=Math.min(rest,s.debt); var tot=e+d; if(tot<=0) return res(false); if(s.cash<tot) return res(false,'Не хватает денег.'); s.cash-=tot; s.emerg-=e; s.debt-=d; return res(true,'Погашено '+rub(tot)+'.'); }
-function A_invest(s){ if(s.invest) return res(false,'Инвестор уже вошёл в дело.'); s.invest=1; s.cash+=INVESTOR.sum; return res(true,'Артём Викторович вложил '+rub(INVESTOR.sum)+' и получает 20% прибыли.'); }
+function A_invest(s){ if(s.invest) return res(false,'Инвестор уже вошёл в дело.'); s.invest=1; s.cash+=INVESTOR.sum; logEv(s,'money','В дело вошёл инвестор'); return res(true,'Артём Викторович вложил '+rub(INVESTOR.sum)+' и получает 20% прибыли.'); }
 function A_tax(s,t){ s.tax=t; return res(true); }
 function A_here(s,oid){ if(!outletById(s,oid)) return res(false); s.here=oid; return res(true); }
 function A_sync(s){ var lst=outletDishes(s,s.outlets[0]); s.menu.forEach(function(id){ var d=DISH[id]; if(d) s.price[id]=defPrice(s,d); }); return res(true,'Цены подогнаны под рынок.'); }
@@ -1081,7 +1256,7 @@ function A_open(s,cityId,fmt,nm){
   var c=openCost(s,cityId,fmt), r=pay(s,c.total); if(!r.ok) return r;
   var id='o'+(s.outlets.length+1); while(outletById(s,id)) id+='x';
   var o=makeOutlet(id,cityId,fmt,nm||(s.cafe+' · '+CITIES[cityId].n)); o.inv=c.capex; o.built=1; o.padj=Math.round((CITIES[cityId].inc/CITIES[flagship(s).city].inc-1)*100/5)*5; o.awr=clamp(0.10+s.hq.brand/100*0.5+(s.hq.upg.brand?0.04:0),0,1); o.rep=Math.max(o.rep, 40+s.hq.brand*0.1+(s.hq.upg.std?4:0));
-  s.outlets.push(o); s.flags.openedAny=1; if(fmt==='rest') s.flags.restOpen=1; if(!s.flags.firstOpenM) s.flags.firstOpenM=s.month;
+  s.outlets.push(o); logEv(s,'city','Начато строительство: '+FORMATS[fmt].name.toLowerCase()+' в городе '+CITIES[cityId].n); s.flags.openedAny=1; if(fmt==='rest') s.flags.restOpen=1; if(!s.flags.firstOpenM) s.flags.firstOpenM=s.month;
   return res(true,'Вы строите «'+FORMATS[fmt].name+'» в городе '+CITIES[cityId].n+'. Откроется в следующем месяце.');
 }
 function A_franchise(s,cityId){
@@ -1089,7 +1264,7 @@ function A_franchise(s,cityId){
   var chk=cityOpenable(s,cityId); if(!chk.ok) return res(false,chk.why); if(franOutlets(s).length>=2) return res(false,'Пока не больше двух франшиз.');
   var id='o'+(s.outlets.length+1); while(outletById(s,id)) id+='x';
   var o=makeOutlet(id,cityId,'fran',s.cafe+' · '+CITIES[cityId].n+' (франшиза)'); o.built=1; o.rep=45+s.hq.brand*0.12+(s.hq.upg.std?10:0); s.outlets.push(o);
-  var fee=Math.round(280000*CITIES[cityId].inc/10000)*10000; s.cash+=fee; s.flags.franchised=1;
+  var fee=Math.round(280000*CITIES[cityId].inc/10000)*10000; s.cash+=fee; s.flags.franchised=1; logEv(s,'city','Первая франшиза в городе '+CITIES[cityId].n);
   return res(true,'Партнёр в городе '+CITIES[cityId].n+' заплатил '+rub(fee)+' за право работать под вашим именем.');
 }
 function A_close(s,oid){ var o=outletById(s,oid); if(!o||o===s.outlets[0]) return res(false,'Флагман закрывать нельзя.'); var back=Math.round(0.4*(o.inv||0)); s.cash+=back; s.outlets=s.outlets.filter(function(x){ return x!==o; }); Object.keys(s.specs).forEach(function(k){ if(s.specs[k]===oid) delete s.specs[k]; }); if(s.here===oid) s.here=s.outlets[0].id; return res(true,'Заведение закрыто, вернули '+rub(back)+' за оборудование.'); }
@@ -1099,6 +1274,7 @@ function applyFx(s, fx, oid){
   if(!fx) return [];
   var out=[], o=oid?outletById(s,oid):outletById(s,s.here)||s.outlets[0], live=liveOutlets(s);
   function each(f){ live.forEach(f); }
+  if(fx.c && fx.c<0 && s.insured){ var back=Math.round(-fx.c*0.4); fx=Object.assign({},fx,{c:fx.c+back}); out.push({k:'info', t:'страховка вернула '+rub(back)}); }
   if(fx.c){ s.cash+=fx.c; out.push({k:fx.c>0?'gain':'loss', t:(fx.c>0?'+':'−')+rub(Math.abs(fx.c)).replace('−','')}); if(s.cash<0){ s.emerg=(s.emerg||0)-s.cash; out.push({k:'warn', t:'не хватило '+rub(-s.cash)+': экстренный долг'}); s.cash=0; } }
   if(fx.rep){ each(function(x){ x.rep=clamp(x.rep+fx.rep,0,100); }); out.push({k:fx.rep>0?'gain':'loss', t:'репутация '+(fx.rep>0?'+':'−')+Math.abs(fx.rep)}); }
   if(fx.repOne){ o.rep=clamp(o.rep+fx.repOne,0,100); out.push({k:fx.repOne>0?'gain':'loss', t:'репутация '+(fx.repOne>0?'+':'−')+Math.abs(fx.repOne)}); }
@@ -1121,6 +1297,9 @@ function applyFx(s, fx, oid){
   if(fx.quit){ var role=fx.quit; if(o.staff[role]>1){ o.staff[role]--; out.push({k:'loss', t:'ушёл сотрудник'}); } }
   if(fx.eq){ var e=EQD[fx.eq]; if(e && !o.eq[fx.eq]){ o.eq[fx.eq]=1; out.push({k:'gain', t:'получено: '+e.n.toLowerCase()}); } }
   if(fx.spec){ s.flags[fx.spec+'Met']=1; }
+  if(fx.buy==='building'){ s.cash-=900000; s.flags.ownBuilding=1; flagship(s).inv=(flagship(s).inv||0)+900000; out.push({k:'info', t:'здание куплено: аренды больше нет'}); if(s.cash<0){ s.emerg+=-s.cash; s.cash=0; } }
+  if(fx.reg){ Object.keys(fx.reg).forEach(function(k){ var r=s.reg[k]||(s.reg[k]={h:0,m:0}); r.h=clamp(r.h+fx.reg[k],0,5); out.push({k:fx.reg[k]>0?'gain':'loss', t:REG_BY_ID[k].n+': '+(fx.reg[k]>0?'ближе':'дальше')}); }); }
+  if(fx.staff){ if(o.staff[fx.staff]<8){ o.staff[fx.staff]++; out.push({k:'gain', t:'в команде новый человек: '+ROLES[fx.staff].n.toLowerCase()}); } }
   if(fx.hereMor){ o.mor=clamp(o.mor+fx.hereMor,0,100); }
   if(fx.hire){ var sp=SPECS[fx.hire]; if(sp){ s.flags[fx.hire+'Met']=1; s.specs[fx.hire]=(sp.where==='hq'?'hq':(o?o.id:s.outlets[0].id)); out.push({k:'gain', t:sp.name+' в команде'}); } }
   if(fx.emmaAuto){ s.flags.emmaAuto=1; }
@@ -1130,7 +1309,58 @@ function applyFx(s, fx, oid){
   if(fx.hqUp){ if(!s.hq.upg[fx.hqUp]){ s.hq.upg[fx.hqUp]=1; out.push({k:'gain', t:'«'+HQUPD[fx.hqUp].n+'» запущено'}); } }
   return out;
 }
-function fxChips(fx){ var s={cash:0,flags:{},recs:[],mods:[],hq:{brand:0,upg:{}},outlets:[makeOutlet('o9','tula','cafe')],lab:{},rel:{},here:'o9',debt:0,invest:0,specs:{},menu:['espresso'],price:{},pidx:1,cidx:1,widx:1,talent:null}; s.outlets[0].rep=50; s.outlets[0].awr=.3; s.outlets[0].loy=.3; s.outlets[0].mor=50; s.outlets[0].eq={}; s.outlets[0].staff={cook:3,wait:3,bar:2,cln:1}; s.outlets[0].stock=3; return applyFx(s,fx,'o9'); }
+function fxChips(fx){ var s={cash:0,flags:{},recs:[],mods:[],hq:{brand:0,upg:{}},outlets:[makeOutlet('o9','tula','cafe')],lab:{},rel:{},here:'o9',debt:0,invest:0,specs:{},menu:['espresso'],price:{},pidx:1,cidx:1,widx:1,talent:null,reg:{},insured:0}; s.outlets[0].rep=50; s.outlets[0].awr=.3; s.outlets[0].loy=.3; s.outlets[0].mor=50; s.outlets[0].eq={}; s.outlets[0].staff={cook:3,wait:3,bar:2,cln:1}; s.outlets[0].stock=3; return applyFx(s,fx,'o9'); }
+
+
+/* ---------- задания месяца ---------- */
+function goalsFor(s){
+  if(s.goals && s.goals.m===s.month) return s.goals;
+  var rng=rngFor(s,'goals'+s.month), prev=(s.goals&&s.goals.list)||[], pool=QUESTS.filter(function(q){ return q.min<=s.month && prev.indexOf(q.id)<0; }), list=[];
+  for(var i=0;i<3&&pool.length;i++){ var k=Math.floor(rng()*pool.length); list.push(pool[k].id); pool.splice(k,1); }
+  s.goals={m:s.month, list:list}; return s.goals;
+}
+function settleGoals(s,R){
+  var g=s.goals; if(!g||g.m!==s.month) return [];
+  var r=R.outlets.filter(function(x){ return !x.building&&x.guests>0; })[0], out=[];
+  g.list.forEach(function(id){ var q=QUEST_BY_ID[id], ok=false; try{ ok=!!q.t(s,R,r); }catch(e){} if(ok){ s.cash+=q.rew; s.stats.goalsDone++; s.log.push({m:s.month,k:'goal',t:'Задание «'+q.n+'» выполнено'}); } out.push({id:id, ok:ok, rew:q.rew}); });
+  return out;
+}
+function goalStatus(s,R){ var g=goalsFor(s), r=R&&R.outlets.filter(function(x){ return !x.building&&x.guests>0; })[0]; return g.list.map(function(id){ var q=QUEST_BY_ID[id], ok=false; try{ ok=!!(R&&q.t(s,R,r)); }catch(e){} return {id:id, ok:ok}; }); }
+
+/* ---------- постоянные гости ---------- */
+function activeRegulars(s){ return REGULARS.filter(function(r){ return r.from<=s.month; }); }
+function regularBonus(s){ var h=0; activeRegulars(s).forEach(function(r){ var x=s.reg[r.id]; if(x) h+=x.h; }); return Math.min(0.25,h*0.01); }
+function regFavId(s,r){ return r.fav==='loc'?('loc_'+flagship(s).city):r.fav; }
+function updateRegulars(s,R){
+  var f=flagship(s), have={}, out=[]; outletDishes(s,f).forEach(function(d){ have[d.id]=1; });
+  activeRegulars(s).forEach(function(r){
+    var x=s.reg[r.id]||(s.reg[r.id]={h:0,m:0}), fav=regFavId(s,r), d0=x.h;
+    if(have[fav] && f.rep>=45) x.h=Math.min(5,x.h+1); else if(have[r.alt] && f.rep>=45) x.h=x.h; else x.h=Math.max(0,x.h-1);
+    var gift=false; if(x.h>=5 && !x.gift){ x.gift=1; gift=true; s.cash+=10000; s.stats.reg5++; s.log.push({m:s.month,k:'reg',t:r.n+' стал настоящим другом кафе'}); }
+    out.push({id:r.id, dh:x.h-d0, h:x.h, gift:gift});
+  });
+  return out;
+}
+
+/* ---------- конкуренты в городе ---------- */
+function rivalsFor(s,cityId){
+  var city=CITIES[cityId], rng=rngFor(s,'riv|'+cityId), n=city.comp>0.5?4:3, used={}, out=[], drift=Math.min(8,(s.month-1)*0.5);
+  for(var i=0;i<n;i++){
+    var k; do{ k=Math.floor(rng()*RIVAL_NAMES.length); }while(used[k]); used[k]=1;
+    var style=RIVAL_STYLES[Math.floor(rng()*RIVAL_STYLES.length)], q0=48+rng()*28, p0=0.86+rng()*0.28;
+    var q=clamp(q0+drift+(style==='ресторан'?4:0)-(style==='столовая'?3:0),40,92), p=p0*(s.flags.nazWar?0.92:1)*(style==='столовая'?0.9:(style==='ресторан'?1.12:1));
+    out.push({n:RIVAL_NAMES[k], style:style, q:q, p:p, stars:stars(q)});
+  }
+  return out;
+}
+
+/* ---------- финансы: вклад, страховка, закупка впрок, праздники ---------- */
+function A_dep(s,sum){ sum=Math.round(sum); if(sum<=0) return res(false); if(s.cash<sum) return res(false,'В кассе не хватает денег.'); s.cash-=sum; s.dep+=sum; return res(true,'На вклад положено '+rub(sum)+'. Он растёт на 0,9% в месяц.'); }
+function A_undep(s,sum){ sum=Math.round(Math.min(sum,s.dep)); if(sum<=0) return res(false); s.dep-=sum; s.cash+=sum; return res(true,'Со вклада снято '+rub(sum)+'.'); }
+function A_insure(s){ s.insured=s.insured?0:1; return res(true,s.insured?'Страховка включена: часть убытков от случайных событий вернётся.':'Страховка отключена.'); }
+function forwardFee(s){ var c=s.lastR&&s.lastR.total?s.lastR.total.cogs:150000; return Math.max(15000,Math.round(0.06*c*3*0.6/1000)*1000); }
+function A_forward(s){ if((s.flags.fwdUntil||0)>=s.month) return res(false,'Договор с поставщиками уже действует.'); var fee=forwardFee(s), r=pay(s,fee); if(!r.ok) return r; s.mods.push({k:'cogs',m:0.94,left:3,why:'закупка впрок'}); s.flags.fwdUntil=s.month+2; return res(true,'Цена продуктов зафиксирована на три месяца: −6%.'); }
+function A_hol(s,oid){ var o=outletById(s,oid); if(!o) return res(false); o.hol=o.hol?0:1; return res(true,o.hol?'Праздничная кампания запланирована.':'Кампания отменена.'); }
 
 /* ===== «Первый столик»: заказы и банкеты ===== */
 var BANQ = [
@@ -1180,7 +1410,7 @@ function A_accept(s,id){
 }
 function A_haggle(s,id){
   var b=makeBoard(s), off=b.offers.filter(function(x){ return x.id===id; })[0]; if(!off || off.state!=='open') return res(false);
-  var o=outletById(s,off.o), p=clamp(0.3+(o.rep-45)/120+(s.talent==='host'?0.08:0),0.2,0.8), r=rngFor(s,'hag'+off.id)();
+  var o=outletById(s,off.o); if(!o){ off.state='lost'; return res(false,'Заведения уже нет.'); } var p=clamp(0.3+(o.rep-45)/120+(s.talent==='host'?0.08:0),0.2,0.8), r=rngFor(s,'hag'+off.id)();
   if(r<p){ off.price=Math.round(off.price*1.12/10)*10; off.hag=1; var rr=A_accept(s,id); return res(true,'Клиент согласился на цену выше: '+rub(off.price)+' с человека. '+rr.msg); }
   off.state='lost'; return res(false,'Клиент ушёл: «Дороговато, мы поищем в другом месте».');
 }
@@ -1334,7 +1564,7 @@ var EVENT_BY_ID = {}; EVENTS.forEach(function(e){ EVENT_BY_ID[e.id]=e; });
 /* какие случаи ждут в этом месяце: не больше двух, одинаковые подряд не повторяются */
 function pickEvents(s){
   var m=s.month, rng=rngFor(s,'ev'+m), seen=s.seen||{}, out=[];
-  var n=(m<=2?0:(m<=8?1:(rng()<0.6?2:1)));
+  var n=(m<=2?0:(m<=5?1:(rng()<0.65?2:1)));
   if(m===1||m===16) n=0;
   var pool=EVENTS.filter(function(e){ if(e.min && m<e.min) return false; if(e.max && m>e.max) return false; if(e.ok && !e.ok(s)) return false; if(seen['ev_'+e.id]) return false; return true; });
   for(var i=0;i<n && pool.length;i++){
@@ -1375,6 +1605,118 @@ function stepNews(s){
   N.mods.forEach(function(x){ s.mods.push({k:x.k, m:x.m, left:N.dur, why:N.n}); });
   return N;
 }
+
+/* ===== «Первый столик»: ещё 30 случаев — праздники, люди, поставщики, техника, города, личные истории, мини-игры ===== */
+function calNow(s){ return CAL[s.month-1]; }
+function hasRel(s,k,n){ return (s.rel[k]||0)>=n; }
+EVENTS = EVENTS.concat([
+ /* праздники и сезоны */
+ {id:'maslenitsa', who:'maria', title:'Масленица', min:3, w:3, ok:function(s){ var c=calNow(s); return c===1||c===2; }, text:'В городе Масленица. Мария Сергеевна приносит старую сковороду: «Блины у Тамары разлетались быстрее, чем остывали».',
+  opts:[{t:'Блинная неделя', d:'−6 000 ₽: блины с разной начинкой и чай самовара.', fx:{c:-6000, awr:0.05, mod:[{k:'fam',m:1.12,n:1,w:'блинная неделя'}]}, res:['Очередь за блинами растянулась на весь переулок. Борщ охраняет стопку.']},
+        {t:'Оставить обычное меню', d:'Без трат.', fx:{}, res:['Праздник проходит мимо вашей кухни.']}]},
+ {id:'march8', who:'sonya', title:'8 Марта', min:3, w:3, ok:function(s){ return calNow(s)===2; }, text:'Соня предлагает к каждому десерту подавать маленький букет: «Это дёшево, а люди запоминают».',
+  opts:[{t:'Подавать букеты к десертам', d:'−7 000 ₽, гурманы и семьи придут охотнее.', fx:{c:-7000, mod:[{k:'gou',m:1.15,n:1,w:'8 Марта'},{k:'fam',m:1.10,n:1,w:'8 Марта'}], awr:0.03}, res:['Гости фотографируются с букетами и выкладывают снимки в соцсети.']},
+        {t:'Сделать скидку на десерты', d:'Меньше дохода, больше заказов.', fx:{mod:[{k:'stu',m:1.06,n:1,w:'скидка на десерты'}]}, res:['Десертов продаётся больше, но маржа на них тоньше.']}]},
+ {id:'sept1', who:'lera', title:'1 сентября', min:5, w:3, ok:function(s){ return calNow(s)===8; }, text:'Студенты вернулись, школьники идут с цветами. Лера предлагает «школьное меню»: недорогое и быстрое.',
+  opts:[{t:'Запустить школьное меню', d:'−5 000 ₽: набор на 250 ₽, студенты и семьи довольны.', fx:{c:-5000, mod:[{k:'stu',m:1.12,n:2,w:'школьное меню'},{k:'fam',m:1.06,n:2,w:'школьное меню'}], loy:0.03}, res:['К обеду у двери стоит стайка школьников с портфелями.']},
+        {t:'Не менять меню', d:'Без трат и без риска.', fx:{}, res:['Всё идёт как обычно.']}]},
+ {id:'graduation', who:'lera', title:'Выпускной вечер', min:3, w:3, ok:function(s){ return calNow(s)===5; }, text:'Школа заказывает несколько столиков для выпускников и их родителей. Нужно решить, как встречать.',
+  opts:[{t:'Праздничный зал и шарики', d:'−6 000 ₽, семьи запомнят этот вечер.', fx:{c:-6000, awr:0.05, loy:0.04, mod:[{k:'fam',m:1.14,n:1,w:'выпускные'}]}, res:['Выпускники фотографируются у вывески. Родители заказывают ещё по кофе.']},
+        {t:'Обычный сервис', d:'Бесплатно.', fx:{mod:[{k:'fam',m:1.04,n:1,w:'выпускные'}]}, res:['Спокойный вечер, чаевые приличные.']}]},
+ {id:'blackfriday', who:'polina', title:'Чёрная пятница', min:6, w:3, ok:function(s){ return calNow(s)===10; }, text:'Все вокруг объявляют скидки. Полина предлагает ответить умно: скидка только на «хиты».',
+  opts:[{t:'Скидка 15% на хиты', d:'Гостей больше, продукты в этот месяц дороже обычного.', fx:{mod:[{k:'dem',m:1.12,n:1,w:'чёрная пятница'},{k:'cogs',m:1.02,n:1,w:'акция'}], awr:0.03}, res:['Хиты улетают, касса звенит. Полина довольна: «Скидка с головой, а не скидка ради скидки».']},
+        {t:'Не участвовать', d:'Держите цену как есть.', fx:{}, res:['Люди идут за скидками к соседям. Некоторые возвращаются после.']}]},
+ {id:'nygala', who:'anna', title:'Новогодние корпоративы', min:9, w:3, ok:function(s){ return calNow(s)===11; }, text:'Корпоративы расписаны на две недели вперёд. Нужно решить, брать ли все заказы.',
+  opts:[{t:'Взять все заказы и нанять подмену', d:'−10 000 ₽, зато много выручки.', fx:{c:-10000, mod:[{k:'dem',m:1.10,n:1,w:'корпоративы'}], mor:-3}, res:['Зал полон каждый вечер. Команда устала, но чаевые огромные.']},
+        {t:'Брать столько, сколько потянет кухня', d:'Спокойнее, чуть меньше.', fx:{mod:[{k:'dem',m:1.04,n:1,w:'корпоративы'}], mor:3}, res:['Всё держится ровно, команда выспалась.']}]},
+ /* команда */
+ {id:'staffraise', who:'lera', title:'Команда просит повышение', min:5, w:2, ok:function(s){ return flagship(s).mor<62; }, text:'Лера говорит за всю смену: «Цены выросли, а зарплата та же. Многие думают об уходе».',
+  opts:[{t:'Поднять зарплату на 5%', d:'Расходы выше, настроение лучше.', fx:{mor:8, mod:[{k:'wage',m:1.05,n:99,w:'повышение зарплаты'}]}, res:['Команда облегчённо выдыхает. Лера пишет на доске: «Спасибо!»']},
+        {t:'Обсудить и дать премию раз', d:'−12 000 ₽ один раз.', fx:{c:-12000, mor:4}, res:['Премия поднимает настроение, но вопрос зарплаты остаётся.']},
+        {t:'Ничего не менять', d:'Экономия, но риск.', fx:{mor:-6}, res:['Люди разочарованы. Через неделю кто-то уйдёт.']}]},
+ {id:'referral', who:'arsen', title:'Хороший человек к нам', min:4, w:2, ok:function(s){ return flagship(s).staff.cook<5; }, text:'Повар Максим приводит друга: «Работал в столовой при заводе, руки золотые».',
+  opts:[{t:'Взять на кухню', d:'Расходы на зарплату выше, но кухня тянет больше.', fx:{staff:'cook', mor:2}, res:['Новый повар быстро вливается. Максим гордится.']},
+        {t:'Сказать «пока нет мест»', d:'Без изменений.', fx:{}, res:['Друг уходит в другое кафе. Максим расстроен.']}]},
+ {id:'trainday', who:'arsen', title:'День обучения', min:4, w:2, text:'Арсен предлагает закрыться на один день и устроить внутреннее обучение: нож, сервис, чистота.',
+  opts:[{t:'Закрыться на день', d:'−12 000 ₽ выручки, повара станут сильнее.', fx:{c:-12000, mor:6, upLvl:'cook'}, res:['Команда учится, смеётся, пробует новые заготовки. Все довольны.']},
+        {t:'Провести обучение по вечерам', d:'Бесплатно, но все устали.', fx:{mor:-2}, res:['Учиться вечером трудно, но кое-что запомнилось.']}]},
+ {id:'cookidea', who:'arsen', title:'Новое блюдо от повара', min:5, w:2, ok:function(s){ return !s.lab.granola; }, text:'Повар приносит на пробу гранолу с йогуртом: «Сам придумал, давайте в меню».',
+  opts:[{t:'Принять рецепт в меню', d:'Блюдо открывается бесплатно.', fx:{lab:'granola', mor:3}, res:['Гранола уходит за час. Повар сияет.']},
+        {t:'Поблагодарить и отказать', d:'Без изменений.', fx:{mor:-2}, res:['Рецепт остаётся в блокноте.']}]},
+ /* гости */
+ {id:'critic', who:'efim', title:'Ресторанный критик', min:8, w:3, ok:function(s){ return flagship(s).rep>=58; }, text:'Ефим Львович, критик областной газеты, сидит у окна и ест борщ. Он ничего не говорит.',
+  opts:[{t:'Угостить как всех', d:'Без спецприёма.', chk:function(s){ return {p:clamp((flagship(s).rep-40)/45,0.25,0.9), ok:{fx:{awr:0.10, brand:2, reg:{efim:2}}, res:['Через неделю в газете заметка: «Тихое место, где вкусно, как в детстве».']}, bad:{fx:{awr:0.02, repOne:-1}, res:['Критик уходит молча. Заметки не будет.']}}; }},
+        {t:'Особый приём', d:'−4 000 ₽: фирменный десерт и чай.', chk:function(s){ return {p:clamp((flagship(s).rep-30)/45,0.35,0.95), ok:{fx:{c:-4000, awr:0.12, brand:3, reg:{efim:3}}, res:['Критик долго жуёт Наполеон. Потом говорит: «Тамара жива».']}, bad:{fx:{c:-4000, awr:0.03}, res:['Критик кивает, но заметки не пишет.']}}; }}]},
+ {id:'proposal', who:'lera', title:'Предложение за столиком', min:5, w:2, text:'Молодой человек шепчет Лере: «Сегодня я хочу сделать предложение. Поможете сделать это красиво?»',
+  opts:[{t:'Устроить сюрприз', d:'−3 000 ₽: свечи, лепестки, десерт.', fx:{c:-3000, awr:0.05, loy:0.04, rel:{lera:1}}, res:['Девушка плачет от радости, весь зал аплодирует. Видео набирает тысячи просмотров.']},
+        {t:'Просто поздравить', d:'Без трат.', fx:{awr:0.01}, res:['Всё проходит тихо и мило.']}]},
+ {id:'lostphone', who:'maria', title:'Забытый телефон', min:3, w:2, text:'Вечером под столом находят телефон. На экране сообщения от семьи, которая его ищет.',
+  opts:[{t:'Позвонить семье и вернуть', d:'Честно и без наград.', fx:{repOne:1, loy:0.03, brand:1}, res:['Хозяйка приходит с цветами и рассказывает всем знакомым.']},
+        {t:'Оставить на кассе до завтра', d:'Проще, но менее заботливо.', fx:{}, res:['Телефон забирают утром. Спасибо сказали не очень громко.']}]},
+ {id:'pensioners', who:'maria', title:'Клуб пенсионеров', min:4, w:2, text:'Мария Сергеевна просит: «У нас клуб по вторникам. Можно скидку по вторникам и столик у окна?»',
+  opts:[{t:'Принять «вторник мудрых»', d:'Скидка 10% по вторникам.', fx:{mod:[{k:'fam',m:1.07,n:4,w:'вторник мудрых'}], loy:0.06, rel:{maria:1}}, res:['Каждый вторник зал полон седых голов, споров и шутливых тостов чаем.']},
+        {t:'Вежливо отказать', d:'Сохраняете чек.', fx:{rel:{maria:-1}}, res:['Мария Сергеевна кивает: «Понимаю». Но вторники теперь пустые.']}]},
+ {id:'celebrity', who:'kira', title:'Знаменитость в зале', min:5, w:1.5, ok:function(s){ return flagship(s).awr>0.3; }, text:'За дальним столиком — местный певец. Лера шепчет: «Это он, он же ходит у меня в плейлисте!»',
+  opts:[{t:'Попросить фото на память', d:'Он соглашается. Фото на стене.', fx:{awr:0.08, repOne:1}, res:['Фото висит у кассы. Гости спрашивают: «А это тот самый?»']},
+        {t:'Не беспокоить', d:'Он ценит покой.', fx:{awr:0.02, brand:1}, res:['Певец уходит довольным и оставляет щедрые чаевые.']}]},
+ /* поставщики и склад */
+ {id:'harvestdeal', who:'gleb', title:'Хороший урожай', min:6, w:2, text:'Фермер звонит: урожай огромный, можно закупить овощи на три месяца вперёд дешевле.',
+  opts:[{t:'Закупить впрок', d:'−8 000 ₽, продукты дешевле на 5% два месяца.', fx:{c:-8000, mod:[{k:'cogs',m:0.95,n:2,w:'закупка впрок'}]}, res:['Склад забит ящиками. Арсен вздыхает: «Главное — не испортить».']},
+        {t:'Покупать как обычно', d:'Без изменений.', fx:{}, res:['Через месяц цены на рынке снижаются сами.']}]},
+ {id:'suppscandal', who:'arsen', title:'Слухи о поставщике', min:6, w:2, ok:function(s){ return flagship(s).sup==='market'; }, text:'В чате говорят, что на рынке продают просроченное мясо. Арсен хмурится.',
+  opts:[{t:'Сменить поставщика на базу', d:'−10 000 ₽, зато спокойно.', fx:{c:-10000, sup:'whole', brand:1}, res:['Мясо теперь по документам. Арсен кивает: «Правильно».']},
+        {t:'Проверять продукты самим', d:'Бесплатно, но риск остаётся.', chk:function(s){ return {p:0.6, ok:{fx:{}, res:['Ничего не нашли. Но нервы потрачены.']}, bad:{fx:{repOne:-4, c:-8000}, res:['Один из ящиков оказывается плохим. Несколько жалоб от гостей.']}}; }}]},
+ {id:'organic', who:'damir', title:'Сертификат «Фермерские продукты»', min:7, w:1.5, text:'Ассоциация фермеров предлагает знак на вывеску, если вы берёте у них не меньше половины продуктов.',
+  opts:[{t:'Получить знак', d:'−12 000 ₽, гурманы и туристы ценят.', fx:{c:-12000, sup:'farm', mod:[{k:'gou',m:1.10,n:3,w:'фермерский знак'},{k:'tur',m:1.06,n:3,w:'фермерский знак'}], awr:0.04}, res:['Знак висит на двери. Гости читают и кивают: «Приятно».']},
+        {t:'Отказаться', d:'Без изменений.', fx:{}, res:['Знак достаётся соседу.']}]},
+ /* техника */
+ {id:'posbug', who:'anton', title:'Касса зависла', min:5, w:2, ok:function(s){ return !!flagship(s).eq.pos; }, text:'Касса показывает ошибку в самый час пик. Чеки не пробиваются.',
+  opts:[{t:'Вызвать мастера', d:'−6 000 ₽, через час всё работает.', fx:{c:-6000}, res:['Мастер перезагружает систему. Гости ждут с терпением.']},
+        {t:'Считать вручную', d:'Бесплатно, но ошибки.', fx:{mor:-3, repOne:-1}, res:['Путаница в счетах, несколько недовольных гостей.']}]},
+ {id:'cyber', who:'emma', title:'Мошенники звонят в кафе', min:6, w:2, text:'Звонит «сотрудник банка» и просит назвать код. Эмма Григорьевна успевает вовремя вмешаться.',
+  opts:[{t:'Провести урок безопасности', d:'−3 000 ₽: все учат правила.', fx:{c:-3000, mor:2, brand:1}, res:['Команда учится: код из СМС не называют никому. Никогда.']},
+        {t:'Просто повесить объявление', d:'Бесплатно.', chk:function(s){ return {p:0.6, ok:{fx:{}, res:['Повезло: все помнят про объявление.']}, bad:{fx:{c:-15000}, res:['Кто-то всё-таки называет код. Со счёта пропадают 15 000 ₽.']}}; }}]},
+ {id:'aggrank', who:'polina', title:'Рейтинг в сервисе доставки', min:5, w:2, ok:function(s){ return !!flagship(s).mk.deliv; }, text:'Сервис доставки сообщает: рейтинг упал, нужно чаще отвечать на заказы или сделать акцию.',
+  opts:[{t:'Запустить акцию на доставку', d:'−6 000 ₽, заказов станет больше.', fx:{c:-6000, mod:[{k:'del',m:1.3,n:2,w:'акция в сервисе'}]}, res:['Заказы растут. Курьеры возят пирожки по всему городу.']},
+        {t:'Ничего не менять', d:'Без трат.', fx:{mod:[{k:'del',m:0.85,n:2,w:'рейтинг в сервисе'}]}, res:['Заказов становится меньше: сервис показывает вас реже.']}]},
+ /* город и погода */
+ {id:'snowstorm', who:'lera', title:'Снежная буря', min:9, w:2, ok:function(s){ var c=calNow(s); return c===11||c===0||c===1; }, text:'За ночь выпал метровый снег. Автобусы стоят, люди сидят по домам.',
+  opts:[{t:'Закрыться на день', d:'−12 000 ₽ выручки, команда в безопасности.', fx:{c:-12000, mor:4}, res:['Вы закрываетесь. Борщ спит у батареи.']},
+        {t:'Открыться и разливать горячий чай', d:'−3 000 ₽, но соседи запомнят.', fx:{c:-3000, loy:0.05, awr:0.03}, res:['Вы раздаёте чай прохожим. В соцсетях пишут: «Единственное тёплое место в районе».']}]},
+ {id:'marathon', who:'polina', title:'Городской марафон', min:5, w:2, ok:function(s){ var c=calNow(s); return c>=3&&c<=9; }, text:'Мимо кафе пробегает марафон. Тысячи людей, много зрителей.',
+  opts:[{t:'Поставить точку с водой и пирожками', d:'−3 000 ₽, узнаваемость растёт.', fx:{c:-3000, awr:0.06, mod:[{k:'dem',m:1.06,n:1,w:'марафон'}]}, res:['Бегуны хватают пирожки на ходу. Зрители потом приходят за кофе.']},
+        {t:'Остаться в зале', d:'Дорога перекрыта, но кафе открыто.', fx:{mod:[{k:'dem',m:0.96,n:1,w:'перекрытая улица'}]}, res:['Улица перекрыта, гостей немного.']}]},
+ {id:'transport', who:'viktor', title:'Забастовка транспорта', min:6, w:1.5, text:'Автобусы не ходят. Многим добираться до вас долго.',
+  opts:[{t:'Продвигать доставку', d:'−4 000 ₽ на рекламу доставки.', fx:{c:-4000, mod:[{k:'del',m:1.4,n:1,w:'забастовка'},{k:'dem',m:0.95,n:1,w:'нет автобусов'}]}, res:['Заказы на дом растут, зал чуть пустеет.']},
+        {t:'Переждать', d:'Бесплатно.', fx:{mod:[{k:'dem',m:0.9,n:1,w:'нет автобусов'}]}, res:['Спрос просел: гости не доезжают.']}]},
+ /* личные истории */
+ {id:'lera_dream', who:'lera', title:'Мечта Леры', min:7, w:3, ok:function(s){ return !!s.specs.lera && hasRel(s,'lera',1); }, text:'Лера признаётся: «Мечтаю открыть свою пекарню. Но у вас мне хорошо. Что вы думаете?»',
+  opts:[{t:'Отдать ей пекарский угол в зале', d:'−15 000 ₽: Лера пекла бы свои булочки.', fx:{c:-15000, rel:{lera:2}, mor:5, mod:[{k:'dem',m:1.03,n:99,w:'пекарский угол Леры'}], awr:0.04}, res:['Лера плачет от радости. Булочки с корицей пахнут на всю улицу.']},
+        {t:'Попросить остаться в кофейне', d:'Без трат, но Лера расстроена.', fx:{rel:{lera:-1}, mor:-4}, res:['Лера кивает: «Хорошо». Но взгляд у неё грустный.']}]},
+ {id:'maria_story', who:'maria', title:'Старая фотография', min:6, w:3, ok:function(s){ return hasRel(s,'maria',1)||((s.reg.maria&&s.reg.maria.h)||0)>=2; }, text:'Мария Сергеевна приносит рамку: на фото Тамара, молодая, у печки в общежитии. «Это первый столик».',
+  opts:[{t:'Повесить фото в зале', d:'Место для памяти.', fx:{awr:0.05, loy:0.05, brand:1, reg:{maria:2}}, res:['Фото вешают над первым столиком. Люди останавливаются и читают подпись.']},
+        {t:'Вернуть фото Марии Сергеевне', d:'Это её память.', fx:{rel:{maria:2}, reg:{maria:1}}, res:['Мария Сергеевна прижимает рамку к груди и улыбается: «Спасибо».']}]},
+ {id:'arsen_past', who:'arsen', title:'Прошлое шефа', min:9, w:2.5, ok:function(s){ return !!s.specs.arsen && hasRel(s,'arsen',2); }, text:'К Арсену заходит бывший ученик: «Шеф, а помните, как вы нас учили? Давайте устроим мастер-класс».',
+  opts:[{t:'Устроить мастер-класс шефа', d:'−8 000 ₽: билеты быстро расходятся.', fx:{c:-8000, awr:0.08, brand:2, rel:{arsen:1}}, res:['Мастер-класс собирает полный зал. Арсен улыбается так, что у Леры на глазах слёзы.']},
+        {t:'Оставить воспоминания в покое', d:'Он ценит тишину.', fx:{mor:4}, res:['Арсен кивает и уходит на кухню. Потом долго мешает суп.']}]},
+ {id:'kira_contest', who:'kira', title:'Конкурс «Лучшая кофейня»', min:7, w:2.5, ok:function(s){ return hasRel(s,'kira',2); }, text:'Кира: «Я записала вас на городской конкурс блогеров. Придётся показать зал и кухню».',
+  opts:[{t:'Участвовать', d:'−5 000 ₽ на подготовку.', chk:function(s){ return {p:clamp((flagship(s).rep-35)/45,0.3,0.9), ok:{fx:{c:-5000, awr:0.12, brand:3, rel:{kira:1}}, res:['Вы занимаете первое место! Кира кричит на всю улицу.']}, bad:{fx:{c:-5000, awr:0.03}, res:['Вы получаете третье место. Кира говорит: «Всё равно круто».']}}; }},
+        {t:'Отказаться', d:'Без хлопот.', fx:{rel:{kira:-1}}, res:['Кира пожимает плечами. «Жаль, у меня был план».']}]},
+ {id:'naz_secret', who:'nazarov', title:'Тайна Назарова', min:11, w:2.5, ok:function(s){ return (s.rel.nazarov||0)!==0; }, text:'Незнакомец приносит папку: «Назаров собирается скупать поставщиков масла. Вот список».',
+  opts:[{t:'Заключить договор с теми поставщиками первыми', d:'Продукты дешевле на 4%, но с Назаровым портятся отношения.', fx:{mod:[{k:'cogs',m:0.96,n:3,w:'опередили Назарова'}], rel:{nazarov:-1}}, res:['Вы успеваете подписать договоры. Назаров звонит: «Хитро».']},
+        {t:'Вернуть папку', d:'Честность дороже.', fx:{brand:2}, res:['Незнакомец уходит. Вы не пользуетесь чужой тайной.']}]},
+ {id:'viktor_sell', who:'viktor', title:'Хозяин продаёт здание', min:7, w:2.5, ok:function(s){ return !s.flags.ownBuilding && hasRel(s,'viktor',1) && s.cash>=950000; }, text:'Виктор Петрович: «Устал владеть, хочу продать здание. Вам отдам за 900 тысяч, потому что дружил с Тамарой».',
+  opts:[{t:'Купить здание', d:'−900 000 ₽, арендой больше не платите.', fx:{buy:'building', rel:{viktor:2}, brand:2}, res:['Теперь «Первый столик» стоит на собственной земле. Аренды нет.']},
+        {t:'Отказаться', d:'Не время для таких покупок.', fx:{rel:{viktor:-1}}, res:['Виктор Петрович вздыхает: «Дело ваше».']}]},
+ /* мини-игры */
+ {id:'fifo', who:'arsen', title:'Порядок на складе', game:'fifo', min:4, w:2.5, text:'Арсен показывает на склад: «Продукты лежат как попало. Первым нужно отдавать то, что раньше испортится».',
+  opts:[{t:'Навести порядок самому', d:'Мини-игра «Склад»: выдавайте ящики в нужном порядке.', game:true},
+        {t:'Поручить команде', d:'Без твоего участия.', chk:function(s){ return {p:0.55, ok:{fx:{mod:[{k:'waste',m:0.95,n:1,w:'порядок на складе'}]}, res:['Команда справляется. Порча чуть ниже.']}, bad:{fx:{mod:[{k:'waste',m:1.1,n:1,w:'бардак на складе'}]}, res:['Продукты портятся: никто не следит за сроками.']}}; }}]},
+ {id:'change', who:'lera', title:'Касса и сдача', game:'change', min:3, w:2.5, text:'На кассе стоит стажёр. Лера: «Считает сдачу долго и путается. Покажете, как надо?»',
+  opts:[{t:'Встать на кассу самому', d:'Мини-игра «Сдача»: верно отсчитайте сдачу гостям.', game:true},
+        {t:'Оставить стажёра', d:'Он учится.', fx:{mor:1}, res:['Стажёр справляется через пару часов.']}]}
+]);
+EVENT_BY_ID = {}; EVENTS.forEach(function(e){ EVENT_BY_ID[e.id]=e; });
 
 /* ===== «Первый столик»: сюжет. 16 месяцев = 4 акта. Повествование в настоящем времени, без родовых форм для игрока. ===== */
 function L(who, t, mood){ return {who:who, t:t, mood:mood||''}; }
@@ -1627,6 +1969,15 @@ var TERMS = {
   capex:['Инвестиции в запуск','Деньги, которые тратятся на оборудование и ремонт один раз. Они возвращаются через прибыль.'],
   menueng:['Меню-инжиниринг','Блюда делят на «звёзды» (популярные и выгодные), «коней» (популярные, но с низкой маржой), «загадки» (выгодные, но редко берут) и «балласт».'],
   legacy:['Наследие','То, что остаётся после вас. Хорошее дело продолжают люди, которым оно дорого.'],
+  fifo:['FIFO («первым пришёл — первым ушёл»)','Продукты, которые раньше привезли, нужно раньше использовать. Так меньше порчи.'],
+  deposit:['Вклад и проценты','Деньги в банке, которые растут сами. Проценты на проценты называют сложным процентом.'],
+  insurance:['Страхование','Вы платите немного каждый месяц, а при неприятности страховая вернёт часть убытка.'],
+  forward:['Закупка впрок','Вы фиксируете цену на несколько месяцев вперёд. Если цены вырастут, выигрыш, если упадут, потеря.'],
+  rivals:['Конкуренты','Заведения рядом, которые борются за ваших гостей. Смотрите на их цены и качество.'],
+  holiday:['Праздничный спрос','В праздники гостей и заказов больше. К ним готовятся заранее: меню, украшения, смены.'],
+  quests:['Цели и KPI месяца','Маленькие задачи, которые держат внимание на главном: чек, порча, рейтинг.'],
+  regulars:['Постоянные гости','Люди, которые приходят снова и снова. Помните, что они любят: это дешёвая реклама.'],
+  tamper:['Сезонное меню','Блюда, которые хорошо идут только в одно время года. Меняйте меню под сезон.'],
   merchant:['Оборотный капитал','Деньги в запасах и расчётах. Если запасов много, деньги заморожены.']
 };
 
@@ -1661,6 +2012,14 @@ var QUIZ = [
  {act:4, q:'Франчайзи платит роялти 6% с выручки 500 000 ₽. Сколько роялти?', a:['3 000 ₽','30 000 ₽','300 000 ₽','6 000 ₽'], c:1, why:'500 000 × 0,06 = 30 000 ₽.'},
  {act:4, q:'Зачем нужны стандарты в сети?', a:['Чтобы всё было одинаковым и надёжным','Для красоты','Чтобы поднять цены','Чтобы закрыть кухню'], c:0, why:'Гость должен получить тот же вкус и сервис, где бы он ни был.'},
  {act:4, q:'Про заведение пошёл ложный слух. Что лучше всего?', a:['Молчать','Быстро и открыто показать правду','Ругаться','Закрыться на месяц'], c:1, why:'Прозрачность и скорость успокаивают людей лучше всего.'},
+ {act:1, q:'Продукты на складе лежат вперемешку. Что нужно отдавать на кухню первым?', a:['Самое дорогое','Те, у которых срок годности раньше','Любые, какие под руку','Самое красивое'], c:1, why:'Правило FIFO: первым пришёл, первым ушёл. Так меньше порчи.'},
+ {act:1, q:'Что такое сезонное блюдо?', a:['Блюдо, которое готовят только по выходным','Блюдо, которое лучше идёт в одно время года','Блюдо дня','Блюдо без мяса'], c:1, why:'Окрошка летом, борщ зимой: меню нужно менять под сезон.'},
+ {act:2, q:'У вас на вкладе 100 000 ₽ под 0,9% в месяц. Сколько вырастет за месяц?', a:['9 000 ₽','900 ₽','90 ₽','90 000 ₽'], c:1, why:'100 000 × 0,009 = 900 ₽.'},
+ {act:2, q:'Зачем нужна страховка кафе?', a:['Чтобы не платить налоги','Чтобы часть убытков при неприятностях вернулась','Чтобы поднять цены','Чтобы закрыть кухню'], c:1, why:'Страховка не мешает случиться беде, но смягчает удар по кассе.'},
+ {act:3, q:'Что значит «закупка впрок» по фиксированной цене?', a:['Покупаем больше, чем нужно','Фиксируем цену на несколько месяцев вперёд','Платим только за доставку','Берём в долг'], c:1, why:'Если цены вырастут, вы выиграете; если упадут, потеряете.'},
+ {act:3, q:'Сосед открыл кафе с такими же ценами, но ниже рейтинг. Что это значит для вас?', a:['Вам нужно сильнее снижать цены','У вас преимущество по качеству','Ничего не меняется','Нужно закрыться'], c:1, why:'При равных ценах выигрывает тот, у кого качество выше.'},
+ {act:4, q:'Почему постоянный гость важен для сети?', a:['Он платит меньше','Он возвращается и приводит друзей без рекламы','Он нужен налоговой','Он занимает место'], c:1, why:'Лояльные гости делают выручку устойчивой.'},
+ {act:4, q:'Как называют правило «каждому заведению по одному городу»?', a:['Дивергенция','Диверсификация и отсутствие каннибализации','Дефляция','Депозит'], c:1, why:'Города не делят одних гостей, поэтому бизнес устойчивее.'},
  {act:4, q:'Что значит «масштабирование»?', a:['Рост без потери качества','Просто больше людей','Увеличение цены','Рост налогов'], c:0, why:'Расти трудно: чем больше точек, тем важнее стандарты и управляющие.'},
  {act:4, q:'Плохое заведение сети получает слабые отзывы. Что с остальными?', a:['Ничего','Страдает репутация всего бренда','Только налог','Только цены'], c:1, why:'Бренд общий. Одна слабая точка тянет вниз всю сеть.'}
 ];
@@ -1708,6 +2067,20 @@ var ACH = [
  {id:'clean',  n:'Образцовая чистота', d:'Санитарная проверка пройдена без замечаний.', icon:'shield', t:function(s,R){ return !!s.flags.inspectOK; }},
  {id:'stars3', n:'Меню звёзд',         d:'В меню три блюда-«звезды» одновременно.',  icon:'star',    t:function(s,R){ var r=R&&R.outlets[0]; return r && r.mix && r.mix.filter(function(x){ return x.cls==='star'; }).length>=3; }},
  {id:'nowar',  n:'Не продаёмся',       d:'Отказались от рецептов за деньги.',        icon:'shield',  t:function(s,R){ return !!(s.flags.nazWar || (s.month>=8 && !s.flags.nazPartner && !s.flags.nazMerge)); }},
+ {id:'goals5',  n:'Исполнительный владелец', d:'Выполнено 5 заданий месяца.',          icon:'target', t:function(s,R){ return s.stats.goalsDone>=5; }},
+ {id:'goals15', n:'Мастер заданий',     d:'Выполнено 15 заданий месяца.',            icon:'target', t:function(s,R){ return s.stats.goalsDone>=15; }},
+ {id:'reg1',   n:'Друг кафе',          d:'Один из постоянных гостей стал другом.',  icon:'heart',  t:function(s,R){ return s.stats.reg5>=1; }},
+ {id:'reg3',   n:'Своя компания',      d:'Три постоянных гостя стали друзьями.',    icon:'heart',  t:function(s,R){ return s.stats.reg5>=3; }},
+ {id:'dep',    n:'Копилка',            d:'На вкладе лежит 300 000 ₽ и больше.',     icon:'bank',   t:function(s,R){ return (s.dep||0)>=300000; }},
+ {id:'ins',    n:'Подушка безопасности',d:'Включена страховка.',                    icon:'shield', t:function(s,R){ return !!s.insured; }},
+ {id:'build',  n:'Своя земля',         d:'Куплено здание кафе.',                    icon:'building',t:function(s,R){ return !!s.flags.ownBuilding; }},
+ {id:'city6',  n:'Шесть городов',      d:'Заведения в шести городах.',              icon:'map',    t:function(s,R){ return cityCountOpenWithFran(s)>=6; }},
+ {id:'menu12', n:'Богатое меню',       d:'В меню двенадцать блюд и больше.',        icon:'book',   t:function(s,R){ return s.menu.length>=12; }},
+ {id:'hol3',   n:'Праздничный владелец',d:'Три праздничные кампании.',              icon:'gift',   t:function(s,R){ return s.stats.holidays>=3; }},
+ {id:'hq6',    n:'Большой штаб',       d:'Шесть улучшений штаб-квартиры.',          icon:'factory',t:function(s,R){ return Object.keys(s.hq.upg).length>=6; }},
+ {id:'rev2m',  n:'Два миллиона выручки',d:'Выручка сети за месяц выше 2 млн ₽.',    icon:'trend',  t:function(s,R){ return R && R.revTotal>=2000000; }},
+ {id:'mini',   n:'Золотые руки',       d:'Золото в двух мини-играх.',               icon:'award',  t:function(s,R){ return s.stats.miniGold>=2; }},
+ {id:'rival',  n:'Лучше соседей',      d:'Рейтинг флагмана выше всех конкурентов города.',icon:'star',t:function(s,R){ var f=flagship(s); return rivalsFor(s,f.city).every(function(r){ return f.rep>r.q; }) && s.month>=4; }},
  {id:'fork',   n:'Золотая вилка',      d:'Гид признал ваше заведение лучшим.',       icon:'fork',    t:function(s,R){ return !!s.flags.goldFork; }}
 ];
 function checkAch(s,R){
@@ -1763,6 +2136,7 @@ function verdict(s){
   if(met && fork.tier==='gold') return {id:'legend', name:'Легенда «Первого столика»', text:'Карта Тамары собрана, гид признал вас, а в каждом городе стоит столик, за которым ждут. Тамара гордилась бы вами.'};
   if(met) return {id:'network', name:'Сеть мечты', text:'Вы построили сеть заведений в разных городах и удержали рейтинг. Цель достигнута.'};
   if(g.cities>=3 && g.cap>=DIFFS[s.diff].cap*0.6) return {id:'growing', name:'Растущая сеть', text:'Сеть уже работает в нескольких городах. До цели чуть-чуть не хватило, но дорога выбрана верно.'};
+  if(g.cities>=3) return {id:'young', name:'Молодая сеть', text:'Заведения открыты в '+g.cities+' городах, но расходы на запуск ещё не окупились и капитала мало. Дайте сети время или погасите долги.'};
   if(g.cities>=2) return {id:'two', name:'Два города', text:'У вас два города и твёрдая основа. Для сети нужно больше времени и денег, но это сильное начало.'};
   if(g.cap>=800000) return {id:'cafe', name:'Любимое кафе города', text:'Одно кафе, но какое: гости идут издалека. Сеть можно строить и дальше.'};
   return {id:'first', name:'Первые шаги', text:'Вы дошли до конца пути. Теперь знаете, где терялись деньги и гости, и сможете сыграть лучше.'};
@@ -1953,6 +2327,8 @@ function skylineG(id, fill){
    case 'ekb': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><rect x="26" y="92" width="22" height="48"/><rect x="58" y="70" width="26" height="70"/><rect x="94" y="104" width="30" height="36"/><rect x="146" y="60" width="30" height="80"/><rect x="152" y="46" width="18" height="16"/><path d="M152 46h18l-9-12z"/><rect x="198" y="96" width="28" height="44"/><rect x="236" y="112" width="40" height="28"/><rect x="288" y="82" width="26" height="58"/><rect x="320" y="106" width="24" height="34"/></g>';
    case 'sochi': return '<g '+f+'><path d="M0 138V90l36-26 28 22 34-34 40 38 36-18 42 24 46-20 38 22v38z"/><rect x="0" y="140" width="360" height="30"/><path d="M24 140c0-18 3-30 6-40M30 100c-8 0-14 4-18 10M30 100c8-2 14 0 20 6M30 100c-3-7-9-10-14-10M30 100c4-7 10-10 16-8" stroke="'+fill+'" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M322 140c0-18-3-30-6-40M316 100c8 0 14 4 18 10M316 100c-8-2-14 0-20 6M316 100c3-7 9-10 14-10M316 100c-4-7-10-10-16-8" stroke="'+fill+'" stroke-width="3" fill="none" stroke-linecap="round"/></g>';
    case 'kgd': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><rect x="40" y="100" width="18" height="40"/><path d="M38 100h22l-11-24z"/><rect x="72" y="106" width="18" height="34"/><path d="M70 106h22l-11-22z"/><rect x="56" y="112" width="24" height="28"/><rect x="130" y="112" width="60" height="28"/><path d="M130 112l30-18 30 18z"/><rect x="214" y="90" width="26" height="50"/><path d="M214 90l13-18 13 18z"/><rect x="262" y="108" width="38" height="32"/><path d="M262 108h38l-6-10h-26z"/></g>';
+   case 'nsk': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><path d="M110 140v-30c0-22 20-34 40-34s40 12 40 34v30z"/><rect x="146" y="64" width="8" height="14"/><path d="M142 66h16l-8-14z"/><rect x="214" y="104" width="30" height="36"/><rect x="254" y="92" width="24" height="48"/><rect x="288" y="112" width="40" height="28"/><rect x="30" y="108" width="26" height="32"/><rect x="64" y="96" width="24" height="44"/><path d="M0 130h360" stroke="'+fill+'" stroke-width="3"/></g>';
+   case 'vvo': return '<g '+f+'><path d="M0 138V104l40-24 36 26 40-34 44 30 30-16 40 24 40-20 50 28v22z"/><rect x="0" y="140" width="360" height="30"/><rect x="214" y="46" width="6" height="94"/><rect x="290" y="46" width="6" height="94"/><path d="M217 48C240 100 268 100 293 48M217 48L150 138M293 48L360 138" stroke="'+fill+'" stroke-width="2.4" fill="none"/><path d="M150 130h210" stroke="'+fill+'" stroke-width="5"/></g>';
    case 'msk': return '<g '+f+'><rect x="0" y="138" width="360" height="32"/><rect x="20" y="106" width="46" height="34"/><circle cx="43" cy="98" r="9"/><rect x="40" y="82" width="6" height="12"/><path d="M36 96c0-10 3-18 7-18s7 8 7 18z"/><rect x="76" y="112" width="30" height="28"/><path d="M80 112c0-14 4-22 11-22s11 8 11 22z"/><rect x="130" y="90" width="24" height="50"/><rect x="136" y="70" width="12" height="22"/><path d="M134 70h16l-8-20z"/><rect x="176" y="100" width="40" height="40"/><rect x="236" y="62" width="30" height="78"/><rect x="242" y="48" width="18" height="16"/><path d="M242 48h18l-9-14z"/><rect x="286" y="104" width="50" height="36"/></g>';
   }
   return '';
@@ -1997,7 +2373,7 @@ function cafeSVG(o, ctx){
   out+='<rect x="'+dx+'" y="'+(by+(rest?44:34))+'" width="'+dw+'" height="'+(170-by-(rest?44:34))+'" rx="5" fill="#8A4B2A" stroke="#5E3119" stroke-width="2.4"/><rect x="'+(dx+6)+'" y="'+(by+(rest?50:40))+'" width="'+(dw-12)+'" height="22" rx="3" fill="url(#'+id+'w)" stroke="#5E3119" stroke-width="1.6"/><circle cx="'+(dx+dw-9)+'" cy="'+(by+(rest?96:86))+'" r="2.4" fill="#F2C94C"/>';
   /* навес */
   var ay=by+(rest?36:24)-18;
-  var stripes=''; var n=Math.round((bw+10)/18), sw=(bw+10)/n; for(var k=0;k<n;k++) stripes+='<path d="M'+(bx-5+k*sw)+' '+ay+'h'+sw+'v16a'+(sw/2)+' '+(sw/2)+' 0 0 1 -'+sw+' 0z" fill="'+(k%2?'#FFF6E6':'var(--brand)')+'"/>';
+  var stripes=''; var n=Math.round((bw+10)/18), sw=(bw+10)/n; for(var k=0;k<n;k++) stripes+='<path d="M'+(bx-5+k*sw)+' '+ay+'h'+sw+'v16a'+(sw/2)+' '+(sw/2)+' 0 0 1 -'+sw+' 0z" fill="'+(k%2?'#FFF6E6':(ctx.awn||'var(--brand)'))+'"/>';
   out+='<g class="awning">'+stripes+'<rect x="'+(bx-5)+'" y="'+(ay-4)+'" width="'+(bw+10)+'" height="6" rx="2" fill="#7A2A18"/></g>';
   /* вывеска */
   if(!rest) out+='<rect x="'+(bx+bw/2-62)+'" y="'+(by-12)+'" width="124" height="22" rx="7" fill="#3B2A22" stroke="#C9A25A" stroke-width="2"/>';
@@ -2026,12 +2402,12 @@ function cafeSVG(o, ctx){
 
 /* ---------- карта Тамары ---------- */
 function mapSVG(s, sel){
-  var out='<svg class="map-svg" viewBox="0 0 380 250" role="img" aria-label="Карта Тамары с городами"><defs><pattern id="mp" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="var(--map-dot)"/></pattern></defs>';
-  out+='<rect width="380" height="250" rx="18" fill="var(--map-sea)"/>';
-  out+='<path d="M18 92c6-20 22-34 44-40 14-24 38-36 66-34 20-6 44-4 62 4 34-8 74-4 100 14 36 6 62 28 70 62-8 26-6 50-24 72-26 8-40-2-62 8-26 14-48 22-86 10-20 8-48 6-66-2-18-10-30-26-52-30-20-8-48-16-52-64z" fill="var(--map-land)" stroke="var(--map-edge)" stroke-width="2.4" stroke-linejoin="round"/>';
-  out+='<path d="M18 92c6-20 22-34 44-40 14-24 38-36 66-34 20-6 44-4 62 4 34-8 74-4 100 14 36 6 62 28 70 62-8 26-6 50-24 72-26 8-40-2-62 8-26 14-48 22-86 10-20 8-48 6-66-2-18-10-30-26-52-30-20-8-48-16-52-64z" fill="url(#mp)"/>';
+  var out='<svg class="map-svg" viewBox="0 0 480 250" role="img" aria-label="Карта Тамары с городами"><defs><pattern id="mp" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".8" fill="var(--map-dot)"/></pattern></defs>';
+  out+='<rect width="480" height="250" rx="18" fill="var(--map-sea)"/>';
+  out+='<path d="M18 98C24 72 44 56 68 52C84 28 112 16 140 18C166 10 196 12 218 22C250 12 292 12 322 28C356 22 392 30 424 44C452 52 472 78 470 108C474 134 466 160 450 186C436 204 412 212 392 206C368 214 340 204 312 210C280 220 252 232 214 220C186 228 150 226 126 214C100 206 82 190 60 184C40 178 24 160 20 136C16 118 16 108 18 98Z" fill="var(--map-land)" stroke="var(--map-edge)" stroke-width="2.4" stroke-linejoin="round"/>';
+  out+='<path d="M18 98C24 72 44 56 68 52C84 28 112 16 140 18C166 10 196 12 218 22C250 12 292 12 322 28C356 22 392 30 424 44C452 52 472 78 470 108C474 134 466 160 450 186C436 204 412 212 392 206C368 214 340 204 312 210C280 220 252 232 214 220C186 228 150 226 126 214C100 206 82 190 60 184C40 178 24 160 20 136C16 118 16 108 18 98Z" fill="url(#mp)"/>';
   out+='<ellipse cx="150" cy="232" rx="60" ry="14" fill="var(--map-sea)"/><path d="M0 128c10-4 20-4 24 2" stroke="var(--map-edge)" stroke-width="1.5" fill="none" stroke-dasharray="3 4"/>';
-  var route=['tula','nnov','kazan','ekb'], d='';
+  var route=['tula','nnov','kazan','ekb','nsk','vvo'], d='';
   route.forEach(function(k,i){ var c=CITIES[k]; d+=(i?'L':'M')+c.x+' '+c.y; });
   out+='<path d="'+d+'" stroke="var(--brand)" stroke-width="2.4" stroke-dasharray="2 6" stroke-linecap="round" fill="none" opacity=".75"/>';
   out+='<path d="M'+CITIES.tula.x+' '+CITIES.tula.y+'L'+CITIES.sochi.x+' '+CITIES.sochi.y+'M'+CITIES.tula.x+' '+CITIES.tula.y+'L'+CITIES.spb.x+' '+CITIES.spb.y+'M'+CITIES.spb.x+' '+CITIES.spb.y+'L'+CITIES.kgd.x+' '+CITIES.kgd.y+'" stroke="var(--brand)" stroke-width="2.4" stroke-dasharray="2 6" stroke-linecap="round" fill="none" opacity=".75"/>';
@@ -2046,7 +2422,7 @@ function mapSVG(s, sel){
     else if(st==='build'||st==='fb') out+='<path d="M'+(c.x-3)+' '+(c.y-4)+'h6l-3 4 3 4h-6l3-4z" fill="var(--ink)"/>';
     else if(st==='fran') out+='<path d="M'+c.x+' '+(c.y-5)+'l5 5-5 5-5-5z" fill="#fff"/>';
     else if(st==='lock') out+='<rect x="'+(c.x-3.4)+'" y="'+(c.y-1)+'" width="6.8" height="5" rx="1" fill="var(--map-lock-line)"/><path d="M'+(c.x-2.2)+' '+(c.y-1)+'v-2a2.2 2.2 0 0 1 4.4 0v2" stroke="var(--map-lock-line)" stroke-width="1.4" fill="none"/>';
-    var LB={msk:[-13,-9,'end'],nnov:[2,-15,'middle'],sochi:[0,-16,'middle'],kgd:[-6,25,'start'],spb:[0,24,'middle'],tula:[0,24,'middle'],kazan:[0,24,'middle'],ekb:[0,24,'middle']}[k]||[0,23,'middle'], lx=c.x+LB[0], ly=c.y+LB[1], anchor=LB[2];
+    var LB={msk:[-13,-9,'end'],nnov:[2,-15,'middle'],sochi:[0,-16,'middle'],kgd:[-6,25,'start'],spb:[0,24,'middle'],tula:[0,24,'middle'],kazan:[0,24,'middle'],ekb:[0,24,'middle'],nsk:[0,24,'middle'],vvo:[10,24,'end']}[k]||[0,23,'middle'], lx=c.x+LB[0], ly=c.y+LB[1], anchor=LB[2];
     out+='<text class="plabel" x="'+lx+'" y="'+ly+'" text-anchor="'+anchor+'" font-size="11" font-weight="800">'+esc(c.n.replace('Санкт-Петербург','Петербург').replace('Нижний Новгород','Н. Новгород'))+'</text></g>';
   });
   return out+'</svg>';
@@ -2060,6 +2436,25 @@ function introArt(k){
   if(k==='book') return base+'<rect width="320" height="180" rx="16" fill="var(--surface-2)"/><path d="M80 40h70a10 10 0 0 1 10 10v94a10 10 0 0 0-10-10H80z" fill="#FFF8EA" stroke="#8A5A1C" stroke-width="2.4"/><path d="M240 40h-70a10 10 0 0 0-10 10v94a10 10 0 0 1 10-10h70z" fill="#FFF8EA" stroke="#8A5A1C" stroke-width="2.4"/><path d="M96 62h50M96 78h42M96 94h48M96 110h30" stroke="#C9A97C" stroke-width="3" stroke-linecap="round"/><circle cx="200" cy="70" r="6" fill="var(--brand)"/><circle cx="228" cy="104" r="6" fill="var(--brand)"/><circle cx="188" cy="118" r="6" fill="var(--brand)"/><path d="M200 70L228 104L188 118" stroke="var(--brand)" stroke-width="2" stroke-dasharray="2 5" fill="none" stroke-linecap="round"/></svg>';
   if(k==='train') return base+'<rect width="320" height="180" rx="16" fill="var(--surface-2)"/><rect x="0" y="130" width="320" height="50" fill="#C9BCA3"/><path d="M0 140h320" stroke="#8A7A63" stroke-width="3"/><rect x="40" y="70" width="240" height="62" rx="10" fill="#B5362A"/><rect x="40" y="108" width="240" height="8" fill="#F2B233"/><g fill="#FFE9A8" stroke="#6B1E15" stroke-width="2"><rect x="58" y="82" width="34" height="22" rx="4"/><rect x="104" y="82" width="34" height="22" rx="4"/><rect x="150" y="82" width="34" height="22" rx="4"/><rect x="196" y="82" width="34" height="22" rx="4"/><rect x="242" y="82" width="26" height="22" rx="4"/></g><circle cx="80" cy="138" r="9" fill="#2B1810"/><circle cx="240" cy="138" r="9" fill="#2B1810"/><text x="160" y="58" text-anchor="middle" font-size="14" font-weight="800" fill="var(--ink)" font-family="Playfair Display,serif">Вагон-ресторан</text></svg>';
   return base+'</svg>';
+}
+
+/* диплом в конце игры */
+function diplomaSVG(name, cafe, verdictName, lines, awn){
+  awn=awn||'#D1361A'; var out='<svg class="diploma" viewBox="0 0 600 420" role="img" aria-label="Диплом: '+esc(verdictName)+', '+esc(name)+'">';
+  out+='<defs><linearGradient id="dp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFBF0"/><stop offset="1" stop-color="#F6E7C8"/></linearGradient></defs>';
+  out+='<rect x="6" y="6" width="588" height="408" rx="16" fill="url(#dp)" stroke="'+awn+'" stroke-width="6"/><rect x="22" y="22" width="556" height="376" rx="10" fill="none" stroke="#B9791A" stroke-width="2"/><rect x="30" y="30" width="540" height="360" rx="6" fill="none" stroke="'+awn+'" stroke-width="1.4" stroke-dasharray="3 5"/>';
+  [[40,40],[560,40],[40,380],[560,380]].forEach(function(c){ out+='<circle cx="'+c[0]+'" cy="'+c[1]+'" r="9" fill="'+awn+'"/><circle cx="'+c[0]+'" cy="'+c[1]+'" r="4" fill="#FFF6E6"/>'; });
+  out+='<rect x="190" y="40" width="220" height="20" fill="'+awn+'"/>'; for(var i=0;i<9;i++) out+='<rect x="'+(190+i*24.4)+'" y="40" width="12.2" height="20" fill="#FFF6E6" opacity=".85"/>';
+  out+='<text x="300" y="104" text-anchor="middle" font-size="40" font-weight="900" fill="#2B1810" font-family="Playfair Display,Georgia,serif">ДИПЛОМ</text>';
+  out+='<text x="300" y="132" text-anchor="middle" font-size="15" fill="#5B4033" font-family="Nunito,sans-serif" font-weight="700">владельца сети «'+esc(cafe)+'»</text>';
+  var nm=String(name), fs=nm.length>16?30:42;
+  out+='<text x="300" y="196" text-anchor="middle" font-size="'+fs+'" fill="'+awn+'" font-family="Caveat,cursive" font-weight="700">'+esc(nm)+'</text>';
+  out+='<line x1="130" x2="470" y1="208" y2="208" stroke="#B9791A" stroke-width="1.4"/>';
+  out+='<text x="300" y="238" text-anchor="middle" font-size="22" font-weight="800" fill="#2B1810" font-family="Playfair Display,Georgia,serif">'+esc(verdictName)+'</text>';
+  lines.slice(0,3).forEach(function(l,k){ out+='<text x="300" y="'+(268+k*22)+'" text-anchor="middle" font-size="15" fill="#5B4033" font-family="Nunito,sans-serif" font-weight="700">'+esc(l)+'</text>'; });
+  out+='<g transform="translate(60 322)"><circle cx="36" cy="36" r="34" fill="'+awn+'"/><circle cx="36" cy="36" r="28" fill="none" stroke="#FFF6E6" stroke-width="2"/><path transform="translate(18 18) scale(1.5)" d="'+ICONS.fork+'" fill="none" stroke="#FFF6E6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>';
+  out+='<text x="470" y="352" text-anchor="middle" font-size="30" fill="#2B1810" font-family="Caveat,cursive" font-weight="700">Тамара</text><line x1="400" x2="540" y1="360" y2="360" stroke="#B9791A" stroke-width="1.2"/><text x="470" y="378" text-anchor="middle" font-size="11" fill="#7D6253" font-family="Nunito,sans-serif">хранитель тетради</text>';
+  return out+'</svg>';
 }
 
 (function(){
@@ -2095,7 +2490,7 @@ function applySave(d){
   S=d.S; U=d.U||{}; U.screen=U.screen||'plan'; ensureState(S);
   if(U.screen==='title') U.screen='plan';
   if((U.screen==='run'||U.screen==='report'||U.screen==='quiz') && !U.report) U.screen='plan';
-  if(U.screen==='rush') U.screen='plan';
+  if(U.screen==='rush'||U.screen==='fifo'||U.screen==='change') U.screen='plan';
   if(U.screen==='plan' && !U.tab) U.tab='home';
 }
 function exportCode(){ try{ var d=snapshot(true); d.S=JSON.parse(JSON.stringify(S)); delete d.S.lastR; return btoa(unescape(encodeURIComponent(JSON.stringify(d)))); }catch(e){ return ''; } }
@@ -2275,13 +2670,14 @@ function introHTML(){
 
 /* ---------- настройка партии ---------- */
 function setupHTML(){
-  var st=U.setup||(U.setup={name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'norm'});
+  var st=U.setup||(U.setup={name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'norm',awn:'#D1361A'}); if(!st.awn) st.awn='#D1361A';
   var tal=Object.keys(TALENTS).map(function(k){ var t=TALENTS[k]; return '<button type="button" aria-pressed="'+(st.talent===k)+'" data-act="settalent" data-v="'+k+'"><span class="ico">'+ico(t.icon)+'</span><span><b>'+t.name+'</b><small>'+t.desc+'</small></span></button>'; }).join('');
   var df=Object.keys(DIFFS).map(function(k){ var d=DIFFS[k]; return '<button type="button" aria-pressed="'+(st.diff===k)+'" data-act="setdiff" data-v="'+k+'"><span class="ico">'+ico(k==='easy'?'leaf':(k==='norm'?'target':'bolt'))+'</span><span><b>'+d.name+'</b><small>'+d.desc+'</small></span></button>'; }).join('');
   return '<h2>Создайте своё кафе</h2><p class="muted">Всё можно изменить: название, талант и сложность определяют стиль игры.</p>'+
    '<div class="field"><label for="f-name">Как вас зовут?</label><input id="f-name" type="text" maxlength="24" value="'+esc(st.name)+'" autocomplete="off" placeholder="Имя"><span class="hint">Имя увидит учитель на табло класса.</span></div>'+
    '<div class="field"><label for="f-cafe">Название кафе</label><input id="f-cafe" type="text" maxlength="28" value="'+esc(st.cafe)+'" autocomplete="off"><span class="hint">Если не менять, кафе называется как у Тамары.</span></div>'+
    '<div class="field"><label for="f-code">Код класса (необязательно)</label><input id="f-code" type="text" maxlength="12" value="'+esc(st.code)+'" autocomplete="off" placeholder="например, 8Б"><span class="hint">С одним кодом у всего класса будут одинаковые случайности: погода, новости и события.</span></div>'+
+   '<div class="field"><label>Цвет навеса</label><div class="awn-pick" role="group" aria-label="Цвет навеса">'+[['#D1361A','Помидорный'],['#2E7D4F','Базилик'],['#2B78B5','Небо'],['#B83A6B','Малина'],['#7A55B0','Слива'],['#C9792B','Тыква']].map(function(c){ return '<button type="button" class="sw" style="--c:'+c[0]+'" aria-pressed="'+(st.awn===c[0])+'" aria-label="'+c[1]+'" data-act="setawn" data-v="'+c[0]+'">'+(st.awn===c[0]?ico('check'):'')+'</button>'; }).join('')+'</div><span class="hint">Навес будет на фасаде вашего кафе и на дипломе.</span></div>'+
    '<div class="field"><label>Талант</label><div class="pick">'+tal+'</div></div>'+
    '<div class="field"><label>Сложность</label><div class="pick">'+df+'</div></div>'+
    '<div class="row between" style="margin:16px 0"><button class="btn ghost" data-act="tointro">'+ico('left')+' Назад</button><button class="btn" data-act="startgame">Открыть кафе '+ico('right')+'</button></div>';
@@ -2318,10 +2714,11 @@ function sceneHTML(){
   var act=ACTS[actOf(S.month)-1];
   return '<article class="scene"><div class="scene-head"><span class="chip brand">'+ico('flag','sm')+' '+act.name+'</span><span class="place">'+ico('pin','sm')+' '+esc(sc.place)+'</span></div><h2>'+esc(sc.title)+'</h2>'+lines+steps+cur+'</article>';
 }
+A.setawn=function(el){ readSetup(); U.setup.awn=el.getAttribute('data-v'); render(true); };
 A.pick=function(el){
   var sc=sceneFor(S), st=sceneState(), q=sc.ch[st.step], k=+el.getAttribute('data-k'), opt=q.opts[k]; if(!opt) return;
   var r=runChoice(opt,'s'+st.step), chips=applyFx(S,r.fx);
-  st.done.push({t:opt.t, res:r.res||[], fx:chips, ok:r.ok}); st.step++;
+  st.done.push({t:opt.t, res:r.res||[], fx:chips, ok:r.ok}); st.step++; logEv(S,'story',sc.title+': '+opt.t);
   sfx(r.ok?'good':'bad'); persist(); render(true); window.scrollTo({top:Math.max(0,$('.scene').offsetTop),behavior:reduced?'auto':'smooth'});
 };
 A.scenenext=function(){ U.sc=null; afterScene(); };
@@ -2342,7 +2739,7 @@ function eventHTML(){
 A.evpick=function(el){
   var ev=evCur(), k=+el.getAttribute('data-k'), opt=ev.opts[k]; if(!opt) return;
   S.seen['ev_'+ev.id]=1;
-  if(opt.game){ U.evGame={id:ev.id,t:opt.t}; startRush(); return; }
+  if(opt.game){ U.evGame={id:ev.id,t:opt.t}; startMini(ev.game||'rush'); return; }
   var r=runChoice(opt,'e'+ev.id), chips=applyFx(S,r.fx);
   U.evRes={t:opt.t, res:r.res||[], fx:chips}; sfx(r.ok?'good':'bad'); persist(); render();
 };
@@ -2389,6 +2786,36 @@ function finishRush(){
   U.evRes={t:U.evGame?U.evGame.t:'Смена',res:[txt+' Подано '+R.served+', ошибок '+err+'.'],fx:chips}; U.rush=null; U.screen='event'; sfx(gr==='bronze'?'bad':'win'); if(gr==='gold') burst(70); persist(); render();
 }
 
+/* ---------- мини-игры: склад (FIFO) и касса (сдача) ---------- */
+function startMini(type){ if(type==='rush') return startRush(); U.screen=type; U.mg={type:type, round:0, wrong:0, right:0, picked:null}; if(type==='fifo') fifoRound(); else changeRound(); render(); }
+var FIFO_P=[['Молоко','glass','cold'],['Сливки','glass','cold'],['Творог','bowl','brek'],['Мясо','plate','main'],['Зелень','salad','salad'],['Рыба','fish','main'],['Яйца','egg','brek'],['Масло','cake','dess'],['Ягоды','icecream','dess'],['Тесто','bread','bake'],['Кефир','glass','cold'],['Сметана','bowl','soup']];
+function fifoRound(){ var g=U.mg, names=FIFO_P.slice().sort(function(){ return Math.random()-0.5; }).slice(0,6), days=[1,2,3,4,5,6,7,8,9].sort(function(){ return Math.random()-0.5; }).slice(0,6); g.items=names.map(function(n,i){ return {n:n[0],g:n[1],c:n[2],d:days[i],taken:false}; }); }
+function fifoHTML(){
+  var g=U.mg; if(!g) return '';
+  return '<article class="mg"><div class="scene-head"><span class="chip warn">'+ico('bolt','sm')+' Склад · круг '+(g.round+1)+' из 3</span></div><h2>Первым выдаём то, что раньше испортится</h2><p class="muted">Нажимайте на ящик с самым коротким сроком годности. Ошибок: <b id="mg-w">'+g.wrong+'</b></p><div class="crates">'+g.items.map(function(x,i){ return '<button class="crate'+(x.taken?' gone':'')+'" data-act="fifopick" data-i="'+i+'"'+(x.taken?' disabled':'')+' aria-label="'+x.n+', годен '+x.d+' дн.">'+dishSVG(x.g,x.c,44)+'<b>'+x.n+'</b><span class="chip '+(x.d<=2?'loss':(x.d<=4?'warn':'gain'))+'">годен '+x.d+' '+plural(x.d,'день','дня','дней')+'</span></button>'; }).join('')+'</div><div class="row between"><span class="small muted">Это правило FIFO: первым пришёл — первым ушёл.</span><button class="btn ghost small" data-act="mgskip">Бросить</button></div></article>';
+}
+A.fifopick=function(el){
+  var g=U.mg; if(!g) return; var i=+el.getAttribute('data-i'), it=g.items[i]; if(!it||it.taken) return;
+  var mn=Math.min.apply(null,g.items.filter(function(x){ return !x.taken; }).map(function(x){ return x.d; }));
+  if(it.d===mn){ it.taken=true; g.right++; sfx('coin'); } else { g.wrong++; sfx('bad'); toast('Этот ящик ещё может подождать: сначала то, что скоро испортится.',true); }
+  if(g.items.every(function(x){ return x.taken; })){ g.round++; if(g.round>=3){ finishMini('fifo'); return; } fifoRound(); }
+  render(true);
+};
+function changeRound(){ var g=U.mg, total=70+Math.floor(Math.random()*880), bills=[100,200,500,1000,2000,5000], paid=bills.filter(function(b){ return b>=total; })[0]||5000; if(paid-total>1500) paid=bills.filter(function(b){ return b>=total && b-total<=1500; })[0]||paid; var ans=paid-total; var opts=[ans, ans+10*(1+Math.floor(Math.random()*5)), Math.max(5,ans-10*(1+Math.floor(Math.random()*5))), Math.abs(ans-100)||ans+100].filter(function(v,i,a){ return a.indexOf(v)===i; }).slice(0,3); if(opts.indexOf(ans)<0) opts[0]=ans; opts=opts.sort(function(){ return Math.random()-0.5; }); g.q={total:total,paid:paid,ans:ans,opts:opts}; g.picked=null; }
+function changeHTML(){
+  var g=U.mg; if(!g||!g.q) return ''; var q=g.q;
+  return '<article class="mg"><div class="scene-head"><span class="chip warn">'+ico('coins','sm')+' Касса · гость '+(g.round+1)+' из 5</span></div><h2>Сколько сдачи?</h2><div class="receipt"><div>Счёт: <b class="num">'+rub(q.total)+'</b></div><div>Гость дал: <b class="num">'+rub(q.paid)+'</b></div></div><div class="opts">'+q.opts.map(function(v,k){ var cls=''; if(g.picked!=null){ if(v===q.ans) cls=' right'; else if(k===g.picked) cls=' wrong'; } return '<button class="opt'+cls+'" data-act="chgpick" data-k="'+k+'"'+(g.picked!=null?' disabled':'')+'><span class="k">'+'АБВ'.charAt(k)+'</span>'+rub(v)+'</button>'; }).join('')+'</div><div class="row between"><span class="small muted">Верно: '+g.right+' · Ошибок: '+g.wrong+'</span><button class="btn ghost small" data-act="mgskip">Бросить</button></div></article>';
+}
+A.chgpick=function(el){ var g=U.mg; if(!g||g.picked!=null) return; var k=+el.getAttribute('data-k'); g.picked=k; if(g.q.opts[k]===g.q.ans){ g.right++; sfx('coin'); } else { g.wrong++; sfx('bad'); } render(true); later(function(){ if(!U.mg||U.screen!=='change') return; g.round++; if(g.round>=5){ finishMini('change'); } else { changeRound(); render(true); } },900); };
+A.mgskip=function(){ if(U.mg&&U.mg.type) finishMini(U.mg.type,true); };
+function finishMini(type,skipped){
+  var g=U.mg, gr, fx, txt;
+  if(type==='fifo'){ gr=skipped?'bronze':(g.wrong<=1?'gold':(g.wrong<=4?'silver':'bronze')); fx={gold:{c:5000,mor:2,mod:[{k:'waste',m:0.75,n:2,w:'порядок на складе'}]},silver:{mod:[{k:'waste',m:0.9,n:1,w:'порядок на складе'}]},bronze:{c:-2000,mod:[{k:'waste',m:1.08,n:1,w:'бардак на складе'}]}}[gr]; txt={gold:'Идеальный склад: ни один ящик не лежит дольше нужного.',silver:'Почти хорошо: пара ящиков всё-таки подождала.',bronze:'Порядок не навели: часть продуктов испортится.'}[gr]+' Ошибок: '+g.wrong+'.'; addTerm('fifo'); }
+  else { gr=skipped?'bronze':(g.right>=5&&g.wrong<=0?'gold':(g.right>=3?'silver':'bronze')); fx={gold:{c:3000,repOne:1,awr:0.02},silver:{c:1000},bronze:{c:-1500,repOne:-1}}[gr]; txt={gold:'Без единой ошибки: гости улыбаются.',silver:'Справились, но пара ошибок была.',bronze:'Сдачу считали неверно: гости недовольны.'}[gr]+' Верно '+g.right+', ошибок '+g.wrong+'.'; }
+  if(gr==='gold') S.stats.miniGold++;
+  var chips=applyFx(S,fx); U.evRes={t:U.evGame?U.evGame.t:'Мини-игра',res:[txt],fx:chips}; U.mg=null; U.screen='event'; sfx(gr==='bronze'?'bad':'win'); if(gr==='gold') burst(60); persist(); render();
+}
+
 /* ---------- викторина «Проверка Арсена» ---------- */
 function quizInit(act){ U.qz={act:act, qs:quizFor(S,act,S.lastR), i:0, picked:null, ok:0}; }
 function quizHTML(){
@@ -2421,16 +2848,7 @@ function teacherHTML(){
 }
 
 /* ===== Интерфейс, часть 3: планирование месяца (вкладки) ===== */
-var TAMARA_CITY={
- tula:'«Тула. Тут я родилась, тут и первый столик. Пряник с мёдом печётся к приходу гостей, не раньше».',
- nnov:'«Нижний. На вокзале ночью пекли кулебяку. Я выпросила рецепт у проводницы за два пирожка».',
- kazan:'«Казань. Эчпочмак нужно есть горячим и руками. Всё остальное не по-настоящему».',
- spb:'«Петербург. Пышки с пудрой на Большой Конюшенной. Дождь, пудра, радость».',
- ekb:'«Екатеринбург. Пельмени на двадцать пятом градусе мороза. Я их до сих пор вижу».',
- sochi:'«Сочи. Хачапури у моря. Жара, соль и ни одного нормального полотенца».',
- kgd:'«Калининград. Марципан в лавке с колокольчиком. Дверь звякнет, и ты уже счастлива».',
- msk:'«Москва. Звезда на карте. Там всё очень быстро и очень дорого. Вернись, когда соберёшь силы».'
-};
+
 function getPV(){ if(!U.pv){ var c=cloneState(S); c.accepted=S.accepted.slice(); try{ U.pv=simMonth(c,{preview:true}); }catch(e){ U.pv=null; } } return U.pv; }
 function pvOut(o){ var R=getPV(); return R&&R.outlets.filter(function(x){ return x.id===o.id; })[0]||null; }
 function outletSelector(kind){
@@ -2451,15 +2869,45 @@ function newsCardHTML(){
   var mods=S.mods.filter(function(m){ return m.why; });
   return card('Новости города',body,{ic:'chat'});
 }
+function heartsHTML(n){ var s=''; for(var i=1;i<=5;i++) s+='<svg class="heart'+(i<=n?' on':'')+'" viewBox="0 0 24 24" aria-hidden="true"><path d="'+ICONS.heart+'"/></svg>'; return '<span class="hearts" role="img" aria-label="'+n+' из 5">'+s+'</span>'; }
+function holidayCard(o){
+  var cal=CAL[S.month-1], H=HOLIDAYS[cal], on=!!o.hol;
+  var segs=SEGS.filter(function(g){ return (H.seg[g]||0)!==0; }).map(function(g){ return chip(H.seg[g]>0?'gain':'loss',SEGN[g]+' '+(H.seg[g]>0?'+':'−')+Math.round(Math.abs(H.seg[g])*100)+'%'); }).join(''), cats=Object.keys(H.cat).map(function(c){ return chip('info','интерес: '+CATN[c].toLowerCase()); }).join('');
+  addTerm('holiday');
+  return card('Праздник месяца: '+esc(H.n),'<p class="sub">'+esc(H.d)+'</p><div class="chips">'+segs+cats+'</div><div class="row between" style="margin-top:10px"><div><b>Праздничная кампания</b><div class="small muted">'+rub(H.cost)+' за месяц: украшения, меню, афиша</div></div><div class="toggle-wrap"><button class="toggle" role="switch" aria-checked="'+on+'" aria-label="Праздничная кампания" data-act="hol"></button></div></div>',{ic:'gift',cls:on?'':'soft'});
+}
+function questsCard(){
+  var g=goalsFor(S), R=getPV(), st=goalStatus(S,R), rows=g.list.map(function(id,i){ var q=QUEST_BY_ID[id], ok=st[i]&&st[i].ok; return '<li class="'+(ok?'ok':'')+'">'+ico(ok?'check':'target')+'<span><b>'+esc(q.n)+'</b> — '+esc(q.d)+' <span class="dim">Награда '+rub(q.rew)+(ok?' · по прогнозу выйдет':'')+'</span></span></li>'; }).join('');
+  addTerm('quests');
+  return '<div class="chalk"><h3>'+ico('flag')+'Задания месяца</h3><ul>'+rows+'</ul><p class="dim">Выполнено за игру: '+S.stats.goalsDone+'. Награда приходит с итогами месяца.</p></div>';
+}
+function regularsHTML(full){
+  var list=activeRegulars(S); if(!list.length) return '<p class="muted">Первые постоянные гости появятся к третьему месяцу.</p>';
+  var f=flagship(S), have={}; outletDishes(S,f).forEach(function(d){ have[d.id]=1; });
+  return '<div class="regs">'+list.map(function(r){ var x=S.reg[r.id]||{h:0}, fav=regFavId(S,r), favName=fav.indexOf('loc_')===0?localDish(f).n:(DISH[fav]?DISH[fav].n:fav), known=x.h>=2||x.gift;
+    return '<div class="reg">'+avatarSVG(r.who,x.h>=3?'happy':'',full?52:42)+'<div class="grow"><b>'+esc(r.n)+'</b> '+heartsHTML(x.h)+'<div class="small muted">'+(known?'любит: '+esc(favName)+(have[fav]?' (есть в меню)':' (нет в меню)'):esc(r.hint))+'</div>'+(x.gift?'<div class="small gain-t">'+ico('check','sm')+' стал другом кафе</div>':'')+'</div></div>'; }).join('')+'</div>';
+}
+function seasonBarsHome(o){
+  var c=CITIES[o.city], cal=CAL[S.month-1], out=[], mx=0;
+  for(var k=0;k<6;k++){ var m=(cal+k)%12, v=0, tot=0; SEGS.forEach(function(g,i){ v+=c.seg[i]*(g==='tur'?c.tur[m]:SEGSEAS[g][m]); tot+=c.seg[i]; }); out.push({m:m,v:v/tot}); mx=Math.max(mx,v/tot); }
+  var names=['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  var h='<svg viewBox="0 0 260 70" class="spark" style="height:70px" role="img" aria-label="Сезонный спрос на ближайшие 6 месяцев">';
+  out.forEach(function(x,i){ var hh=x.v/mx*40; h+='<rect x="'+(8+i*42)+'" y="'+(48-hh)+'" width="30" height="'+hh+'" rx="5" fill="'+(i===0?'var(--brand)':'var(--edge-strong)')+'"/><text x="'+(23+i*42)+'" y="64" text-anchor="middle">'+names[x.m]+'</text><text x="'+(23+i*42)+'" y="'+(44-hh)+'" text-anchor="middle">'+Math.round(x.v*100)+'</text>'; });
+  return h+'</svg>';
+}
 function homeHTML(){
   var o=curO(), R=getPV(), r=pvOut(o)||{}, last=S.lastR&&S.lastR.outlets.filter(function(x){ return x.id===o.id; })[0];
   var guestsViz=last?clamp(Math.round((last.guests/30)/Math.max(1,(last.caps?last.caps.seat:60))*7*1.4),1,7):2, queue=(last&&last.utilK>1.05)?2:0;
   var h=outletSelector('home');
-  h+='<div class="cafe-hero">'+cafeSVG(o,{cal:CAL[S.month-1],guests:guestsViz,queue:queue})+'<div class="caption"><div><b>'+esc(o.nm||S.cafe)+'</b><div class="small muted">'+ico('pin','sm')+' '+esc(CITIES[o.city].n)+' · '+esc(FORMATS[o.fmt].name)+(o.built?' · строится':'')+'</div></div><div class="row" style="gap:8px">'+starsSVG(stars(o.rep),18)+'<b class="num">'+f1d(stars(o.rep))+'</b></div></div></div>';
+  h+='<div class="cafe-hero">'+cafeSVG(o,{cal:CAL[S.month-1],guests:guestsViz,queue:queue,awn:S.awn})+'<div class="caption"><div><b>'+esc(o.nm||S.cafe)+'</b><div class="small muted">'+ico('pin','sm')+' '+esc(CITIES[o.city].n)+' · '+esc(FORMATS[o.fmt].name)+(o.built?' · строится':'')+'</div></div><div class="row" style="gap:8px">'+starsSVG(stars(o.rep),18)+'<b class="num">'+f1d(stars(o.rep))+'</b></div></div></div>';
   var ns=nextStep();
   h+=coachCard('Что дальше?',esc(ns.t),ns.tab?'<button class="btn small" data-act="tab" data-tab="'+ns.tab+'">'+esc(ns.b)+'</button>':'');
   h+=goalChalk();
+  h+=questsCard();
+  h+=holidayCard(o);
   if(R){ h+=card('Прогноз на этот месяц','<div class="kpi">'+metric('Выручка',rubk(R.revTotal))+metric('Прибыль',sgn(Math.round(R.profit/1000)*1000).replace(/ ₽$/,'')+' ₽',R.profit>0?'в плюс':'в минус',R.profit>0?'ok':'bad')+metric('Гостей в день',Math.round((r.guests||0)/30),'в «'+esc(CITIES[o.city].n)+'»')+metric('Рейтинг',f1d(r.rating||stars(o.rep)),'после месяца')+'</div><p class="small muted" style="margin:0">Прогноз считается по текущим настройкам. Случайности (погода, новости) могут сдвинуть его на 5–10%.</p>',{ic:'trend'}); }
+  h+=card('Сезонный спрос','<p class="sub">Индекс спроса в «'+esc(CITIES[o.city].n)+'» на ближайшие 6 месяцев (100 — средний уровень группы гостей).</p>'+seasonBarsHome(o)+termChip('season'),{ic:'calendar'});
+  h+=card('Постоянные гости',regularsHTML(false)+'<button class="btn secondary small" data-act="tab" data-tab="guests" style="margin-top:8px">Подробнее</button>',{ic:'heart'});
   h+=newsCardHTML();
   h+=card('Тетрадь Тамары','<p class="muted">Открыто рецептов: <b>'+S.recs.length+' из 7</b>. Они появляются по ходу истории и дают блюда с особым вкусом.</p><button class="btn secondary small" data-act="recipes">'+ico('book')+' Читать тетрадь</button>',{ic:'book'});
   var lastRev=S.hist.slice(-6);
@@ -2553,6 +3001,10 @@ function placeHTML(){
 function guestsHTML(){
   var o=curO(), r=pvOut(o), h=outletSelector('guests'), last=U.report&&U.report.outlets&&U.report.outlets.filter(function(x){ return x.id===o.id; })[0];
   h+=card('Кто приходит','<div class="chips"><span class="chip info">Известность: '+Math.round(o.awr*100)+'%</span><span class="chip info">Постоянные: '+Math.round(o.loy*100)+'%</span><span class="chip '+(o.rep>=64?'gain':'warn')+'">Рейтинг '+f1d(stars(o.rep))+'</span></div><div class="pgrid" style="margin-top:12px">'+SEGS.map(function(sg,i){ var v=r&&r.segServed?r.segServed[sg]/30:0, tot=r?r.guests/30:1, p=tot?v/tot:0; return '<div class="prow"><span><b>'+SEGN[sg]+'</b></span><div class="t"><i style="width:'+Math.round(p*100)+'%"></i></div><b class="num">'+Math.round(v)+'</b></div>'; }).join('')+'</div><p class="small muted" style="margin:6px 0 0">Прогноз гостей в день по группам. '+SEGD.stu+' Меняйте меню и рекламу под тех, кого хотите видеть чаще.</p>',{ic:'people'});
+  h+=card('Постоянные гости',regularsHTML(true)+'<p class="small muted" style="margin:8px 0 0">Если их любимое блюдо в меню, они приходят чаще и приводят друзей. Через два месяца вы узнаете, что они любят.</p>'+termChip('regulars'),{ic:'heart'});
+  var rv=rivalsFor(S,o.city), ownP=(r&&r.rW)||1;
+  h+=card('Конкуренты в «'+esc(CITIES[o.city].n)+'»','<div class="rivals">'+rv.map(function(x){ var cheaper=ownP-x.p>0.04, dearer=x.p-ownP>0.04; return '<div class="rival"><div><b>'+esc(x.n)+'</b><div class="small muted">'+esc(x.style)+'</div></div>'+starsSVG(x.stars,15)+'<div class="chips" style="margin:0">'+chip(cheaper?'loss':(dearer?'gain':'info'),cheaper?'дешевле вас':(dearer?'дороже вас':'цены как у вас'))+chip(x.q>o.rep?'warn':'gain',x.q>o.rep?'качество выше':'качество ниже')+'</div></div>'; }).join('')+'</div><p class="small muted" style="margin:6px 0 0">Когда ваше качество выше, а цена не выше, вы забираете гостей у соседей. Если слабее и дороже, гости уходят к ним.</p>'+termChip('rivals'),{ic:'building'});
+  h+=holidayCard(o);
   /* реклама */
   var mk=MKT.map(function(ch){ var on=!!o.mk[ch.id], cost=ch.cost*(hasSpec(S,'polina')?1:1); var tg=SEGS.filter(function(g){ return ch.reach[g]>=0.06; }).map(function(g){ return chip('info',SEGN[g]); }).join('');
     return '<div class="mk '+(on?'on':'')+'"><div><b>'+esc(ch.n)+'</b><div class="small muted">'+(ch.cost?rub(ch.cost)+' в месяц':'бесплатно')+(ch.id==='deliv'?', комиссия '+(o.eq.deliv?'12':'25')+'%':'')+'</div></div><div class="toggle-wrap"><button class="toggle" role="switch" aria-checked="'+on+'" aria-label="'+esc(ch.n)+'" data-act="mk" data-m="'+ch.id+'"></button></div><p>'+ch.d+'</p>'+(tg?'<div class="reach">'+tg+'</div>':'')+'</div>'; }).join('');
@@ -2594,7 +3046,10 @@ function moneyHTML(){
   var lim=loanLimit(S), room=lim-S.debt;
   h+=card('Кредит','<div class="kpi">'+metric('Кредит банка',rubk(S.debt),'под 1,6% в месяц')+metric('Проценты в месяц',rubk(S.debt*BANK.rate+S.emerg*0.035),'')+metric('Можно взять ещё',rubk(Math.max(0,room)),'лимит '+rubk(lim))+metric('Экстренный долг',rubk(S.emerg),S.emerg?'3,5% в месяц':'нет',S.emerg?'bad':'')+'</div><div class="row"><button class="btn small" data-act="borrow" data-v="250000"'+(room<250000?' disabled':'')+'>Взять 250 000 ₽</button><button class="btn small secondary" data-act="repay" data-v="250000"'+(S.debt+S.emerg<=0?' disabled':'')+'>Погасить 250 000 ₽</button>'+(S.debt+S.emerg>0?'<button class="btn small ghost" data-act="repay" data-v="all">Погасить всё возможное</button>':'')+'</div><p class="small muted" style="margin:8px 0 0">Кредит даёт деньги сейчас, но проценты платятся каждый месяц, пока долг не вернули.</p>'+termChip('loan'),{ic:'bank'});
   if(S.month>=9||S.flags.expand){ h+=card('Инвестор','<p>'+(S.invest?'Артём Викторович в деле: он получает 20% чистой прибыли каждый месяц.':'Артём Викторович готов вложить '+rub(INVESTOR.sum)+' за 20% чистой прибыли навсегда.')+'</p>'+(S.invest?'':'<button class="btn small" data-act="invest">Взять инвестора</button>')+'<div style="margin-top:8px">'+termChip('equity')+'</div>',{ic:'handshake'}); }
+  h+=card('Вклад','<div class="kpi">'+metric('На вкладе',rubk(S.dep||0),'растёт на 0,9% в месяц')+metric('Проценты в месяц',rub((S.dep||0)*0.009),'')+'</div><div class="row"><button class="btn small" data-act="dep" data-v="250000"'+(S.cash<250000?' disabled':'')+'>Положить 250 000 ₽</button><button class="btn small secondary" data-act="undep" data-v="250000"'+((S.dep||0)<=0?' disabled':'')+'>Снять 250 000 ₽</button></div><p class="small muted" style="margin:8px 0 0">Свободные деньги на вкладе приносят проценты и входят в капитал. Но на заведения их надо будет снять.</p>'+termChip('deposit'),{ic:'bank'});
+  h+=card('Страховка и закупка впрок','<div class="row between"><div><b>Страховка кафе</b><div class="small muted">'+rub(7000*ownOutlets(S).length)+' в месяц. Возвращает 40% неожиданных убытков от случаев.</div></div><div class="toggle-wrap"><button class="toggle" role="switch" aria-checked="'+(!!S.insured)+'" aria-label="Страховка" data-act="insure"></button></div></div><hr style="border:0;border-top:2px dotted var(--edge);margin:12px 0"><div class="row between"><div><b>Закупка впрок</b><div class="small muted">'+((S.flags.fwdUntil||0)>=S.month?'Действует до '+MONTHS[Math.min(15,S.flags.fwdUntil)]+': продукты дешевле на 6%.':'Фиксируете цену на 3 месяца: −6%. Взнос '+rub(forwardFee(S))+'. Если цены упадут, вы переплатите.')+'</div></div><button class="btn small secondary" data-act="forward"'+((S.flags.fwdUntil||0)>=S.month?' disabled':'')+'>Подписать</button></div>'+termChip('insurance')+' '+termChip('forward'),{ic:'shield'});
   var hist=S.hist.slice(-8);
+  if(hist.length>1) h+=card('Месяц за месяцем','<div style="overflow:auto"><table class="mtable"><thead><tr><th>Месяц</th><th>Выручка</th><th>Прибыль</th><th>Рейтинг</th></tr></thead><tbody>'+hist.slice().reverse().map(function(x){ return '<tr><td>'+MONTHS_SHORT[x.m-1]+'</td><td class="num">'+rubk(x.rev)+'</td><td class="num '+(x.profit>=0?'gain-t':'loss-t')+'">'+sgn(Math.round(x.profit/1000)*1000).replace(/ ₽$/,'')+'</td><td class="num">'+f1d(x.rating)+'</td></tr>'; }).join('')+'</tbody></table></div>',{ic:'calendar'});
   if(hist.length>1) h+=card('Деньги по месяцам','<p class="sub">Прибыль</p>'+sparkSVG(hist.map(function(x){ return x.profit; }),hist.map(function(x){ return MONTHS_SHORT[x.m-1]; }))+'<p class="sub" style="margin-top:10px">Капитал</p>'+sparkSVG(hist.map(function(x){ return x.cap; }),hist.map(function(x){ return MONTHS_SHORT[x.m-1]; })),{ic:'chart'});
   h+=card('Из чего состоит капитал','<div class="pl"><div class="pl-row"><span>Деньги в кассе</span><b class="num">'+rub(S.cash)+'</b></div><div class="pl-row"><span>Оборудование и ремонт <span class="hint">55% от стоимости</span></span><b class="num">'+rub(ownerOutletValue(S))+'</b></div><div class="pl-row minus"><span>Долги</span><b class="num">−'+rub(S.debt+S.emerg).replace('−','')+'</b></div><div class="pl-row total"><span>Капитал</span><b class="num">'+rub(capital(S))+'</b></div></div>',{ic:'coins'});
   return h;
@@ -2674,7 +3129,7 @@ A.goforce=function(){ closeModal(); U.goOK=true; A.go(); };
 function doGo(){
   U.snap=JSON.stringify(S); U.snapU={tab:U.tab,outlet:U.outlet};
   var R=simMonth(S,{}); R.cashBefore=S.cash; U.report=R; U.repOutlet=null;
-  applyMonth(S,R); U.newAch=checkAch(S,R); U.pv=null;
+  applyMonth(S,R); U.newAch=checkAch(S,R); U.newAch.forEach(function(a){ logEv(S,'ach','Награда «'+a.n+'»'); }); U.pv=null;
   if(S.emerg>600000 || (S.emerg>0 && S.debt+S.emerg>2600000)){ S.bankrupt=R.m; }
   U.screen='run'; U.runT0=Date.now(); render(); sfx('bell');
   if(!reduced) later(function(){ if(U.screen==='run') A.runskip(); },4600); else later(function(){ if(U.screen==='run') A.runskip(); },600);
@@ -2682,7 +3137,7 @@ function doGo(){
 function runHTML(){
   var R=U.report, r=R.outlets.filter(function(x){ return x.days&&x.days.length; })[0], days=(r&&r.days)||[], mx=Math.max.apply(null,days.concat([1])), out='';
   var cells=days.map(function(v,i){ var h=Math.round(v/mx*100); return '<i class="'+(h>66?'hi ':'')+'" style="--i:'+i+';--h:'+h+'">'+(i+1)+'</i>'; }).join('');
-  return '<article class="card" style="text-align:center"><h2>Идёт месяц: '+MONTHS[R.m-1]+'</h2><p class="muted">Каждая клетка — день. Чем краснее, тем больше выручка.</p><div class="cal" style="max-width:420px;margin:10px auto" aria-hidden="true">'+cells+'</div><p class="muted">'+(r?esc(CITIES[r.city].n)+': ':'')+'гостей <b class="num" id="run-g">0</b>, выручка <b class="num" id="run-r">0 ₽</b></p><button class="btn secondary" data-act="runskip">Показать итоги '+ico('right')+'</button></article>';
+  return '<article class="card" style="text-align:center"><h2>Идёт месяц: '+MONTHS[R.m-1]+'</h2><p class="muted">Каждая клетка — день. Чем краснее, тем больше выручка.</p><div class="cal" style="max-width:420px;margin:10px auto" aria-hidden="true">'+cells+'</div><div class="fact">'+ico('sparkle')+'<span><b>Знаете ли вы?</b> '+esc(FACTS[(R.m*5+hashStr(S.seed))%FACTS.length])+'</span></div><p class="muted">'+(r?esc(CITIES[r.city].n)+': ':'')+'гостей <b class="num" id="run-g">0</b>, выручка <b class="num" id="run-r">0 ₽</b></p><button class="btn secondary" data-act="runskip">Показать итоги '+ico('right')+'</button></article>';
 }
 function runAnim(){
   var R=U.report, g=$('#run-g'), rr=$('#run-r'); if(!g) return;
@@ -2697,13 +3152,14 @@ function funnelHTML(r){
   function row(t,v,cls,sub){ return '<div class="fun '+(cls||'')+'"><span class="t">'+t+'</span><b class="num">'+Math.round(v).toLocaleString('ru-RU').replace(/,/g,' ')+'</b><div class="bar"><i style="width:'+clamp(v/pool*100,0,100).toFixed(1)+'%"></i></div>'+(sub?'<small>'+sub+'</small>':'')+'</div>'; }
   return '<div class="funnel">'+row('Были поблизости',pool,'')+row('Узнали и заинтересовались',a,'','Не узнали о вас: '+Math.round(m.aware))+row('Меню и цена подошли',w,'','Ушли из-за меню и цены: '+Math.round(m.menuprice))+row('Обслужили',s,'','Не хватило мест, людей или кухни: '+Math.round(m.cap))+'</div>';
 }
+function dlt(cur,prev,fmtf){ if(prev==null||!isFinite(prev)||Math.abs(prev)<1) return ''; var d=(cur-prev)/Math.abs(prev); if(Math.abs(d)<0.005) return ''; return '<span class="delta '+(d>0?'up':'dn')+'">'+(d>0?'▲ +':'▼ −')+Math.abs(Math.round(d*100))+'%</span>'; }
 function reportHTML(){
-  var R=U.report; if(!R) return ''; var r=reportOutlet(), h='', t=R.total, mx=Math.max(1,R.revTotal);
+  var R=U.report; if(!R) return ''; var prevH=S.hist.length>=2?S.hist[S.hist.length-2]:null; var r=reportOutlet(), h='', t=R.total, mx=Math.max(1,R.revTotal);
   var multi=R.outlets.length>1;
   h+='<div class="ticket"><div class="tag">Итоги месяца</div><h2>'+MONTHS[R.m-1]+' · месяц '+R.m+' из '+TOTAL+'</h2>'+
    '<div class="row" style="justify-content:center;margin:8px 0">'+starsSVG(R.rating,20)+'<b class="num">'+f1d(R.rating)+'</b></div>'+
    '<div class="pl-row total" style="border-top:0;margin:0"><span>Прибыль</span><b class="num '+(R.profit>=0?'gain-t':'loss-t')+'" id="rp-prof">'+sgn(R.profit)+'</b></div>'+
-   '<div class="kpi" style="margin-top:12px">'+metric('Выручка',rubk(R.revTotal))+metric('Гостей',Math.round(R.guests).toLocaleString('ru-RU').replace(/,/g,' '),'за месяц')+metric('Фуд-кост',pct(t.cogs/Math.max(1,t.rev)),'продукты',t.cogs/Math.max(1,t.rev)>0.36?'bad':'ok')+metric('Прайм-кост',pct((t.cogs+t.wages)/Math.max(1,t.rev)),'продукты + зарплаты',(t.cogs+t.wages)/Math.max(1,t.rev)>0.67?'bad':'ok')+'</div>'+plHTML(R)+'<p class="small muted" style="text-align:center;margin:8px 0 0">В кассе: '+rub(S.cash)+'</p></div>';
+   '<div class="kpi" style="margin-top:12px">'+metric('Выручка',rubk(R.revTotal),'к прошлому месяцу '+(prevH?dlt(R.revTotal,prevH.rev)||'без изменений':'—'))+metric('Гостей',Math.round(R.guests).toLocaleString('ru-RU').replace(/,/g,' '),'за месяц '+(prevH?dlt(R.guests,prevH.guests):''))+metric('Фуд-кост',pct(t.cogs/Math.max(1,t.rev)),'продукты',t.cogs/Math.max(1,t.rev)>0.36?'bad':'ok')+metric('Прайм-кост',pct((t.cogs+t.wages)/Math.max(1,t.rev)),'продукты + зарплаты',(t.cogs+t.wages)/Math.max(1,t.rev)>0.67?'bad':'ok')+'</div>'+plHTML(R)+(R.depInterest>0?'<p class="small muted" style="text-align:center;margin:6px 0 0">Проценты по вкладу: +'+rub(R.depInterest)+' (идут в капитал)</p>':'')+'<p class="small muted" style="text-align:center;margin:8px 0 0">В кассе: '+rub(S.cash)+'</p></div>';
   if(multi) h+='<div class="outsel" role="group" aria-label="Заведение в отчёте">'+R.outlets.map(function(x){ return '<button aria-pressed="'+(r&&r.id===x.id)+'" data-act="repout" data-o="'+x.id+'">'+ico('building','sm')+' '+esc(CITIES[x.city].n)+(x.building?' (стройка)':'')+'</button>'; }).join('')+'</div>';
   if(r && !r.building){
     h+=card('«'+esc(CITIES[r.city].n)+'»: как прошёл месяц','<div class="kpi">'+metric('Выручка',rubk(r.rev))+metric('Гостей в день',Math.round(r.guests/30),'')+metric('Средний чек',rub(r.avgCheck),'')+metric('Загрузка',pct(r.utilK),r.utilK>1?'спрос выше возможностей':'есть запас',r.utilK>1?'bad':'ok')+'</div><div class="row">'+starsSVG(r.rating,18)+'<span class="small muted">'+(r.rating>r.ratingOld+0.02?'рейтинг вырос':(r.rating<r.ratingOld-0.02?'рейтинг упал':'рейтинг стабилен'))+'</span></div>',{ic:'building'});
@@ -2715,6 +3171,9 @@ function reportHTML(){
     if(r.reviews&&r.reviews.length) h+=card('Отзывы',r.reviews.map(function(rv){ return '<div class="review">'+starsSVG(rv.st,14)+'<div><div class="who">Гость</div><p>'+esc(rv.t)+'</p></div></div>'; }).join(''),{ic:'chat'});
     if(r.banNote&&r.banNote.length) h+=card('Банкеты и заказы',r.banNote.map(function(b){ return '<div class="pl-row '+(b.ok?'plus':'minus')+'"><span>'+esc(b.name)+' <span class="hint">'+(b.ok?'справились':'не справились: вернули часть денег')+'</span></span><b class="num">'+rub(b.rev)+'</b></div>'; }).join(''),{ic:'gift'});
   }
+  if(R.goals&&R.goals.length){ var gs=R.goals, got=gs.filter(function(x){ return x.ok; }); h+=card('Задания месяца: '+got.length+' из '+gs.length,'<div class="questres">'+gs.map(function(x){ var q=QUEST_BY_ID[x.id]; return '<div class="qr '+(x.ok?'ok':'')+'">'+ico(x.ok?'check':'x')+'<span><b>'+esc(q.n)+'</b><div class="small muted">'+esc(q.d)+'</div></span><b class="num '+(x.ok?'gain-t':'')+'">'+(x.ok?'+'+rub(q.rew):'—')+'</b></div>'; }).join('')+'</div>',{ic:'target'}); }
+  if(R.regs&&R.regs.length){ h+=card('Постоянные гости','<div class="regs">'+R.regs.map(function(x){ var d=REG_BY_ID[x.id]; return '<div class="reg">'+avatarSVG(d.who,x.h>=3?'happy':'',42)+'<div class="grow"><b>'+esc(d.n)+'</b> '+heartsHTML(x.h)+'<div class="small muted">'+(x.gift?'Стал другом кафе! '+esc(d.gift)+' +10 000 ₽':(x.dh>0?'Стал ближе: ему понравилось меню':(x.dh<0?'Скучает по любимому блюду':'Всё по-прежнему')))+'</div></div></div>'; }).join('')+'</div>',{ic:'heart'}); }
+  if(S.hq.upg.secret && R.outlets.some(function(x){ return !x.building&&x.dims; })){ h+=card('Отчёт тайного гостя','<div class="insights-list">'+R.outlets.filter(function(x){ return !x.building&&x.dims; }).map(function(x){ var names={food:'вкус',svc:'сервис',cln:'чистоту',atmo:'уют',val:'цену и качество'}, w=Object.keys(x.dims).sort(function(a,b){ return x.dims[a]-x.dims[b]; })[0]; return '<div class="insight info"><span class="ico">'+ico('eye')+'</span><div><b>«'+esc(CITIES[x.city].n)+'»: слабее всего '+names[w]+'</b><p>Оценка '+Math.round(x.dims[w])+' из 100. Вкус '+Math.round(x.dims.food)+', сервис '+Math.round(x.dims.svc)+', чистота '+Math.round(x.dims.cln)+', уют '+Math.round(x.dims.atmo)+'.</p></div></div>'; }).join('')+'</div>',{ic:'eye'}); }
   var ins=monthInsights(S,R); ins.forEach(function(x){ if(x.term) addTerm(x.term); });
   if(ins.length) h+=card('Подсказки Борща и Арсена','<div>'+ins.map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p>'+(x.term?termChip(x.term):'')+'</div></div>'; }).join('')+'</div>',{ic:'sparkle'});
   var ev=[]; if(U.newAch&&U.newAch.length) U.newAch.forEach(function(a){ ev.push('<div class="award on"><span class="fico">'+ico(a.icon)+'</span><div><b>Награда: '+esc(a.n)+'</b><small>'+esc(a.d)+'</small></div></div>'); });
@@ -2752,7 +3211,7 @@ A.tofinal=function(){ finishGame(); };
 function finishGame(){
   var f=forkScore(S); if(f.tier==='gold') S.flags.goldFork=1;
   if((f.tier!=='none'||goalMet(S)) && S.recs.indexOf(7)<0) S.recs.push(7);
-  S.final=true; checkAch(S,S.lastR?{outlets:[],profit:0}:null); saveRecord(); U.screen='final'; sfx(goalMet(S)?'win':'good'); if(goalMet(S)||f.tier==='gold') burst(120); render();
+  S.final=true; var fa=checkAch(S,S.lastR?{outlets:[],profit:0}:null); fa.forEach(function(a){ logEv(S,'ach','Награда: '+a.n); }); saveRecord(); U.screen='final'; sfx(goalMet(S)?'win':'good'); if(goalMet(S)||f.tier==='gold') burst(120); render();
 }
 function gameInsights(){
   var out=[], h=S.hist, g=goalNow(S);
@@ -2773,7 +3232,9 @@ function finalHTML(){
    '<div class="kpi" style="max-width:560px;margin:14px auto">'+metric('Капитал',rubk(g.cap),'цель '+rubk(g.needCap),g.okCap?'ok':'bad')+metric('Города',g.cities+' из '+g.needCities,'',g.okCities?'ok':'bad')+metric('Рейтинг сети',f1d(g.rating),'нужно '+f1d(g.needRating),g.okRating?'ok':'bad')+metric('Гид',FORK_NAMES[f.tier],'')+'</div>'+
    (goalMet(S)?'<p class="chip gain">'+ico('check','sm')+' Цель достигнута</p>':'<p class="chip warn">Цель пока не достигнута</p>')+'</div>';
   var sp=S.hist.map(function(x){ return x.cap; }); if(sp.length>1) h+=card('Капитал по месяцам',sparkSVG(sp.slice(-10),S.hist.slice(-10).map(function(x){ return MONTHS_SHORT[x.m-1]; })),{ic:'chart'});
+  h+=card('Диплом','<p class="sub">Его можно сфотографировать или сделать скриншот.</p>'+diplomaSVG(S.name,S.cafe,v.name,['Капитал сети: '+rubk(g.cap)+' · городов: '+g.cities,'Рейтинг сети: '+f1d(g.rating)+' · гид: '+FORK_NAMES[f.tier],'Рецептов в тетради: '+S.recs.length+' из 7'],S.awn),{ic:'award'});
   h+=card('Города на карте Тамары',mapSVG(S,null),{ic:'map'});
+  var chron=(S.log||[]).slice(-14); if(chron.length) h+=card('Хроника партии','<ul class="chron">'+chron.map(function(x){ return '<li><b>'+esc(x.t)+'</b><small>'+MONTHS[Math.min(15,x.m-1)]+', месяц '+x.m+'</small></li>'; }).join('')+'</ul>',{ic:'calendar'});
   h+=card('Разбор партии','<div>'+gameInsights().map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p></div></div>'; }).join('')+'</div>',{ic:'sparkle'});
   h+=card('Награды ('+got.length+' из '+ACH.length+')','<div class="awards">'+got.map(function(a){ return '<div class="award on"><span class="fico">'+ico(a.icon)+'</span><div><b>'+esc(a.n)+'</b><small>'+esc(a.d)+'</small></div></div>'; }).join('')+'</div>',{ic:'award'});
   h+=card('Для учителя','<p class="small muted">Скопируйте строку и отправьте учителю: он соберёт общую таблицу класса.</p><textarea class="code" readonly id="resline" aria-label="Результат">'+esc(line)+'</textarea><div class="row"><button class="btn small secondary" data-act="copyres">'+ico('copy')+' Скопировать результат</button></div>',{ic:'chart'});
@@ -2822,6 +3283,9 @@ A.spec=function(el){ ok(A_spec(S,el.getAttribute('data-id'),oid())); };
 A.supplier=function(el){ ok(A_set(S,oid(),'sup',el.getAttribute('data-v'))); };
 A.stockdec=function(){ var o=curO(); ok(A_set(S,o.id,'stock',Math.max(1,o.stock-1))); }; A.stockinc=function(){ var o=curO(); ok(A_set(S,o.id,'stock',Math.min(6,o.stock+1))); };
 A.buyeq=function(el){ var r=A_eq(S,oid(),el.getAttribute('data-e')); if(r.ok) sfx('coin'); ok(r); };
+A.hol=function(){ ok(A_hol(S,oid())); };
+A.dep=function(el){ ok(A_dep(S,+el.getAttribute('data-v'))); }; A.undep=function(el){ ok(A_undep(S,+el.getAttribute('data-v'))); };
+A.insure=function(){ ok(A_insure(S)); }; A.forward=function(){ var r=A_forward(S); if(r.ok) sfx('coin'); ok(r); };
 A.special=function(el){ ok(A_special(S,oid(),el.getAttribute('data-d'))); };
 A.mk=function(el){ ok(A_mk(S,oid(),el.getAttribute('data-m'))); };
 A.accept=function(el){ ok(A_accept(S,el.getAttribute('data-id'))); }; A.haggle=function(el){ ok(A_haggle(S,el.getAttribute('data-id'))); }; A.decline=function(el){ ok(A_decline(S,el.getAttribute('data-id'))); }; A.unaccept=function(el){ ok(A_unaccept(S,el.getAttribute('data-id'))); };
@@ -2872,7 +3336,7 @@ function readSetup(){ var st=U.setup||(U.setup={}); var a=$('#f-name'), b=$('#f-
 A.startgame=function(){
   readSetup(); var st=U.setup, name=(st.name||'').trim()||'Хозяин', cafe=(st.cafe||'').trim()||'Первый столик', code=(st.code||'').trim();
   var seed=code?('cls:'+code.toLowerCase()):randomSeed();
-  S=newState({name:name,cafe:cafe,talent:st.talent,diff:st.diff,code:code,seed:seed}); hudPrev={};
+  S=newState({name:name,cafe:cafe,talent:st.talent,diff:st.diff,code:code,seed:seed}); S.awn=st.awn||'#D1361A'; hudPrev={};
   U={seen:{},actSeen:{},tab:'home'}; enterMonth();
 };
 A.togglesound=function(){ soundOn=!soundOn; lsSet(SND_KEY,soundOn?'1':'0'); if(soundOn) sfx('good'); renderTools(); };
@@ -2888,7 +3352,7 @@ function renderTools(){
 function stageHTML(){
   switch(U.screen){
     case 'title': return titleHTML(); case 'intro': return introHTML(); case 'setup': return setupHTML(); case 'act': return actHTML(); case 'last': return lastHTML();
-    case 'scene': return sceneHTML(); case 'event': return eventHTML(); case 'rush': return rushHTML();
+    case 'scene': return sceneHTML(); case 'event': return eventHTML(); case 'rush': return rushHTML(); case 'fifo': return fifoHTML(); case 'change': return changeHTML();
     case 'plan': return planHTML(); case 'run': return runHTML(); case 'report': return reportHTML(); case 'quiz': return quizHTML();
     case 'lessonEnd': return lessonEndHTML(); case 'finale': return finaleHTML(); case 'final': return finalHTML(); case 'teacher': return teacherHTML();
   }

@@ -46,7 +46,7 @@ function A_accept(s,id){
 }
 function A_haggle(s,id){
   var b=makeBoard(s), off=b.offers.filter(function(x){ return x.id===id; })[0]; if(!off || off.state!=='open') return res(false);
-  var o=outletById(s,off.o), p=clamp(0.3+(o.rep-45)/120+(s.talent==='host'?0.08:0),0.2,0.8), r=rngFor(s,'hag'+off.id)();
+  var o=outletById(s,off.o); if(!o){ off.state='lost'; return res(false,'Заведения уже нет.'); } var p=clamp(0.3+(o.rep-45)/120+(s.talent==='host'?0.08:0),0.2,0.8), r=rngFor(s,'hag'+off.id)();
   if(r<p){ off.price=Math.round(off.price*1.12/10)*10; off.hag=1; var rr=A_accept(s,id); return res(true,'Клиент согласился на цену выше: '+rub(off.price)+' с человека. '+rr.msg); }
   off.state='lost'; return res(false,'Клиент ушёл: «Дороговато, мы поищем в другом месте».');
 }

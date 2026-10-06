@@ -32,7 +32,7 @@ function newState(o){
     menu:['espresso','latte','pie','oatmeal','chicksoup','cutlet','compote'], price:{}, lab:{}, recs:[1],
     outlets:[makeOutlet('o1','tula','cafe',(o.cafe||'Первый столик'))], hq:{brand:8, upg:{}, std:0, mkt:0, spec:{}},
     specs:{}, here:'o1', mods:[], flags:{leraMet:1}, rel:{arsen:0,lera:0,maria:0,kira:0,viktor:0,nazarov:0}, hist:[], terms:[], ach:{},
-    quizScore:[], orders:null, accepted:[], mini:[], seen:{}, tut:{}, rewinds:0, log:[], news:[], goalDone:{}, awards:0, repl:{}};
+    quizScore:[], orders:null, accepted:[], mini:[], seen:{}, tut:{}, rewinds:0, log:[], news:[], goalDone:{}, awards:0, repl:{}, dep:0, insured:0, goals:null, reg:{}, stats:{goalsDone:0, holidays:0, miniGold:0, reg5:0, events:0}, awn:'#D1361A'};
   s.outlets[0].openM=1;
   ensureState(s);
   return s;
@@ -41,7 +41,7 @@ function ensureState(s){
   if(!s.menu) s.menu=[]; if(!s.price) s.price={}; if(!s.lab) s.lab={}; if(!s.recs) s.recs=[1]; if(!s.hq) s.hq={brand:8,upg:{},std:0,mkt:0,spec:{}};
   if(!s.hq.upg) s.hq.upg={}; if(!s.specs) s.specs={}; if(!s.mods) s.mods=[]; if(!s.flags) s.flags={}; if(!s.rel) s.rel={}; if(!s.hist) s.hist=[];
   if(!s.terms) s.terms=[]; if(!s.ach) s.ach={}; if(!s.quizScore) s.quizScore=[]; if(!s.accepted) s.accepted=[]; if(!s.seen) s.seen={}; if(!s.tut) s.tut={};
-  if(!s.log) s.log=[]; if(!s.news) s.news=[]; if(!s.goalDone) s.goalDone={}; if(!s.repl) s.repl={};
+  if(s.dep==null) s.dep=0; if(!s.reg) s.reg={}; if(!s.stats) s.stats={goalsDone:0,holidays:0,miniGold:0,reg5:0,events:0}; if(!s.awn) s.awn='#D1361A'; if(!s.log) s.log=[]; if(!s.news) s.news=[]; if(!s.goalDone) s.goalDone={}; if(!s.repl) s.repl={};
   if(s.pidx==null) s.pidx=1; if(s.cidx==null) s.cidx=1; if(s.widx==null) s.widx=1; if(s.emerg==null) s.emerg=0;
   s.outlets.forEach(function(o){ if(!o.staff) o.staff={cook:1,wait:1,bar:1,cln:0}; if(!o.lvl) o.lvl={cook:1,wait:1,bar:1,cln:1}; if(!o.trained) o.trained={}; if(!o.mk) o.mk={}; if(!o.eq) o.eq={}; if(!o.specs) o.specs=[]; if(!o.hist) o.hist=[]; if(o.loc==null) o.loc=true; });
   if(!s.here || !outletById(s,s.here)) s.here=s.outlets[0].id;
@@ -71,25 +71,27 @@ function outletDishes(s,o){
 }
 function dishPrice(s,o,d){ var p=d.loc ? (o.lp||Math.round(d.ref*s.pidx*CITIES[o.city].inc/5)*5) : priceOf(s,d); return Math.max(10, Math.round(p*(1+(o.padj||0)/100))); }
 function refPrice(s,o,d){ return d.ref*s.pidx*CITIES[o.city].inc; }
-var PRICE_GAMMA=0.6, DEMAND_SCALE=0.97, INTEREST_MAX=2.1;
+var PRICE_GAMMA=0.6, DEMAND_SCALE=0.93, INTEREST_MAX=2.1;
 function pf(seg,r){ var c=PRICEK[seg]; return 1/(1+Math.pow(r/c.r,c.k)); }
 function supOf(s,o){ var p=SUPPLIERS[o.sup]; if(p && p.need && ownOutlets(s).length<p.need) return SUPPLIERS.whole; return p||SUPPLIERS.whole; }
 function cogsFactor(s,o){
   var f=supOf(s,o).cost*s.cidx*modM(s,'cogs',o.city);
-  var d=1; if(s.talent==='biz') d*=0.97; if(specAt(s,'arsen',o)) d*=0.96; if(hasSpec(s,'gleb')) d*=0.95; if(s.hq.upg.buy) d*=0.96; if(s.hq.upg.central) d*=0.93;
+  var d=1; if(s.talent==='biz') d*=0.97; if(specAt(s,'arsen',o)) d*=0.96; if(hasSpec(s,'gleb')) d*=0.95; if(hasSpec(s,'oleg')) d*=0.98; if(s.hq.upg.buy) d*=0.96; if(s.hq.upg.central) d*=0.93;
   return f*Math.max(0.78,d);
 }
-function cookEff(s,o){ var l=o.lvl.cook; if(specAt(s,'arsen',o)) l+=2; if(specAt(s,'damir',o)) l+=1; if(s.talent==='cook') l+=0.3; return l; }
+function cookEff(s,o){ var l=o.lvl.cook; if(specAt(s,'arsen',o)) l+=2; if(specAt(s,'damir',o)) l+=1; if(s.talent==='cook') l+=0.3; if(s.hq.upg.academy) l+=0.5; return l; }
 function dishAppeal(s,o,d,i,cal){
-  var tier=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) tier+=0.5; if(specAt(s,'lera',o) && d.cat==='coffee') tier+=0.3;
+  var tier=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) tier+=0.5; if(specAt(s,'ruslan',o) && (d.cat==='bake'||d.cat==='dess')) tier+=0.3; if(specAt(s,'lera',o) && d.cat==='coffee') tier+=0.3;
   var a=0.7+0.1*tier; d.tg.forEach(function(t){ a*=TAGS[t].v[i]; });
   if(d.h) a*=SEASONF.hot[cal]; if(d.c) a*=SEASONF.cold[cal];
   if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) a*=1.25;
+  if(specAt(s,'ruslan',o) && (d.cat==='bake'||d.cat==='dess')) a*=1.2;
+  if(o.hol){ var H=HOLIDAYS[cal]; if(H && H.cat[d.cat]) a*=1+H.cat[d.cat]; }
   if(d.loc && specAt(s,'damir',o)) a*=1.4;
   if(o.special && o.special===d.id) a*=1.35;
   return a;
 }
-function dishTier(s,o,d){ var t=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) t+=0.5; return t; }
+function dishTier(s,o,d){ var t=d.tier+(s.talent==='cook'?0.25:0)+(specAt(s,'arsen',o)?0.4:0); if(specAt(s,'sonya',o) && (d.cat==='bake'||d.cat==='dess')) t+=0.5; if(specAt(s,'ruslan',o) && (d.cat==='bake'||d.cat==='dess')) t+=0.3; return t; }
 
 /* модель заведения: что и в каком количестве заказывает один гость каждого сегмента */
 function outletModel(s,o,cal){
@@ -131,19 +133,21 @@ function simOutlet(s, o, env, rng){
   var cf=cogsFactor(s,o), M=outletModel(s,o,cal);
   var hf=HOURS[o.hrs], demHrs=[0.88,1,1.07][o.hrs];
   /* средние показатели смеси блюд */
-  var polina=hasSpec(s,'polina')?1.3:1, lera=specAt(s,'lera',o)?1.5:1;
+  var polina=(hasSpec(s,'polina')?1.3:1)*(s.hq.upg.mkthq?1.15:1), lera=(specAt(s,'lera',o)?1.5:1)*(hasSpec(s,'vera')?1.4:1), HOL=o.hol?HOLIDAYS[cal]:null;
   var mkF={}, mkCost=0;
   SEGS.forEach(function(sg){ mkF[sg]=1; });
-  MKT.forEach(function(ch){ if(!o.mk[ch.id]) return; var e=polina*(ch.id==='smm'?lera:1); SEGS.forEach(function(sg){ mkF[sg]+=ch.reach[sg]*e; }); mkCost+=ch.cost; });
+  MKT.forEach(function(ch){ if(!o.mk[ch.id]) return; var e=polina*((ch.id==='smm'||ch.id==='blog')?lera:1); SEGS.forEach(function(sg){ mkF[sg]+=ch.reach[sg]*e; }); mkCost+=ch.cost; });
+  if(HOL) mkCost+=HOL.cost;
   if(o.mk.blog && !(env.blogOK)) { /* первый месяц блогера — если известность выше критической, обзор хороший */ }
   var absent=(!here && ownOutlets(s).length>1 && !o.mgr && o.fmt!=='fran'), steady=(s.hq.upg.secret?0.5:1)*(s.hq.upg.std?0.7:1);
   var mgrQ=o.mgr?(s.hq.upg.std?0:-2):0; if(o.mgr && specAt(s,'anton',o)) mgrQ=+3;
-  var repF=0.5+o.rep/100, awrF=0.42+0.95*o.awr, loyF=1+0.3*o.loy, compF=1-city.comp*0.32*(1.15-o.rep/100)*modM(s,'comp',o.city);
+  var regB=(o===flagship(s))?regularBonus(s):0, repF=0.5+o.rep/100, awrF=0.42+0.95*o.awr, loyF=1+0.3*o.loy+regB, compF=1-city.comp*0.32*(1.15-o.rep/100)*modM(s,'comp',o.city);
   var facF={stu:1,off:1,fam:1,tur:1,gou:1};
   if(o.eq.kids) facF.fam*=1.15; if(o.eq.wifi){ facF.stu*=1.12; facF.off*=1.05; }
   var deco=(o.eq.deco3?3:(o.eq.deco2?2:(o.eq.deco1?1:0)));
   facF.tur*=1+0.05*deco; facF.gou*=1+0.06*deco; if(o.eq.music){ facF.gou*=1.03; facF.fam*=1.02; }
-  if(o.mk.happy){ facF.stu*=1.0; }
+  if(HOL) SEGS.forEach(function(sg){ facF[sg]*=1+(HOL.seg[sg]||0); });
+  var rwAll=sumArr(SEGS.map(function(g){ return M.seg[g].rW; }))/SEGS.length, rv=rivalsFor(s,o.city), rvQ=sumArr(rv.map(function(x){ return x.q; }))/Math.max(1,rv.length), rvP=sumArr(rv.map(function(x){ return x.p; }))/Math.max(1,rv.length), rivalP=clamp(1+(rvQ-o.rep)/250+(rwAll-rvP)/4,0.92,1.12); compF/=rivalP; res.rivalP=rivalP;
   var base={}, pool0=0, interest=0, wantSeg={}, idx=0;
   SEGS.forEach(function(sg,i){
     var b=city.seg[i]*fmt.pot*DEMAND_SCALE*(sg==='tur'?city.tur[cal]:SEGSEAS[sg][cal])*diff.dem*modM(s,'dem',o.city)*modM(s,sg,o.city)*demHrs;
@@ -185,15 +189,15 @@ function simOutlet(s, o, env, rng){
   var util=utilSum/30;
   /* заказы, потери по причинам */
   var stockLoss=clamp((0.16-0.04*o.stock)*(1+Math.max(0,util-0.8))*(o.sup==='market'?1.25:1)-(o.eq.pos?0.01:0),0,0.2);
-  var wasteBase=0.045+[ -0.010,0,0.012,0.030,0.055,0.090][clamp(o.stock,1,6)-1]*(o.eq.fridge?0.55:1)-(o.eq.fridge?0.02:0)-(o.eq.pos?0.015:0)+supOf(s,o).waste+Math.max(0,M.dishes.length-9)*0.004;
+  var wasteBase=0.045+[ -0.010,0,0.012,0.030,0.055,0.090][clamp(o.stock,1,6)-1]*(o.eq.fridge?0.55:1)-(o.eq.fridge?0.02:0)-(o.eq.pos?0.015:0)-(s.hq.upg.logist?0.02:0)-(hasSpec(s,'oleg')?0.025:0)+supOf(s,o).waste+Math.max(0,M.dishes.length-9)*0.004;
   var waste=clamp(wasteBase*modM(s,'waste',o.city),0.02,0.22);
   var guests=tot.served, delOrders=tot.del;
   var dineRev=guests*rpgA*(1-stockLoss); var avgCheck=rpgA;
-  var disc=(o.mk.loyal?0.03*0.4:0)+(o.mk.happy?0.15*0.22:0); dineRev*=(1-disc);
+  var disc=(o.mk.loyal?0.03*0.4:0)+(o.mk.happy?0.15*0.22:0)+(o.mk.lunch?0.03:0); dineRev*=(1-disc); var merch=o.mk.merch?dineRev*0.015:0; dineRev+=merch;
   var delRev=delOrders*rpgA*1.0*(1-stockLoss)*(1-disc);
-  var commission=o.mk.deliv?(o.eq.deliv?0.12:0.25)-(s.hq.upg.site?0.03:0):0;
+  var commission=o.mk.deliv?(o.eq.deliv?0.12:0.25)-(s.hq.upg.site?0.03:0)-(s.hq.upg.app?0.02:0):0;
   var delComm=delRev*commission, pack=delOrders*28;
-  var orders=guests+delOrders, cogs=(guests*cpgA+delOrders*cpgA)*(1-stockLoss)*(1+waste);
+  var orders=guests+delOrders, cogs=(guests*cpgA+delOrders*cpgA)*(1-stockLoss)*(1+waste)+merch*0.45;
   /* банкеты */
   var banRev=0, banCogs=0, banFail=0, banNote=[];
   s.accepted.forEach(function(a){ if(a.o!==o.id) return; var okCap=(banLoad+util*0.0)<0.75; var q=a.q||1; var good=okCap && util<1.15; banRev+=a.guests*a.price*(good?1:0.7); banCogs+=a.guests*a.price*0.34*cf/Math.max(0.9,s.cidx); if(!good) banFail++; banNote.push({id:a.id, ok:good, rev:a.guests*a.price*(good?1:0.7), name:a.name, bonus:a.bonus}); });
@@ -201,7 +205,7 @@ function simOutlet(s, o, env, rng){
   var cE=cookEff(s,o), wE=o.lvl.wait+(specAt(s,'lera',o)?0.3:0), bE=o.lvl.bar+(specAt(s,'lera',o)?1:0);
   var food=clamp(22+11*tierA+4*(cE-1)+supOf(s,o).q+(o.eq.espro?2:0)+(o.mor-60)*0.08+(absent?-5*steady:0)+mgrQ*0.6,0,100);
   var wpen=clamp((util-0.9)*55,0,40);
-  var svcQ=clamp(46+5*(wE-1)+3*(bE-1)+(o.mor-60)*0.20+(o.eq.pos?3:0)-wpen+(s.talent==='host'?6:0)+(o.staff.bar<1?-8:0)+(absent?-6*steady:0)+mgrQ+(o.mgr&&specAt(s,'anton',o)?3:0),0,100);
+  var svcQ=clamp(46+5*(wE-1)+3*(bE-1)+(o.mor-60)*0.20+(o.eq.pos?3:0)-wpen+(s.talent==='host'?6:0)+(specAt(s,'mila',o)?7:0)+(o.staff.bar<1?-8:0)+(absent?-6*steady:0)+mgrQ+(o.mgr&&specAt(s,'anton',o)?3:0),0,100);
   var need=Math.max(0.5,Math.ceil(seatsNow(o,cal,0.5)/30)-(o.eq.dish?0.5:0)), clnR=Math.min(1,o.staff.cln/need), cln=clamp(40+45*clnR+4*(o.lvl.cln-1)+(o.eq.dish?3:0)+(absent?-3*steady:0),0,100);
   var atmo=clamp(38+deco*11+(o.eq.music?6:0)+(o.eq.terr&&cal>=4&&cal<=8?5:0)+(o.eq.kids?2:0)+(o.eq.wifi?1:0)+fmt.atmo+(o.fmt==='rest'?4:0)+modM(s,'atmo',o.city)*0-0,0,100);
   var val=clamp(80-(rWavg-1)*90,25,100);
@@ -213,9 +217,9 @@ function simOutlet(s, o, env, rng){
   awrNew+=Math.min(0.03,guests/Math.max(1,seatsNow(o,cal,0.5)*fmt.turns*30)*0.04)*(s.talent==='host'?1.2:1)+(o.rep>70?0.008:0)+(o.eq.terr&&cal>=4&&cal<=8?0.006:0);
   if(s.hq.upg.brand) awrNew+=0.004; if(s.hq.upg.charity) awrNew+=0.006; awrNew+=(s.hq.brand/100)*0.008;
   awrNew=clamp(awrNew,0,1);
-  var loyNew=clamp(o.loy*0.96+(o.rep>58?(o.mk.loyal?0.075:0.035):0)+(s.hq.upg.site?0.01:0)+(s.hq.upg.charity?0.012:0),0,1);
+  var loyNew=clamp(o.loy*0.96+(o.rep>58?(o.mk.loyal?0.075:0.035):0)+(s.hq.upg.site?0.01:0)+(s.hq.upg.app?0.02:0)+(s.hq.upg.charity?0.012:0),0,1);
   /* затраты */
-  var wages=outletWages(s,o), rent=city.rent*fmt.rent*modM(s,'rent',o.city)*(s.flags.rentUp?1.12:1)*(s.flags.rentDeal?0.92:1);
+  var wages=outletWages(s,o), rent=city.rent*fmt.rent*modM(s,'rent',o.city)*(s.flags.rentUp?1.12:1)*(s.flags.rentDeal?0.92:1)*((s.flags.ownBuilding&&o===flagship(s))?0:1);
   var util2=fmt.util*s.cidx*(1+(cal<=1||cal===11?0.12:0))*(1+0.04*(o.eq.kitch2?1:0)+0.03*(o.eq.terr?1:0)), run=(o.eq.pos?EQD.pos.run:0)+(o.eq.music?EQD.music.run:0);
   var mk=mkCost+(o.mk.blog?0:0)+(s.flags.charityOn?0:0);
   var dineAll=dineRev+delRev+banRev, other=0.02*dineAll+run+pack;
@@ -282,19 +286,20 @@ function simMonth(s, opts){
   franOutlets(s).forEach(function(o){ if(o.built){ return; } var r=simFranchise(s,o,env,rngFor(s,tag+m+'|'+o.id)); R.fran.push(r); tot.royalty+=r.royalty-r.support; });
   /* штаб-квартира */
   var n=own.length;
-  tot.hq=(n>=2?18000*(n-1)*s.cidx+0.012*tot.rev:0)+(s.hq.upg.charity?18000:0)+(s.hq.upg.site?6000:0)+(s.hq.upg.central?60000:0);
+  tot.hq=(n>=2?18000*(n-1)*s.cidx+0.012*tot.rev:0)+(s.hq.upg.charity?18000:0)+(s.hq.upg.site?6000:0)+(s.hq.upg.central?60000:0)+(s.insured?7000*n:0);
   Object.keys(s.specs).forEach(function(id){ if(SPECS[id].where==='hq') tot.hqWages+=SPECS[id].wage; });
   tot.hq+=tot.hqWages;
   var costsDeduct=tot.cogs-R.outlets.reduce(function(a,r){ return a+(r.deductCogs===0?r.cogs:0); },0)+tot.wages+tot.rent+tot.util+tot.mkt+tot.other+tot.delComm+tot.hq;
-  var interest=s.debt*(BANK.rate-(s.talent==='biz'?0.003:0))+s.emerg*0.035;
+  var interest=s.debt*(BANK.rate-(s.talent==='biz'?0.003:0)-(s.hq.upg.fin?0.002:0))+s.emerg*0.035;
   var revTax=tot.rev+tot.royalty;
   var tax6=0.06*revTax, tax15=Math.max(0.01*revTax, 0.15*Math.max(0,revTax-costsDeduct-interest)), tax=(s.tax==='15'?tax15:tax6);
   if(s.flags.emmaAuto) tax=Math.min(tax6,tax15);
+  if(s.hq.upg.fin) tax*=0.96;
   if(hasSpec(s,'emma')) tax*=0.92;
   var pre=tot.rev+tot.royalty-tot.cogs-tot.wages-tot.rent-tot.util-tot.mkt-tot.other-tot.delComm-tot.hq-interest;
   var div=(s.invest&&pre-tax>0)?(pre-tax)*INVESTOR.share:0; if(s.flags.nazMerge && pre-tax>0) div+=(pre-tax)*0.15;
   var profit=pre-tax-div;
-  R.total=tot; R.interest=interest; R.tax=tax; R.tax6=tax6; R.tax15=tax15; R.div=div; R.profit=profit; R.pre=pre; R.revTotal=revTax; R.costsDeduct=costsDeduct;
+  R.depInterest=s.dep*0.009; R.total=tot; R.interest=interest; R.tax=tax; R.tax6=tax6; R.tax15=tax15; R.div=div; R.profit=profit; R.pre=pre; R.revTotal=revTax; R.costsDeduct=costsDeduct;
   R.cashBefore=s.cash; R.guests=tot.guests;
   var wsum=0, rsum=0; R.outlets.forEach(function(r){ if(r.guests>0){ wsum+=r.guests; rsum+=r.rating*r.guests; } });
   R.rating=wsum?rsum/wsum:(flagship(s).rep?stars(flagship(s).rep):3);
@@ -303,18 +308,18 @@ function simMonth(s, opts){
 /* применяет итоги месяца к состоянию (после просмотра пользователем «Печать»), без случайностей: всё уже посчитано в R */
 function applyMonth(s, R){
   var m=s.month, live=liveOutlets(s);
-  s.cash+=R.profit;
+  s.cash+=R.profit; s.dep+=(R.depInterest||0);
   s.outlets.forEach(function(o){
-    if(o.built){ o.built--; if(o.built===0){ o.openM=m+1; s.log.push({m:m, t:'Заведение в городе «'+CITIES[o.city].n+'» открылось.'}); } return; }
+    if(o.built){ o.built--; if(o.built===0){ o.openM=m+1; logEv(s,'city','Открылось заведение: '+CITIES[o.city].n); } return; }
     var r=null; R.outlets.forEach(function(x){ if(x.id===o.id) r=x; });
     if(!r || r.building) return;
     o.rep=r.repNew; o.awr=r.awrNew; o.loy=r.loyNew; o.trained={};
     (r.banNote||[]).forEach(function(b){ if(b.ok){ o.rep=clamp(o.rep+1.2+(b.bonus&&b.bonus.rep||0),0,100); o.awr=clamp(o.awr+(b.bonus&&b.bonus.awr||0),0,1); o.loy=clamp(o.loy+(b.bonus&&b.bonus.loy||0),0,1); if(b.bonus&&b.bonus.brand) s.hq.brand=clamp(s.hq.brand+b.bonus.brand,0,100); } else { o.rep=clamp(o.rep-3,0,100); } });
-    var u=r.utilK; var target=64+PAYS[o.pay].mor*1.6+(u>1.05?-14:(u<0.45?-4:4))+(s.talent==='host'?6:0)+(hasSpec(s,'arsen')?3:0)+(r.absent?-8:0)+(s.hq.upg.charity?2:0)+(o.mgr?3:0)+(s.hq.upg.school?3:0);
+    var u=r.utilK; var target=64+PAYS[o.pay].mor*1.6+(u>1.05?-14:(u<0.45?-4:4))+(s.talent==='host'?6:0)+(hasSpec(s,'arsen')?3:0)+(r.absent?-8:0)+(s.hq.upg.charity?2:0)+(o.mgr?3:0)+(s.hq.upg.school?3:0)+(specAt(s,'mila',o)?4:0);
     o.mor=clamp(o.mor+(target-o.mor)*0.4,0,100);
     o.hist.push({m:m, rev:r.rev, profit:r.profitOp, guests:r.guests, rating:r.rating}); if(o.hist.length>20) o.hist.shift();
     o.last={rev:r.rev, guests:r.guests, rating:r.rating, profit:r.profitOp};
-    o.mk.blog=0;
+    o.mk.blog=0; if(o.hol){ s.stats.holidays++; o.hol=0; }
   });
   franOutlets(s).forEach(function(o){ if(o.built){ o.built--; if(o.built===0){ o.openM=m+1; } } });
   /* инфляция */
@@ -330,6 +335,7 @@ function applyMonth(s, R){
   /* уходы персонала при низком настроении */
   R.quits=[];
   live.forEach(function(o){ if(o.mor<42){ var rr=rngFor(s,'quit'+m+'|'+o.id)(); if(rr<0.3){ var roles=['cook','wait','bar','cln'].filter(function(k){ return o.staff[k]>(k==='cln'?0:1); }); if(roles.length){ var role=roles[Math.floor(rngFor(s,'quitr'+m+o.id)()*roles.length)]; o.staff[role]--; R.quits.push({o:o.id, role:role}); } } } });
+  R.goals=settleGoals(s,R); R.regs=updateRegulars(s,R);
   s.hist.push({m:m, rev:R.revTotal, profit:R.profit, cash:s.cash, cap:capital(s), rating:R.rating, guests:R.guests, outlets:ownOutlets(s).length});
   if(R.profit>0 && R.profit>(s.best||0)) s.best=R.profit;
   s.lastR=slimR(R);
@@ -340,7 +346,7 @@ function applyMonth(s, R){
 
 function slimR(R){ return {m:R.m, rating:R.rating, profit:R.profit, total:R.total, tax6:R.tax6, tax15:R.tax15, interest:R.interest, outlets:R.outlets.map(function(r){ return {id:r.id, city:r.city, name:r.name, fmt:r.fmt, rev:r.rev, guests:r.guests, utilK:r.utilK, dims:r.dims, rating:r.rating, building:r.building, caps:r.caps}; })}; }
 function ownerOutletValue(s){ return sumArr(s.outlets.map(function(o){ return o.fmt==='fran'?0:0.55*(o.inv||0); })); }
-function capital(s){ return s.cash-s.debt-s.emerg+ownerOutletValue(s); }
+function capital(s){ return s.cash+(s.dep||0)-s.debt-s.emerg+ownerOutletValue(s); }
 function netWorth(s){ return capital(s); }
 function goalNow(s){
   var d=DIFFS[s.diff], cities=cityCountOpenWithFran(s);
@@ -354,6 +360,7 @@ function goalMet(s){ var g=goalNow(s); return g.okCities && g.okCap && g.okRatin
 
 /* ---------- действия игрока ---------- */
 function res(ok,msg){ return {ok:ok, msg:msg||''}; }
+function logEv(s,k,t){ s.log.push({m:s.month,k:k,t:t}); if(s.log.length>80) s.log.shift(); }
 function pay(s, sum, why){ if(s.cash<sum) return res(false,'Не хватает денег: нужно '+rub(sum)+', в кассе '+rub(s.cash)+'.'); s.cash-=sum; return res(true); }
 function A_menu(s,id,on){
   var d=DISH[id]; if(!d) return res(false); var i=s.menu.indexOf(id);
@@ -362,7 +369,7 @@ function A_menu(s,id,on){
   if(i>=0){ s.menu.splice(i,1); return res(true,'«'+d.n+'» убрано из меню.'); } return res(true);
 }
 function A_price(s,id,p){ var d=DISH[id]; if(!d) return res(false); p=Math.round(p); s.price[id]=clamp(p, Math.round(d.cost*s.cidx*1.0)+1, Math.round(d.ref*s.pidx*3)); return res(true); }
-function labCost(s,d){ return Math.round(d.lab*(s.talent==='cook'?0.67:1)/500)*500; }
+function labCost(s,d){ return Math.round(d.lab*(s.talent==='cook'?0.67:1)*(s.hq.upg.rd?0.5:1)/500)*500; }
 function A_lab(s,id){ var d=DISH[id]; if(!d || d.u!=='lab') return res(false); if(s.lab[id]) return res(true); if(s.month<d.min) return res(false,'Это блюдо можно разработать с '+d.min+'-го месяца.'); var c=labCost(s,d), r=pay(s,c); if(!r.ok) return r; s.lab[id]=1; return res(true,'Рецепт «'+d.n+'» разработан.'); }
 function A_hire(s,oid,role){ var o=outletById(s,oid), c=ROLES[role].hire; if(!o) return res(false); if(o.staff[role]>=8) return res(false,'Слишком много людей для одного заведения.'); var r=pay(s,c); if(!r.ok) return r; o.staff[role]++; return res(true,'Нанят: '+ROLES[role].n.toLowerCase()+'.'); }
 function A_fire(s,oid,role){ var o=outletById(s,oid); if(!o||o.staff[role]<=0) return res(false); if(o.staff[role]<=1 && (role==='cook'||role==='wait')) return res(false,'Нужен хотя бы один человек на этой должности.'); o.staff[role]--; return res(true); }
@@ -375,12 +382,12 @@ function eqCost(s,o,e){ return Math.round(e.cost*CITIES[o.city].cap/1000)*1000; 
 function A_eq(s,oid,id){ var o=outletById(s,oid), e=EQD[id]; if(!o||!e) return res(false); var have=o.eq[id]||0; if(e.max? have>=e.max : have) return res(false,'Это уже куплено.'); if(e.req && !o.eq[e.req]) return res(false,'Сначала нужно «'+EQD[e.req].n+'».'); var c=eqCost(s,o,e), r=pay(s,c); if(!r.ok) return r; o.eq[id]=have+1; o.inv=(o.inv||0)+c; return res(true,'Куплено: '+e.n.toLowerCase()+'.'); }
 function A_mgr(s,oid){ var o=outletById(s,oid); if(!o) return res(false); if(o.mgr){ o.mgr=0; return res(true,'Управляющий уволен.'); } var r=pay(s,MGR.hire); if(!r.ok) return r; o.mgr=1; return res(true,'Управляющий нанят.'); }
 function specAvail(s,id){ var sp=SPECS[id]; if(s.month<sp.min) return false; if(id==='arsen' && !s.flags.arsenMet) return false; if(id==='lera' && !s.flags.leraMet) return false; if(id==='sonya' && !s.flags.sonyaMet) return false; if(id==='damir' && !s.flags.damirMet) return false; if(id==='anton' && s.month<9) return false; return true; }
-function A_spec(s,id,oid){ var sp=SPECS[id]; if(!sp) return res(false); if(s.specs[id]){ delete s.specs[id]; var o0=outletById(s,s.specs[id]); return res(true,'Сотрудник ушёл из команды.'); } if(!specAvail(s,id)) return res(false,'Пока недоступен.'); var o=outletById(s,oid); if(sp.where==='outlet' && !o) return res(false); if(sp.where==='outlet'){ var busy=Object.keys(s.specs).filter(function(k){ return s.specs[k]===oid && SPECS[k].where==='outlet'; }).length; if(busy>=2) return res(false,'В одном заведении не больше двух особых людей.'); } var r=pay(s,sp.hire); if(!r.ok) return r; s.specs[id]=(sp.where==='hq'?'hq':oid); return res(true,sp.name+' теперь в команде.'); }
-function A_hq(s,id){ var u=HQUPD[id]; if(!u||s.hq.upg[id]) return res(false); if(s.month<u.min) return res(false,'Это откроется с '+u.min+'-го месяца.'); if(u.req && !s.hq.upg[u.req]) return res(false,'Сначала: «'+HQUPD[u.req].n+'».'); if(id==='central' && ownOutlets(s).length<3) return res(false,'Центральная кухня нужна от трёх заведений.'); if(id==='buy' && ownOutlets(s).length<2) return res(false,'Совместные закупки имеют смысл от двух заведений.'); var r=pay(s,u.cost); if(!r.ok) return r; s.hq.upg[id]=1; return res(true,'Готово: «'+u.n+'».'); }
+function A_spec(s,id,oid){ var sp=SPECS[id]; if(!sp) return res(false); if(s.specs[id]){ delete s.specs[id]; var o0=outletById(s,s.specs[id]); return res(true,'Сотрудник ушёл из команды.'); } if(!specAvail(s,id)) return res(false,'Пока недоступен.'); var o=outletById(s,oid); if(sp.where==='outlet' && !o) return res(false); if(sp.where==='outlet'){ var busy=Object.keys(s.specs).filter(function(k){ return s.specs[k]===oid && SPECS[k].where==='outlet'; }).length; if(busy>=2) return res(false,'В одном заведении не больше двух особых людей.'); } var r=pay(s,sp.hire); if(!r.ok) return r; s.specs[id]=(sp.where==='hq'?'hq':oid); logEv(s,'team',sp.name+' в команде'); return res(true,sp.name+' теперь в команде.'); }
+function A_hq(s,id){ var u=HQUPD[id]; if(!u||s.hq.upg[id]) return res(false); if(s.month<u.min) return res(false,'Это откроется с '+u.min+'-го месяца.'); if(u.req && !s.hq.upg[u.req]) return res(false,'Сначала: «'+HQUPD[u.req].n+'».'); if(id==='central' && ownOutlets(s).length<3) return res(false,'Центральная кухня нужна от трёх заведений.'); if(id==='buy' && ownOutlets(s).length<2) return res(false,'Совместные закупки имеют смысл от двух заведений.'); var r=pay(s,u.cost); if(!r.ok) return r; s.hq.upg[id]=1; logEv(s,'hq','Штаб: «'+u.n+'»'); return res(true,'Готово: «'+u.n+'».'); }
 function loanLimit(s){ return BANK.limit+(s.hq.brand>40?500000:0)+(ownOutlets(s).length>=3?500000:0); }
 function A_borrow(s,sum){ sum=Math.round(sum); if(sum<=0) return res(false); if(s.debt+sum>loanLimit(s)) return res(false,'Банк даёт не больше '+rub(loanLimit(s))+' всего.'); s.debt+=sum; s.flags.hadLoan=1; s.cash+=sum; return res(true,'Кредит получен: '+rub(sum)+'.'); }
 function A_repay(s,sum){ sum=Math.round(sum); var e=Math.min(sum,s.emerg); var rest=sum-e; var d=Math.min(rest,s.debt); var tot=e+d; if(tot<=0) return res(false); if(s.cash<tot) return res(false,'Не хватает денег.'); s.cash-=tot; s.emerg-=e; s.debt-=d; return res(true,'Погашено '+rub(tot)+'.'); }
-function A_invest(s){ if(s.invest) return res(false,'Инвестор уже вошёл в дело.'); s.invest=1; s.cash+=INVESTOR.sum; return res(true,'Артём Викторович вложил '+rub(INVESTOR.sum)+' и получает 20% прибыли.'); }
+function A_invest(s){ if(s.invest) return res(false,'Инвестор уже вошёл в дело.'); s.invest=1; s.cash+=INVESTOR.sum; logEv(s,'money','В дело вошёл инвестор'); return res(true,'Артём Викторович вложил '+rub(INVESTOR.sum)+' и получает 20% прибыли.'); }
 function A_tax(s,t){ s.tax=t; return res(true); }
 function A_here(s,oid){ if(!outletById(s,oid)) return res(false); s.here=oid; return res(true); }
 function A_sync(s){ var lst=outletDishes(s,s.outlets[0]); s.menu.forEach(function(id){ var d=DISH[id]; if(d) s.price[id]=defPrice(s,d); }); return res(true,'Цены подогнаны под рынок.'); }
@@ -397,7 +404,7 @@ function A_open(s,cityId,fmt,nm){
   var c=openCost(s,cityId,fmt), r=pay(s,c.total); if(!r.ok) return r;
   var id='o'+(s.outlets.length+1); while(outletById(s,id)) id+='x';
   var o=makeOutlet(id,cityId,fmt,nm||(s.cafe+' · '+CITIES[cityId].n)); o.inv=c.capex; o.built=1; o.padj=Math.round((CITIES[cityId].inc/CITIES[flagship(s).city].inc-1)*100/5)*5; o.awr=clamp(0.10+s.hq.brand/100*0.5+(s.hq.upg.brand?0.04:0),0,1); o.rep=Math.max(o.rep, 40+s.hq.brand*0.1+(s.hq.upg.std?4:0));
-  s.outlets.push(o); s.flags.openedAny=1; if(fmt==='rest') s.flags.restOpen=1; if(!s.flags.firstOpenM) s.flags.firstOpenM=s.month;
+  s.outlets.push(o); logEv(s,'city','Начато строительство: '+FORMATS[fmt].name.toLowerCase()+' в городе '+CITIES[cityId].n); s.flags.openedAny=1; if(fmt==='rest') s.flags.restOpen=1; if(!s.flags.firstOpenM) s.flags.firstOpenM=s.month;
   return res(true,'Вы строите «'+FORMATS[fmt].name+'» в городе '+CITIES[cityId].n+'. Откроется в следующем месяце.');
 }
 function A_franchise(s,cityId){
@@ -405,7 +412,7 @@ function A_franchise(s,cityId){
   var chk=cityOpenable(s,cityId); if(!chk.ok) return res(false,chk.why); if(franOutlets(s).length>=2) return res(false,'Пока не больше двух франшиз.');
   var id='o'+(s.outlets.length+1); while(outletById(s,id)) id+='x';
   var o=makeOutlet(id,cityId,'fran',s.cafe+' · '+CITIES[cityId].n+' (франшиза)'); o.built=1; o.rep=45+s.hq.brand*0.12+(s.hq.upg.std?10:0); s.outlets.push(o);
-  var fee=Math.round(280000*CITIES[cityId].inc/10000)*10000; s.cash+=fee; s.flags.franchised=1;
+  var fee=Math.round(280000*CITIES[cityId].inc/10000)*10000; s.cash+=fee; s.flags.franchised=1; logEv(s,'city','Первая франшиза в городе '+CITIES[cityId].n);
   return res(true,'Партнёр в городе '+CITIES[cityId].n+' заплатил '+rub(fee)+' за право работать под вашим именем.');
 }
 function A_close(s,oid){ var o=outletById(s,oid); if(!o||o===s.outlets[0]) return res(false,'Флагман закрывать нельзя.'); var back=Math.round(0.4*(o.inv||0)); s.cash+=back; s.outlets=s.outlets.filter(function(x){ return x!==o; }); Object.keys(s.specs).forEach(function(k){ if(s.specs[k]===oid) delete s.specs[k]; }); if(s.here===oid) s.here=s.outlets[0].id; return res(true,'Заведение закрыто, вернули '+rub(back)+' за оборудование.'); }
@@ -415,6 +422,7 @@ function applyFx(s, fx, oid){
   if(!fx) return [];
   var out=[], o=oid?outletById(s,oid):outletById(s,s.here)||s.outlets[0], live=liveOutlets(s);
   function each(f){ live.forEach(f); }
+  if(fx.c && fx.c<0 && s.insured){ var back=Math.round(-fx.c*0.4); fx=Object.assign({},fx,{c:fx.c+back}); out.push({k:'info', t:'страховка вернула '+rub(back)}); }
   if(fx.c){ s.cash+=fx.c; out.push({k:fx.c>0?'gain':'loss', t:(fx.c>0?'+':'−')+rub(Math.abs(fx.c)).replace('−','')}); if(s.cash<0){ s.emerg=(s.emerg||0)-s.cash; out.push({k:'warn', t:'не хватило '+rub(-s.cash)+': экстренный долг'}); s.cash=0; } }
   if(fx.rep){ each(function(x){ x.rep=clamp(x.rep+fx.rep,0,100); }); out.push({k:fx.rep>0?'gain':'loss', t:'репутация '+(fx.rep>0?'+':'−')+Math.abs(fx.rep)}); }
   if(fx.repOne){ o.rep=clamp(o.rep+fx.repOne,0,100); out.push({k:fx.repOne>0?'gain':'loss', t:'репутация '+(fx.repOne>0?'+':'−')+Math.abs(fx.repOne)}); }
@@ -437,6 +445,9 @@ function applyFx(s, fx, oid){
   if(fx.quit){ var role=fx.quit; if(o.staff[role]>1){ o.staff[role]--; out.push({k:'loss', t:'ушёл сотрудник'}); } }
   if(fx.eq){ var e=EQD[fx.eq]; if(e && !o.eq[fx.eq]){ o.eq[fx.eq]=1; out.push({k:'gain', t:'получено: '+e.n.toLowerCase()}); } }
   if(fx.spec){ s.flags[fx.spec+'Met']=1; }
+  if(fx.buy==='building'){ s.cash-=900000; s.flags.ownBuilding=1; flagship(s).inv=(flagship(s).inv||0)+900000; out.push({k:'info', t:'здание куплено: аренды больше нет'}); if(s.cash<0){ s.emerg+=-s.cash; s.cash=0; } }
+  if(fx.reg){ Object.keys(fx.reg).forEach(function(k){ var r=s.reg[k]||(s.reg[k]={h:0,m:0}); r.h=clamp(r.h+fx.reg[k],0,5); out.push({k:fx.reg[k]>0?'gain':'loss', t:REG_BY_ID[k].n+': '+(fx.reg[k]>0?'ближе':'дальше')}); }); }
+  if(fx.staff){ if(o.staff[fx.staff]<8){ o.staff[fx.staff]++; out.push({k:'gain', t:'в команде новый человек: '+ROLES[fx.staff].n.toLowerCase()}); } }
   if(fx.hereMor){ o.mor=clamp(o.mor+fx.hereMor,0,100); }
   if(fx.hire){ var sp=SPECS[fx.hire]; if(sp){ s.flags[fx.hire+'Met']=1; s.specs[fx.hire]=(sp.where==='hq'?'hq':(o?o.id:s.outlets[0].id)); out.push({k:'gain', t:sp.name+' в команде'}); } }
   if(fx.emmaAuto){ s.flags.emmaAuto=1; }
@@ -446,4 +457,55 @@ function applyFx(s, fx, oid){
   if(fx.hqUp){ if(!s.hq.upg[fx.hqUp]){ s.hq.upg[fx.hqUp]=1; out.push({k:'gain', t:'«'+HQUPD[fx.hqUp].n+'» запущено'}); } }
   return out;
 }
-function fxChips(fx){ var s={cash:0,flags:{},recs:[],mods:[],hq:{brand:0,upg:{}},outlets:[makeOutlet('o9','tula','cafe')],lab:{},rel:{},here:'o9',debt:0,invest:0,specs:{},menu:['espresso'],price:{},pidx:1,cidx:1,widx:1,talent:null}; s.outlets[0].rep=50; s.outlets[0].awr=.3; s.outlets[0].loy=.3; s.outlets[0].mor=50; s.outlets[0].eq={}; s.outlets[0].staff={cook:3,wait:3,bar:2,cln:1}; s.outlets[0].stock=3; return applyFx(s,fx,'o9'); }
+function fxChips(fx){ var s={cash:0,flags:{},recs:[],mods:[],hq:{brand:0,upg:{}},outlets:[makeOutlet('o9','tula','cafe')],lab:{},rel:{},here:'o9',debt:0,invest:0,specs:{},menu:['espresso'],price:{},pidx:1,cidx:1,widx:1,talent:null,reg:{},insured:0}; s.outlets[0].rep=50; s.outlets[0].awr=.3; s.outlets[0].loy=.3; s.outlets[0].mor=50; s.outlets[0].eq={}; s.outlets[0].staff={cook:3,wait:3,bar:2,cln:1}; s.outlets[0].stock=3; return applyFx(s,fx,'o9'); }
+
+
+/* ---------- задания месяца ---------- */
+function goalsFor(s){
+  if(s.goals && s.goals.m===s.month) return s.goals;
+  var rng=rngFor(s,'goals'+s.month), prev=(s.goals&&s.goals.list)||[], pool=QUESTS.filter(function(q){ return q.min<=s.month && prev.indexOf(q.id)<0; }), list=[];
+  for(var i=0;i<3&&pool.length;i++){ var k=Math.floor(rng()*pool.length); list.push(pool[k].id); pool.splice(k,1); }
+  s.goals={m:s.month, list:list}; return s.goals;
+}
+function settleGoals(s,R){
+  var g=s.goals; if(!g||g.m!==s.month) return [];
+  var r=R.outlets.filter(function(x){ return !x.building&&x.guests>0; })[0], out=[];
+  g.list.forEach(function(id){ var q=QUEST_BY_ID[id], ok=false; try{ ok=!!q.t(s,R,r); }catch(e){} if(ok){ s.cash+=q.rew; s.stats.goalsDone++; s.log.push({m:s.month,k:'goal',t:'Задание «'+q.n+'» выполнено'}); } out.push({id:id, ok:ok, rew:q.rew}); });
+  return out;
+}
+function goalStatus(s,R){ var g=goalsFor(s), r=R&&R.outlets.filter(function(x){ return !x.building&&x.guests>0; })[0]; return g.list.map(function(id){ var q=QUEST_BY_ID[id], ok=false; try{ ok=!!(R&&q.t(s,R,r)); }catch(e){} return {id:id, ok:ok}; }); }
+
+/* ---------- постоянные гости ---------- */
+function activeRegulars(s){ return REGULARS.filter(function(r){ return r.from<=s.month; }); }
+function regularBonus(s){ var h=0; activeRegulars(s).forEach(function(r){ var x=s.reg[r.id]; if(x) h+=x.h; }); return Math.min(0.25,h*0.01); }
+function regFavId(s,r){ return r.fav==='loc'?('loc_'+flagship(s).city):r.fav; }
+function updateRegulars(s,R){
+  var f=flagship(s), have={}, out=[]; outletDishes(s,f).forEach(function(d){ have[d.id]=1; });
+  activeRegulars(s).forEach(function(r){
+    var x=s.reg[r.id]||(s.reg[r.id]={h:0,m:0}), fav=regFavId(s,r), d0=x.h;
+    if(have[fav] && f.rep>=45) x.h=Math.min(5,x.h+1); else if(have[r.alt] && f.rep>=45) x.h=x.h; else x.h=Math.max(0,x.h-1);
+    var gift=false; if(x.h>=5 && !x.gift){ x.gift=1; gift=true; s.cash+=10000; s.stats.reg5++; s.log.push({m:s.month,k:'reg',t:r.n+' стал настоящим другом кафе'}); }
+    out.push({id:r.id, dh:x.h-d0, h:x.h, gift:gift});
+  });
+  return out;
+}
+
+/* ---------- конкуренты в городе ---------- */
+function rivalsFor(s,cityId){
+  var city=CITIES[cityId], rng=rngFor(s,'riv|'+cityId), n=city.comp>0.5?4:3, used={}, out=[], drift=Math.min(8,(s.month-1)*0.5);
+  for(var i=0;i<n;i++){
+    var k; do{ k=Math.floor(rng()*RIVAL_NAMES.length); }while(used[k]); used[k]=1;
+    var style=RIVAL_STYLES[Math.floor(rng()*RIVAL_STYLES.length)], q0=48+rng()*28, p0=0.86+rng()*0.28;
+    var q=clamp(q0+drift+(style==='ресторан'?4:0)-(style==='столовая'?3:0),40,92), p=p0*(s.flags.nazWar?0.92:1)*(style==='столовая'?0.9:(style==='ресторан'?1.12:1));
+    out.push({n:RIVAL_NAMES[k], style:style, q:q, p:p, stars:stars(q)});
+  }
+  return out;
+}
+
+/* ---------- финансы: вклад, страховка, закупка впрок, праздники ---------- */
+function A_dep(s,sum){ sum=Math.round(sum); if(sum<=0) return res(false); if(s.cash<sum) return res(false,'В кассе не хватает денег.'); s.cash-=sum; s.dep+=sum; return res(true,'На вклад положено '+rub(sum)+'. Он растёт на 0,9% в месяц.'); }
+function A_undep(s,sum){ sum=Math.round(Math.min(sum,s.dep)); if(sum<=0) return res(false); s.dep-=sum; s.cash+=sum; return res(true,'Со вклада снято '+rub(sum)+'.'); }
+function A_insure(s){ s.insured=s.insured?0:1; return res(true,s.insured?'Страховка включена: часть убытков от случайных событий вернётся.':'Страховка отключена.'); }
+function forwardFee(s){ var c=s.lastR&&s.lastR.total?s.lastR.total.cogs:150000; return Math.max(15000,Math.round(0.06*c*3*0.6/1000)*1000); }
+function A_forward(s){ if((s.flags.fwdUntil||0)>=s.month) return res(false,'Договор с поставщиками уже действует.'); var fee=forwardFee(s), r=pay(s,fee); if(!r.ok) return r; s.mods.push({k:'cogs',m:0.94,left:3,why:'закупка впрок'}); s.flags.fwdUntil=s.month+2; return res(true,'Цена продуктов зафиксирована на три месяца: −6%.'); }
+function A_hol(s,oid){ var o=outletById(s,oid); if(!o) return res(false); o.hol=o.hol?0:1; return res(true,o.hol?'Праздничная кампания запланирована.':'Кампания отменена.'); }

@@ -39,13 +39,14 @@ function introHTML(){
 
 /* ---------- настройка партии ---------- */
 function setupHTML(){
-  var st=U.setup||(U.setup={name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'norm'});
+  var st=U.setup||(U.setup={name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'norm',awn:'#D1361A'}); if(!st.awn) st.awn='#D1361A';
   var tal=Object.keys(TALENTS).map(function(k){ var t=TALENTS[k]; return '<button type="button" aria-pressed="'+(st.talent===k)+'" data-act="settalent" data-v="'+k+'"><span class="ico">'+ico(t.icon)+'</span><span><b>'+t.name+'</b><small>'+t.desc+'</small></span></button>'; }).join('');
   var df=Object.keys(DIFFS).map(function(k){ var d=DIFFS[k]; return '<button type="button" aria-pressed="'+(st.diff===k)+'" data-act="setdiff" data-v="'+k+'"><span class="ico">'+ico(k==='easy'?'leaf':(k==='norm'?'target':'bolt'))+'</span><span><b>'+d.name+'</b><small>'+d.desc+'</small></span></button>'; }).join('');
   return '<h2>Создайте своё кафе</h2><p class="muted">Всё можно изменить: название, талант и сложность определяют стиль игры.</p>'+
    '<div class="field"><label for="f-name">Как вас зовут?</label><input id="f-name" type="text" maxlength="24" value="'+esc(st.name)+'" autocomplete="off" placeholder="Имя"><span class="hint">Имя увидит учитель на табло класса.</span></div>'+
    '<div class="field"><label for="f-cafe">Название кафе</label><input id="f-cafe" type="text" maxlength="28" value="'+esc(st.cafe)+'" autocomplete="off"><span class="hint">Если не менять, кафе называется как у Тамары.</span></div>'+
    '<div class="field"><label for="f-code">Код класса (необязательно)</label><input id="f-code" type="text" maxlength="12" value="'+esc(st.code)+'" autocomplete="off" placeholder="например, 8Б"><span class="hint">С одним кодом у всего класса будут одинаковые случайности: погода, новости и события.</span></div>'+
+   '<div class="field"><label>Цвет навеса</label><div class="awn-pick" role="group" aria-label="Цвет навеса">'+[['#D1361A','Помидорный'],['#2E7D4F','Базилик'],['#2B78B5','Небо'],['#B83A6B','Малина'],['#7A55B0','Слива'],['#C9792B','Тыква']].map(function(c){ return '<button type="button" class="sw" style="--c:'+c[0]+'" aria-pressed="'+(st.awn===c[0])+'" aria-label="'+c[1]+'" data-act="setawn" data-v="'+c[0]+'">'+(st.awn===c[0]?ico('check'):'')+'</button>'; }).join('')+'</div><span class="hint">Навес будет на фасаде вашего кафе и на дипломе.</span></div>'+
    '<div class="field"><label>Талант</label><div class="pick">'+tal+'</div></div>'+
    '<div class="field"><label>Сложность</label><div class="pick">'+df+'</div></div>'+
    '<div class="row between" style="margin:16px 0"><button class="btn ghost" data-act="tointro">'+ico('left')+' Назад</button><button class="btn" data-act="startgame">Открыть кафе '+ico('right')+'</button></div>';
@@ -82,10 +83,11 @@ function sceneHTML(){
   var act=ACTS[actOf(S.month)-1];
   return '<article class="scene"><div class="scene-head"><span class="chip brand">'+ico('flag','sm')+' '+act.name+'</span><span class="place">'+ico('pin','sm')+' '+esc(sc.place)+'</span></div><h2>'+esc(sc.title)+'</h2>'+lines+steps+cur+'</article>';
 }
+A.setawn=function(el){ readSetup(); U.setup.awn=el.getAttribute('data-v'); render(true); };
 A.pick=function(el){
   var sc=sceneFor(S), st=sceneState(), q=sc.ch[st.step], k=+el.getAttribute('data-k'), opt=q.opts[k]; if(!opt) return;
   var r=runChoice(opt,'s'+st.step), chips=applyFx(S,r.fx);
-  st.done.push({t:opt.t, res:r.res||[], fx:chips, ok:r.ok}); st.step++;
+  st.done.push({t:opt.t, res:r.res||[], fx:chips, ok:r.ok}); st.step++; logEv(S,'story',sc.title+': '+opt.t);
   sfx(r.ok?'good':'bad'); persist(); render(true); window.scrollTo({top:Math.max(0,$('.scene').offsetTop),behavior:reduced?'auto':'smooth'});
 };
 A.scenenext=function(){ U.sc=null; afterScene(); };
@@ -106,7 +108,7 @@ function eventHTML(){
 A.evpick=function(el){
   var ev=evCur(), k=+el.getAttribute('data-k'), opt=ev.opts[k]; if(!opt) return;
   S.seen['ev_'+ev.id]=1;
-  if(opt.game){ U.evGame={id:ev.id,t:opt.t}; startRush(); return; }
+  if(opt.game){ U.evGame={id:ev.id,t:opt.t}; startMini(ev.game||'rush'); return; }
   var r=runChoice(opt,'e'+ev.id), chips=applyFx(S,r.fx);
   U.evRes={t:opt.t, res:r.res||[], fx:chips}; sfx(r.ok?'good':'bad'); persist(); render();
 };
@@ -151,6 +153,36 @@ function finishRush(){
   var fx=gr==='gold'?{c:9000,repOne:3,awr:0.04,mor:3}:(gr==='silver'?{c:3000,repOne:1}:{repOne:-2,mor:-2});
   var chips=applyFx(S,fx), txt={gold:'Золотая смена! Гости аплодируют, шеф кивает.',silver:'Справились. Не идеально, но очередь рассосалась.',bronze:'Было тяжело. Часть заказов остыла.'}[gr];
   U.evRes={t:U.evGame?U.evGame.t:'Смена',res:[txt+' Подано '+R.served+', ошибок '+err+'.'],fx:chips}; U.rush=null; U.screen='event'; sfx(gr==='bronze'?'bad':'win'); if(gr==='gold') burst(70); persist(); render();
+}
+
+/* ---------- мини-игры: склад (FIFO) и касса (сдача) ---------- */
+function startMini(type){ if(type==='rush') return startRush(); U.screen=type; U.mg={type:type, round:0, wrong:0, right:0, picked:null}; if(type==='fifo') fifoRound(); else changeRound(); render(); }
+var FIFO_P=[['Молоко','glass','cold'],['Сливки','glass','cold'],['Творог','bowl','brek'],['Мясо','plate','main'],['Зелень','salad','salad'],['Рыба','fish','main'],['Яйца','egg','brek'],['Масло','cake','dess'],['Ягоды','icecream','dess'],['Тесто','bread','bake'],['Кефир','glass','cold'],['Сметана','bowl','soup']];
+function fifoRound(){ var g=U.mg, names=FIFO_P.slice().sort(function(){ return Math.random()-0.5; }).slice(0,6), days=[1,2,3,4,5,6,7,8,9].sort(function(){ return Math.random()-0.5; }).slice(0,6); g.items=names.map(function(n,i){ return {n:n[0],g:n[1],c:n[2],d:days[i],taken:false}; }); }
+function fifoHTML(){
+  var g=U.mg; if(!g) return '';
+  return '<article class="mg"><div class="scene-head"><span class="chip warn">'+ico('bolt','sm')+' Склад · круг '+(g.round+1)+' из 3</span></div><h2>Первым выдаём то, что раньше испортится</h2><p class="muted">Нажимайте на ящик с самым коротким сроком годности. Ошибок: <b id="mg-w">'+g.wrong+'</b></p><div class="crates">'+g.items.map(function(x,i){ return '<button class="crate'+(x.taken?' gone':'')+'" data-act="fifopick" data-i="'+i+'"'+(x.taken?' disabled':'')+' aria-label="'+x.n+', годен '+x.d+' дн.">'+dishSVG(x.g,x.c,44)+'<b>'+x.n+'</b><span class="chip '+(x.d<=2?'loss':(x.d<=4?'warn':'gain'))+'">годен '+x.d+' '+plural(x.d,'день','дня','дней')+'</span></button>'; }).join('')+'</div><div class="row between"><span class="small muted">Это правило FIFO: первым пришёл — первым ушёл.</span><button class="btn ghost small" data-act="mgskip">Бросить</button></div></article>';
+}
+A.fifopick=function(el){
+  var g=U.mg; if(!g) return; var i=+el.getAttribute('data-i'), it=g.items[i]; if(!it||it.taken) return;
+  var mn=Math.min.apply(null,g.items.filter(function(x){ return !x.taken; }).map(function(x){ return x.d; }));
+  if(it.d===mn){ it.taken=true; g.right++; sfx('coin'); } else { g.wrong++; sfx('bad'); toast('Этот ящик ещё может подождать: сначала то, что скоро испортится.',true); }
+  if(g.items.every(function(x){ return x.taken; })){ g.round++; if(g.round>=3){ finishMini('fifo'); return; } fifoRound(); }
+  render(true);
+};
+function changeRound(){ var g=U.mg, total=70+Math.floor(Math.random()*880), bills=[100,200,500,1000,2000,5000], paid=bills.filter(function(b){ return b>=total; })[0]||5000; if(paid-total>1500) paid=bills.filter(function(b){ return b>=total && b-total<=1500; })[0]||paid; var ans=paid-total; var opts=[ans, ans+10*(1+Math.floor(Math.random()*5)), Math.max(5,ans-10*(1+Math.floor(Math.random()*5))), Math.abs(ans-100)||ans+100].filter(function(v,i,a){ return a.indexOf(v)===i; }).slice(0,3); if(opts.indexOf(ans)<0) opts[0]=ans; opts=opts.sort(function(){ return Math.random()-0.5; }); g.q={total:total,paid:paid,ans:ans,opts:opts}; g.picked=null; }
+function changeHTML(){
+  var g=U.mg; if(!g||!g.q) return ''; var q=g.q;
+  return '<article class="mg"><div class="scene-head"><span class="chip warn">'+ico('coins','sm')+' Касса · гость '+(g.round+1)+' из 5</span></div><h2>Сколько сдачи?</h2><div class="receipt"><div>Счёт: <b class="num">'+rub(q.total)+'</b></div><div>Гость дал: <b class="num">'+rub(q.paid)+'</b></div></div><div class="opts">'+q.opts.map(function(v,k){ var cls=''; if(g.picked!=null){ if(v===q.ans) cls=' right'; else if(k===g.picked) cls=' wrong'; } return '<button class="opt'+cls+'" data-act="chgpick" data-k="'+k+'"'+(g.picked!=null?' disabled':'')+'><span class="k">'+'АБВ'.charAt(k)+'</span>'+rub(v)+'</button>'; }).join('')+'</div><div class="row between"><span class="small muted">Верно: '+g.right+' · Ошибок: '+g.wrong+'</span><button class="btn ghost small" data-act="mgskip">Бросить</button></div></article>';
+}
+A.chgpick=function(el){ var g=U.mg; if(!g||g.picked!=null) return; var k=+el.getAttribute('data-k'); g.picked=k; if(g.q.opts[k]===g.q.ans){ g.right++; sfx('coin'); } else { g.wrong++; sfx('bad'); } render(true); later(function(){ if(!U.mg||U.screen!=='change') return; g.round++; if(g.round>=5){ finishMini('change'); } else { changeRound(); render(true); } },900); };
+A.mgskip=function(){ if(U.mg&&U.mg.type) finishMini(U.mg.type,true); };
+function finishMini(type,skipped){
+  var g=U.mg, gr, fx, txt;
+  if(type==='fifo'){ gr=skipped?'bronze':(g.wrong<=1?'gold':(g.wrong<=4?'silver':'bronze')); fx={gold:{c:5000,mor:2,mod:[{k:'waste',m:0.75,n:2,w:'порядок на складе'}]},silver:{mod:[{k:'waste',m:0.9,n:1,w:'порядок на складе'}]},bronze:{c:-2000,mod:[{k:'waste',m:1.08,n:1,w:'бардак на складе'}]}}[gr]; txt={gold:'Идеальный склад: ни один ящик не лежит дольше нужного.',silver:'Почти хорошо: пара ящиков всё-таки подождала.',bronze:'Порядок не навели: часть продуктов испортится.'}[gr]+' Ошибок: '+g.wrong+'.'; addTerm('fifo'); }
+  else { gr=skipped?'bronze':(g.right>=5&&g.wrong<=0?'gold':(g.right>=3?'silver':'bronze')); fx={gold:{c:3000,repOne:1,awr:0.02},silver:{c:1000},bronze:{c:-1500,repOne:-1}}[gr]; txt={gold:'Без единой ошибки: гости улыбаются.',silver:'Справились, но пара ошибок была.',bronze:'Сдачу считали неверно: гости недовольны.'}[gr]+' Верно '+g.right+', ошибок '+g.wrong+'.'; }
+  if(gr==='gold') S.stats.miniGold++;
+  var chips=applyFx(S,fx); U.evRes={t:U.evGame?U.evGame.t:'Мини-игра',res:[txt],fx:chips}; U.mg=null; U.screen='event'; sfx(gr==='bronze'?'bad':'win'); if(gr==='gold') burst(60); persist(); render();
 }
 
 /* ---------- викторина «Проверка Арсена» ---------- */

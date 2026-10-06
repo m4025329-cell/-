@@ -14,7 +14,7 @@ const PROFILES={phone:Object.assign({},pw.devices['iPhone 13']), se:Object.assig
   const snap=async tag=>{ if(!shots) return; if(snapN++>40) return; await p.waitForTimeout(500); await p.screenshot({path:path.join(OUT,`${which}-${String(snapN).padStart(2,'0')}-${tag}.png`)}); };
   while(guard++<900){
     const st=await p.evaluate(()=>{ const g=window.__game; return {scr:g.U.screen, m:g.S?g.S.month:0, tab:g.U.tab}; });
-    const key=st.scr+(st.scr==='plan'?'':'')+':'+st.m; if(!seenScreens[key]){ seenScreens[key]=1; if([ 'act:1','scene:1','event:3','report:2','report:8','finale:16','final:17','lessonEnd:9','quiz:5','rush:4','act:9','scene:9','scene:10'].indexOf(key)>=0 || st.scr==='rush') await snap(key.replace(':','-')); }
+    const key=st.scr+(st.scr==='plan'?'':'')+':'+st.m; if(!seenScreens[key]){ seenScreens[key]=1; if([ 'fifo:6','change:6','act:1','scene:1','event:3','report:2','report:8','finale:16','final:17','lessonEnd:9','quiz:5','rush:4','act:9','scene:9','scene:10'].indexOf(key)>=0 || st.scr==='rush') await snap(key.replace(':','-')); }
     if(st.scr==='final') break;
     if(st.scr==='plan'){
       await p.evaluate(()=>{
@@ -44,6 +44,8 @@ const PROFILES={phone:Object.assign({},pw.devices['iPhone 13']), se:Object.assig
         case 'run': A.runskip(); break;
         case 'report': A.repnext(); break;
         case 'quiz': if(U.qz.picked==null && U.qz.i<U.qz.qs.length) { A.qpick({getAttribute:()=>String(U.qz.qs[U.qz.i].c)}); } else if(U.qz.i<U.qz.qs.length) A.qnext(); else A.quizend(); break;
+        case 'fifo': { const g=U.mg; if(g&&g.items){ const mn=Math.min(...g.items.filter(x=>!x.taken).map(x=>x.d)); const i=g.items.findIndex(x=>!x.taken&&x.d===mn); A.fifopick({getAttribute:()=>String(i)}); } break; }
+        case 'change': { const g=U.mg; if(g&&g.q&&g.picked==null){ A.chgpick({getAttribute:()=>String(g.q.opts.indexOf(g.q.ans))}); } break; }
         case 'lessonEnd': A.lesson2(); break;
         case 'finale': A.tofinal(); break;
       }

@@ -16,7 +16,7 @@ def fonts_css():
 def js(name):
     return (src / name).read_text(encoding='utf-8')
 
-logic = '\n'.join(js(n) for n in ['data.js', 'engine.js', 'orders.js', 'events.js', 'story.js', 'quiz.js', 'ending.js', 'art.js'])
+logic = '\n'.join(js(n) for n in ['data.js', 'engine.js', 'orders.js', 'events.js', 'events2.js', 'story.js', 'quiz.js', 'ending.js', 'art.js'])
 ui = '(function(){\n\'use strict\';\n' + '\n'.join(js(n) for n in ['ui1.js', 'ui2.js', 'ui3.js', 'ui4.js']).replace('APP_VERSION=\'1.0.0\'', "APP_VERSION='%s'" % APP_VERSION) + '\n})();'
 scripts = logic + '\n' + ui
 css = (src / 'style.css').read_text(encoding='utf-8').replace('/*FONTS*/', fonts_css())

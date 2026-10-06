@@ -29,7 +29,7 @@ function applySave(d){
   S=d.S; U=d.U||{}; U.screen=U.screen||'plan'; ensureState(S);
   if(U.screen==='title') U.screen='plan';
   if((U.screen==='run'||U.screen==='report'||U.screen==='quiz') && !U.report) U.screen='plan';
-  if(U.screen==='rush') U.screen='plan';
+  if(U.screen==='rush'||U.screen==='fifo'||U.screen==='change') U.screen='plan';
   if(U.screen==='plan' && !U.tab) U.tab='home';
 }
 function exportCode(){ try{ var d=snapshot(true); d.S=JSON.parse(JSON.stringify(S)); delete d.S.lastR; return btoa(unescape(encodeURIComponent(JSON.stringify(d)))); }catch(e){ return ''; } }

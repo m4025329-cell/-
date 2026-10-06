@@ -26,6 +26,9 @@ function EVENTS_IDS(){ require('./load.js'); return EVENTS.map(e=>e.id); }
 add('run',clone(early.s),{screen:'run',report:clone(early.R)});
 add('quiz',clone(late.s),{screen:'quiz',qz:{act:2,qs:quizFor(late.s,2,late.R),i:0,picked:null,ok:0}});
 { const qs=quizFor(late.s,3,late.R); add('quiz-ans',clone(late.s),{screen:'quiz',qz:{act:3,qs:qs,i:0,picked:0,ok:0}}); add('quiz-end',clone(late.s),{screen:'quiz',qz:{act:3,qs:qs,i:3,picked:null,ok:2}}); }
+add('fifo',clone(early.s),{screen:'fifo',mg:{type:'fifo',round:1,wrong:1,right:3,items:[{n:'Молоко',g:'glass',c:'cold',d:3,taken:false},{n:'Мясо',g:'plate',c:'main',d:1,taken:false},{n:'Зелень',g:'salad',c:'salad',d:6,taken:true},{n:'Рыба',g:'fish',c:'main',d:2,taken:false},{n:'Яйца',g:'egg',c:'brek',d:8,taken:false},{n:'Творог',g:'bowl',c:'brek',d:4,taken:false}]},evGame:{t:'x'}});
+add('change',clone(early.s),{screen:'change',mg:{type:'change',round:1,wrong:0,right:1,picked:1,q:{total:387,paid:500,ans:113,opts:[113,123,63]}}});
+add('rush',clone(early.s),{screen:'rush',rush:{t0:Date.now(),dur:24000,q:[{id:1,st:'coffee',at:Date.now(),life:6000},{id:2,st:'soup',at:Date.now(),life:6000}],served:2,miss:0,wrong:0,nid:3,next:Date.now()+5000,done:false}},{wide:false});
 add('lessonEnd',stateAt(late,9),{screen:'lessonEnd'});
 add('finale',stateAt(late,16),{screen:'finale'});
 add('final',clone(late.s),{screen:'final'});

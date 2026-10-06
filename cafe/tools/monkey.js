@@ -54,7 +54,7 @@ async function run(name, prof, seed){
       els.forEach(e=>{ const r=e.getBoundingClientRect(), cs=getComputedStyle(e); if(r.width>2&&r.height>2&&cs.visibility!=='hidden'&&cs.display!=='none'){ e.setAttribute('data-mk',String(out.length)); out.push({a:e.getAttribute('data-act')||'',t:e.tagName+':'+(e.type||''),mn:e.min,mx:e.max}); } });
       return out; });
     if(!list.length){ await p.waitForTimeout(200); continue; }
-    const want=['go','goforce','runskip','repnext','scenenext','pick','evpick','evnext','qpick','qnext','quizend','actgo','introskip','intronext','startgame','newgameyes','lesson2','tofinal','rushskip','rushpick','menutoggle','hire','mk','accept','opencity','hqup','tab'];
+    const want=['go','goforce','runskip','repnext','scenenext','pick','evpick','evnext','qpick','qnext','quizend','actgo','introskip','intronext','startgame','newgameyes','lesson2','tofinal','rushskip','rushpick','menutoggle','hire','mk','accept','opencity','hqup','tab','fifopick','chgpick','mgskip','hol','dep','undep','insure','forward','special','setawn'];
     let pi=-1;
     if(R()<0.6){ const idx=list.map((x,i)=>want.includes(x.a)?i:-1).filter(i=>i>=0); if(idx.length) pi=idx[Math.floor(R()*idx.length)]; }
     if(pi<0) pi=Math.floor(R()*list.length);
