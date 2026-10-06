@@ -1,0 +1,25 @@
+<title>Первый столик</title>
+<style>
+/*STYLE*/
+</style>
+<a class="skip" href="#stage" data-act="skipnav">К содержимому игры</a>
+<div id="app">
+  <svg class="awning" width="100%" height="20" aria-hidden="true" focusable="false"><defs><pattern id="awn" width="48" height="20" patternUnits="userSpaceOnUse"><rect width="24" height="12" style="fill:var(--brand)"/><rect x="24" width="24" height="12" fill="#FFF6E6"/><path d="M0 12h24a12 7 0 0 1-24 0z" style="fill:var(--brand)"/><path d="M24 12h24a12 7 0 0 1-24 0z" fill="#FFF6E6"/></pattern></defs><rect width="100%" height="20" fill="url(#awn)"/></svg>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="logo"><span id="logo"></span><span>Первый столик<small>экономика кафе и сети ресторанов</small></span></div>
+      <div class="tools" id="tools" role="toolbar" aria-label="Настройки"></div>
+    </header>
+    <div class="hud" id="hud" hidden></div>
+    <nav class="tabbar" id="tabbar" role="tablist" aria-label="Разделы игры" hidden></nav>
+    <main class="stage" id="stage" tabindex="-1" aria-live="polite"></main>
+  </div>
+</div>
+<div id="actionbar" class="actionbar" hidden></div>
+<div id="modal"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+<script>
+/*SCRIPTS*/
+document.getElementById('logo').innerHTML = logoSVG(36);
+</script>

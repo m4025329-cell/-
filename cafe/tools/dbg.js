@@ -1,0 +1,3 @@
+require('./load.js');
+var s=newState({name:'Бот',seed:'t1',diff:'norm',talent:'cook'});
+for(var m=1;m<=8;m++){ var R=simMonth(s); if(m===2||m===8){ var r=R.outlets[0]; var o={}; ['rev','dineRev','cogs','wages','rent','util','mkt','other','guests','avgCheck','waste','stockLoss','utilK','profitOp','score','repNew','awrNew','loyNew'].forEach(function(k){ o[k]=Math.round(r[k]*100)/100; }); console.log(m,JSON.stringify(o)); console.log(JSON.stringify(r.dims), JSON.stringify(r.caps), JSON.stringify(r.m)); console.log('tax',Math.round(R.tax),'profit',Math.round(R.profit)); console.log(r.mix.map(function(x){ return x.id+':'+Math.round(x.qty)+'/'+x.cls; }).join(' ')); } applyMonth(s,R); }
