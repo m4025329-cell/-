@@ -16,6 +16,7 @@ function downloadText(name,text){
 A.savefile=function(){
   var code=exportCode(); if(!code){ toast('Не получилось подготовить файл',true); return; }
   if(window.AndroidBridge&&AndroidBridge.share){ try{ AndroidBridge.share('Первый столик: работа '+((S&&S.name)||''),code); return; }catch(e){} }
+  if(isFramed()){ A.showcode(); toast('В этом окне файл скачать нельзя: скопируйте код'); return; }
   if(downloadText('pervyi-stolik-'+fileSafe(S&&S.name)+'-m'+Math.min(S.month,TOTAL)+'.txt',code)) toast('Файл работы сохранён');
   else toast('Скачивание недоступно: скопируйте код',true);
 };
@@ -81,7 +82,7 @@ function sheetHTML(s,key){
 function openSheet(s,key){
   var el=$('#sheet'); if(!el) return;
   U.sheetOpen=true; lastFocus=document.activeElement;
-  el.innerHTML='<div class="sh-bar"><button class="btn small" data-act="sheetprint">'+ico('save','sm')+' Печать или PDF</button><button class="btn small secondary" data-act="sheetclose">'+ico('x','sm')+' Закрыть</button></div><div class="sh-hint">Нажмите «Печать или PDF» и выберите «Сохранить как PDF», чтобы получить файл для учителя.</div><div class="sh-pages">'+sheetHTML(s,key)+'</div>';
+  el.innerHTML='<div class="sh-bar"><button class="btn small" data-act="sheetprint">'+ico('save','sm')+' Печать или PDF</button><button class="btn small secondary" data-act="sheetclose">'+ico('x','sm')+' Закрыть</button></div><div class="sh-hint">Нажмите «Печать или PDF» и выберите «Сохранить как PDF», чтобы получить файл для учителя.'+(isFramed()?' Если печать не открывается, откройте игру отдельной страницей (по ссылке или из файла) и повторите.':'')+'</div><div class="sh-pages">'+sheetHTML(s,key)+'</div>';
   el.hidden=false; document.body.classList.add('sheeting'); window.scrollTo(0,0);
 }
 A.sheet=function(){ closeModal(); if(!S||!S.led||S.led.length<2){ toast('Сыграйте хотя бы два месяца: тогда в отчёте будут цифры',true); return; } openSheet(S,false); };
