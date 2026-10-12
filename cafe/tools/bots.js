@@ -48,12 +48,12 @@ function good(opts){
 }
 function run(policy, seed, diff, talent){
   var s=newState({name:'Бот',seed:seed,diff:diff||'norm',talent:talent||'cook'}), last=null;
-  for(var m=1;m<=TOTAL;m++){ policy(s,m,last); var R=simMonth(s); last=R; applyMonth(s,R); if(s.emerg>600000){ s.bankrupt=m; break; } }
+  for(var m=1;m<=TOTAL;m++){ s.newsM=m; stepNews(s); policy(s,m,last); var R=simMonth(s); last=R; applyMonth(s,R); if(s.emerg>600000){ s.bankrupt=m; break; } }
   return s;
 }
 function runTo(policy, seed, upTo, diff){
   var s=newState({name:'Бот',seed:seed,diff:diff||'norm',talent:'cook'}), last=null, R=null;
-  for(var m=1;m<=upTo;m++){ policy(s,m,last); R=simMonth(s); last=R; if(m<upTo) applyMonth(s,R); }
+  for(var m=1;m<=upTo;m++){ s.newsM=m; stepNews(s); policy(s,m,last); R=simMonth(s); last=R; if(m<upTo) applyMonth(s,R); }
   return {s:s,R:R};
 }
 module.exports={run:run,runTo:runTo,good:good};

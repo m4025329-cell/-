@@ -19,6 +19,7 @@ const T=[
  ['edge-strong','surface',3],['edge-strong','surface-2',3],['edge-strong','ground',3],
  ['brand','surface',3],['brand','ground',3],['basil','surface',3],['berry','surface',3],['sky','surface',3],['plum','surface',3],['cocoa','surface',3],
  ['brand','surface-2',3],
+ ['surface','basil',4.5],['surface','sky',4.5],['surface','brand',4.5],['surface','plum',3],['mustard','surface',1.2],['mustard-ink','mustard',4.5],
 ];
 let bad=0;
 [['светлая',light],['тёмная',dark]].forEach(([name,tk])=>{

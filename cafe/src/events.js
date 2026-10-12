@@ -44,7 +44,7 @@ var EVENTS = [
  {id:'school', who:'maria', title:'Школьная экскурсия', min:2, w:1.5, text:'Учительница приводит класс на «урок о том, как работает кафе». Дети хотят смотреть на кухню.',
   opts:[{t:'Провести экскурсию и накормить пирожками', d:'−4 000 ₽, но семьи узнают о кафе.', fx:{c:-4000, awr:0.04, loy:0.03}, res:['Дети уходят с пирожками и рисунками. Через неделю в кафе приходят их родители.']},
         {t:'Отказать, мешают работе', d:'Без затрат.', fx:{}, res:['Учительница вздыхает. Очень жаль, что нельзя.']}]},
- {id:'bankoffer', who:'olesya', title:'Банк предлагает кредит', min:3, w:1, ok:function(s){ return s.debt===0 && s.cash<400000; }, text:'Олеся из банка звонит: «У нас акция, кредит под 1,3% в месяц вместо 1,6%. Только сегодня».',
+ {id:'bankoffer', who:'olesya', title:'Банк предлагает кредит', min:3, w:1, ok:function(s){ return s.debt===0 && s.cash<400000; }, text:'Олеся из банка звонит: «У нас акция: ставка по кредиту на 0,3 пункта ниже обычной. Только сегодня».',
   opts:[{t:'Взять 500 000 ₽', d:'Долг растёт, проценты платите вы.', fx:{debt:500000}, res:['Деньги на счёте. Проценты считаются каждый месяц, помните.']},
         {t:'Отказаться', d:'Без долгов.', fx:{}, res:['Олеся оставляет визитку «на всякий случай».']}]},
  {id:'taxcheck', who:'emma', title:'Налоговая просит документы', min:5, w:1.5, ok:function(s){ return s.tax==='15'; }, text:'Приходит письмо: проверка расходов. Просят чеки на продукты за три месяца.',
@@ -168,21 +168,29 @@ var NEWS = [
  {id:'wages',  n:'Растёт цена труда', good:false, t:'Зарплаты в регионе растут. Рынок труда конкурентный.', dur:5, mods:[{k:'wage',m:1.03}], min:6},
  {id:'fair',   n:'Городской праздник', good:true, t:'На главной площади праздник. Людей много, настроение хорошее.', dur:1, mods:[{k:'dem',m:1.08}], min:3},
  {id:'competitor', n:'Новая сеть в городе', good:false, t:'Крупная сеть открывает точки в вашем городе. Борьба за гостей станет жёстче.', dur:4, mods:[{k:'comp',m:1.1}], min:6},
- {id:'bank',   n:'Ставки снизили', good:true, t:'Центробанк снизил ставку. Кредиты стали чуть дешевле.', dur:4, mods:[], min:7},
- {id:'infl',   n:'Всплеск инфляции', good:false, t:'Цены в магазинах растут быстрее. Продукты дорожают.', dur:3, mods:[{k:'infl',m:1.6}], min:8},
+ {id:'bank',   n:'Ставки снизили', good:true, t:'Центробанк снизил ключевую ставку на 1,5 пункта. Кредиты дешевле, вклады менее выгодны, люди тратят чуть охотнее.', dur:2, mods:[], key:-1.5, min:7},
+ {id:'cbup',   n:'Ставки повысили', good:false, t:'Центробанк повысил ключевую ставку на 1,5 пункта, чтобы замедлить рост цен. Кредиты дороже, вклады выгоднее, люди тратят осторожнее.', dur:2, mods:[], key:1.5, min:5},
+ {id:'rub',    n:'Рубль ослаб', good:false, t:'Курс рубля упал. Импортный кофе, сыр и специи подорожали, а значит вырастет и себестоимость.', dur:3, mods:[{k:'cogs',m:1.04}], min:5},
+ {id:'infl',   n:'Всплеск инфляции', good:false, t:'Цены в магазинах растут быстрее. Продукты дорожают. Обычно в ответ Центробанк повышает ключевую ставку.', dur:3, mods:[{k:'infl',m:1.6}], min:5},
  {id:'cool',   n:'Холодная весна', good:false, t:'Прохладно, на террасах пусто. Спрос на холодные напитки низкий.', dur:2, mods:[{k:'dem',m:0.96}], min:3},
  {id:'sale',   n:'Оптовая распродажа', good:true, t:'Оптовая база делает скидки на крупные партии.', dur:2, mods:[{k:'cogs',m:0.97}], min:5}
 ];
 var NEWS_BY_ID = {}; NEWS.forEach(function(n){ NEWS_BY_ID[n.id]=n; });
+/* у каждого класса (код) один месяц между 5-м и 7-м, когда цены ускоряются: так все ученики видят, как работает ключевая ставка */
+function macroMonth(s){ return 5+hashStr((s.seed||'free')+'|macro')%3; }
 function stepNews(s){
   var m=s.month, rng=rngFor(s,'news'+m);
   s.news=(s.news||[]).filter(function(x){ return x.start+x.dur>m; });
-  if(m<3 || rng()>0.5) return null;
-  var active=s.news.map(function(x){ return x.id; });
-  var pool=NEWS.filter(function(n){ return n.min<=m && active.indexOf(n.id)<0; });
-  if(!pool.length) return null;
-  var N=pool[Math.floor(rng()*pool.length)];
+  var N=null, active=s.news.map(function(x){ return x.id; });
+  if(m===macroMonth(s) && !s.flags.macroShock && active.indexOf('infl')<0){ s.flags.macroShock=1; N=NEWS_BY_ID.infl; }
+  else {
+    if(m<3 || rng()>0.5) return null;
+    var pool=NEWS.filter(function(n){ return n.min<=m && active.indexOf(n.id)<0; });
+    if(!pool.length) return null;
+    N=pool[Math.floor(rng()*pool.length)];
+  }
   s.news.push({id:N.id, start:m, dur:N.dur});
   N.mods.forEach(function(x){ s.mods.push({k:x.k, m:x.m, left:N.dur, why:N.n}); });
+  if(N.key){ s.mac.key=clamp(s.mac.key+N.key,8,24); }
   return N;
 }

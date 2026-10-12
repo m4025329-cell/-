@@ -39,7 +39,10 @@ var ACH = [
  {id:'rev2m',  n:'Два миллиона выручки',d:'Выручка сети за месяц выше 2 млн ₽.',    icon:'trend',  t:function(s,R){ return R && R.revTotal>=2000000; }},
  {id:'mini',   n:'Золотые руки',       d:'Золото в двух мини-играх.',               icon:'award',  t:function(s,R){ return s.stats.miniGold>=2; }},
  {id:'rival',  n:'Лучше соседей',      d:'Рейтинг флагмана выше всех конкурентов города.',icon:'star',t:function(s,R){ var f=flagship(s); return rivalsFor(s,f.city).every(function(r){ return f.rep>r.q; }) && s.month>=4; }},
- {id:'fork',   n:'Золотая вилка',      d:'Гид признал ваше заведение лучшим.',       icon:'fork',    t:function(s,R){ return !!s.flags.goldFork; }}
+ {id:'fork',   n:'Золотая вилка',      d:'Гид признал ваше заведение лучшим.',       icon:'fork',    t:function(s,R){ return !!s.flags.goldFork; }},
+ {id:'acct',   n:'Главбух',            d:'Открыт раздел «Учёт»: три отчёта кафе.',   icon:'book',    t:function(s,R){ return !!s.seen.sub_acc; }},
+ {id:'analyst',n:'Аналитик',           d:'Сделан анализ: график безубыточности и калькуляция блюда.', icon:'chart', t:function(s,R){ return !!(s.seen.sub_ana&&s.seen.calc); }},
+ {id:'macro',  n:'Следит за ставкой',  d:'Открыт раздел «Страна» после решения Центробанка.', icon:'flag', t:function(s,R){ return !!s.seen.sub_cty&&s.month>=5; }}
 ];
 function checkAch(s,R){
   var got=[]; ACH.forEach(function(a){ if(s.ach[a.id]) return; var ok=false; try{ ok=a.t(s,R); }catch(e){} if(ok){ s.ach[a.id]=s.month; got.push(a); } });
@@ -70,11 +73,23 @@ function monthInsights(s,R){
   var weakDim=null; live.forEach(function(r){ if(!r.dims) return; ['food','svc','cln','atmo','val'].forEach(function(k){ if(!weakDim || r.dims[k]<weakDim.v) weakDim={k:k, v:r.dims[k], r:r}; }); });
   if(weakDim && weakDim.v<55){ var names={food:'Вкус блюд',svc:'Сервис',cln:'Чистота',atmo:'Уют',val:'Цена и качество'}, tips={food:'Нужен более сильный повар, свежие продукты или лучше блюда.',svc:'Нужно больше официантов, обучение или меньше загрузки.',cln:'Нужен сотрудник на уборку и мойку.',atmo:'Поможет ремонт, музыка и террасы.',val:'Цены выше рынка: гости считают порции дорогими.'}; add('warn',names[weakDim.k]+' тянет рейтинг вниз',tips[weakDim.k]+' Сейчас '+Math.round(weakDim.v)+' из 100.','rating'); }
   if(s.tax==='6' && R.tax15<R.tax6*0.85) add('info','Режим 15% был бы выгоднее','Налог на «доходах минус расходах» был бы '+rub(R.tax15)+' вместо '+rub(R.tax6)+'. Решение принимается в сцене с Эммой Григорьевной.','simple');
-  var dogs=[]; live.forEach(function(r){ r.mix.forEach(function(m){ if(m.cls==='dog' && m.qty>0 && !m.loc) dogs.push(m.name); }); });
+  var dogs=[]; live.forEach(function(r){ r.mix.forEach(function(m){ if(m.cls==='dog' && m.qty>0 && !m.loc && dogs.indexOf(m.name)<0) dogs.push(m.name); }); });
   if(dogs.length) add('info','Кандидаты на вылет','Блюда, которые мало продаются и мало зарабатывают: '+dogs.slice(0,3).join(', ')+'. Освободите место в меню.','menueng');
   if(R.interest>0 && R.interest>t.rev*0.03) add('warn','Проценты по долгам','На проценты ушло '+rub(R.interest)+'. Если денег хватает, часть долга можно погасить.','loan');
   if(t.delComm>t.rev*0.04) add('info','Комиссия доставки','Сервис доставки забрал '+rub(t.delComm)+'. Свои курьеры и упаковка снижают комиссию.','commission');
-  return out.slice(0,6);
+  /* деньги и экономика страны */
+  var ex=[], E0=s.led&&s.led.length?s.led[s.led.length-1]:null;
+  function addx(k,h,tx,term){ ex.push({k:k,h:h,t:tx,term:term}); }
+  if(E0 && E0.m===R.m){
+    var dm=E0.c1-E0.c0, nm=E0.profit/Math.max(1,E0.rev+E0.roy);
+    if(Math.abs(E0.profit-dm)>Math.max(60000,0.25*Math.abs(E0.profit)+20000)) addx('info','Прибыль и деньги разошлись','Прибыль '+sgn(E0.profit)+', а деньги в кассе изменились на '+sgn(dm)+'. Разницу сделали вложения, кредиты и вклады. Подробности в «Деньги → Учёт».','cashflow');
+    if(nm<0.03) addx('warn','Тонкая прибыль','Чистая прибыль всего '+pct(Math.max(0,nm))+' выручки. Один неудачный месяц съест её. Проверьте цены и расходы в «Деньги → Анализ».','netprofit');
+    if(s.mac&&s.mac.step) addx('info','Центробанк изменил ставку','Ключевая ставка '+(s.mac.step>0?'выросла':'снизилась')+' на '+f1d(Math.abs(s.mac.step))+' п. п., теперь '+f1d(s.mac.key)+'%. Кредиты '+(s.mac.step>0?'дорожают, вклады выгоднее':'дешевеют, вклады менее выгодны')+'.','keyrate');
+  }
+  var be=bepInfo(s,R);
+  if(be && isFinite(be.perDay) && be.safety<0.1) addx('warn',be.safety>0?'Запас прочности мал':'Ниже точки безубыточности','Гостей в день '+Math.round(be.actual)+', для нуля нужно '+Math.round(be.perDay)+'. '+(be.safety>0?'Небольшое падение спроса уведёт в убыток.':'Расходы выше доходов: поднимите чек или снизьте постоянные расходы.'),'safety');
+  if(s.month>=5 && s.menu.length){ var sr=0, sn=0; s.menu.forEach(function(id){ var d=DISH[id]; if(!d) return; sr+=priceOf(s,d)/Math.max(1,defPrice(s,d)); sn++; }); sr=sn?sr/sn:1; if(sr<0.96) addx('info','Ваши цены отстали от рынка','Продукты подорожали на '+f1d((s.cidx-1)*100)+'% с начала игры, а ваши цены на '+Math.round((1-sr)*100)+'% ниже рыночных. Кнопка «Подогнать цены под рынок» в меню вернёт маржу.','inflation'); }
+  return ex.slice(0,2).concat(out).slice(0,7);
 }
 
 /* «Золотая вилка»: оценка выбранного заведения по последнему месяцу */
@@ -107,12 +122,13 @@ function mainLesson(s){
 
 /* строка для табло класса */
 function resultLine(s){
-  var g=goalNow(s), f=forkScore(s), done=Math.min(s.month-1,TOTAL);
-  return s.name+' | кафе «'+s.cafe+'» | талант '+(s.talent?TALENTS[s.talent].name:'—')+' | '+DIFFS[s.diff].name+(s.code?' | код '+s.code:'')+' | месяц '+done+' из '+TOTAL+' | капитал '+Math.round(g.cap)+' ₽ | города '+g.cities+' | рейтинг '+f1d(g.rating)+' | '+(goalMet(s)?'цель достигнута':'цель не достигнута')+' | '+FORK_NAMES[f.tier]+' | переигрываний '+(s.rewinds||0)+' | викторина '+sumArr(s.quizScore||[])+' | награды '+Object.keys(s.ach||{}).length;
+  var g=goalNow(s), f=forkScore(s), done=Math.min(s.month-1,TOTAL), sc=autoScore(s);
+  return s.name+' | кафе «'+s.cafe+'» | талант '+(s.talent?TALENTS[s.talent].name:'—')+' | '+DIFFS[s.diff].name+(s.code?' | код '+s.code:'')+' | месяц '+done+' из '+TOTAL+' | капитал '+Math.round(g.cap)+' ₽ | города '+g.cities+' | рейтинг '+f1d(g.rating)+' | '+(goalMet(s)?'цель достигнута':'цель не достигнута')+' | '+FORK_NAMES[f.tier]+' | переигрываний '+(s.rewinds||0)+' | викторина '+sumArr(s.quizScore||[])+' | награды '+Object.keys(s.ach||{}).length+' | реальный капитал '+Math.round(realCapital(s))+' ₽ | баллы '+f1d(sc.total)+' из 20 | термины '+(s.terms||[]).length;
 }
 function parseResults(text){
   var rows=[]; String(text||'').split(/\r?\n/).forEach(function(line){ line=line.trim(); if(!line) return; var p=line.split('|').map(function(x){ return x.trim(); }); if(p.length<8) return; var g=function(re){ var m=line.match(re); return m?m[1]:''; };
-    rows.push({name:p[0], cafe:p[1].replace(/^кафе «|»$/g,''), diff:p[3], month:g(/месяц (\d+)/), cap:+g(/капитал (-?\d+)/), cities:+g(/города (\d+)/), rating:g(/рейтинг ([\d,]+)/), goal:/цель достигнута/.test(line), fork:p[p.length-5]||'', ach:g(/награды (\d+)/)}); });
+    var fork=''; Object.keys(FORK_NAMES).forEach(function(k){ if(line.indexOf(FORK_NAMES[k])>=0 && FORK_NAMES[k].length>fork.length) fork=FORK_NAMES[k]; });
+    rows.push({name:p[0], cafe:p[1].replace(/^кафе «|»$/g,''), diff:p[3], month:g(/месяц (\d+)/), cap:+g(/капитал (-?\d+)/), real:+g(/реальный капитал (-?\d+)/), cities:+g(/города (\d+)/), rating:g(/рейтинг ([\d,]+)/), goal:/цель достигнута/.test(line), fork:fork, ach:g(/награды (\d+)/), pts:g(/баллы ([\d,]+) из 20/), terms:g(/термины (\d+)/)}); });
   rows.sort(function(a,b){ return (b.goal-a.goal)||(b.cities-a.cities)||(b.cap-a.cap); });
   return rows;
 }

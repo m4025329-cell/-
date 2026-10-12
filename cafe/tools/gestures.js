@@ -1,0 +1,43 @@
+/* Жесты на телефоне: свайп между вкладками, удержание «+», закрытие шторки свайпом вниз. node tools/gestures.js */
+const path=require('path'); require('./load.js'); const B=require('./bots.js');
+const PW=process.env.PW_PATH||'/opt/node-tools/node_modules/playwright'; const pw=require(PW), {chromium}=pw;
+const FILE='file://'+path.join(__dirname,'..','index.html');
+let bad=0; const ok=(c,m)=>{ if(!c){ bad++; console.log('  ПЛОХО: '+m); } else console.log('  ок: '+m); };
+(async()=>{
+  const {s}=B.runTo(B.good({expand:true,lev:true,at:8}),'gest',6,'norm'); s.name='Аня';
+  const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+  const ctx=await b.newContext({viewport:{width:390,height:800},deviceScaleFactor:2,isMobile:true,hasTouch:true}); const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+  const cdp=await ctx.newCDPSession(p);
+  const touch=async(type,x,y)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x,y}]});
+  const swipe=async(x0,y0,x1,y1,steps=8)=>{ await touch('touchStart',x0,y0); for(let i=1;i<=steps;i++){ await touch('touchMove',x0+(x1-x0)*i/steps,y0+(y1-y0)*i/steps); await p.waitForTimeout(12); } await touch('touchEnd',x1,y1); await p.waitForTimeout(300); };
+  await p.goto(FILE); await p.waitForTimeout(300);
+  const set=async u=>{ await p.evaluate(({S,u})=>{ window.__game.setState(S,Object.assign({screen:'plan',seen:{},actSeen:{1:1,5:1,9:1,13:1},outlet:S.outlets[0].id},u)); },{S:s,u}); await p.waitForTimeout(300); };
+  const tab=()=>p.evaluate(()=>window.__game.U.tab);
+  console.log('Свайп вкладок');
+  await set({tab:'home'}); await swipe(320,420,90,425); ok(await tab()==='menu','влево: главная → меню (сейчас '+await tab()+')');
+  await swipe(320,420,90,425); ok(await tab()==='place','влево ещё: меню → кухня ('+await tab()+')');
+  await swipe(90,420,320,425); ok(await tab()==='menu','вправо: кухня → меню ('+await tab()+')');
+  await set({tab:'home'}); await swipe(90,420,320,425); ok(await tab()==='home','вправо на первой вкладке ничего не делает');
+  await set({tab:'home'}); await swipe(300,420,200,560); ok(await tab()==='home','диагональный жест не переключает');
+  await set({tab:'menu'}); await swipe(8,420,200,425); ok(await tab()==='menu','жест от самого края (системный «назад») не переключает');
+  await set({tab:'guests'}); const sel=await p.$('.outsel'); if(sel){ const bb=await sel.boundingBox(); await swipe(bb.x+bb.width-20,bb.y+20,bb.x+30,bb.y+20); ok(await tab()==='guests','полоса выбора заведения прокручивается, вкладка не меняется'); }
+  console.log('Удержание кнопки «+» у цены');
+  await set({tab:'menu'}); const getP=()=>p.evaluate(()=>{ const g=window.__game; return priceOf(g.S,DISH[g.S.menu[0]]); }); const price0=await getP();
+  const btn=await p.$('[data-act=pinc]'); const bb2=await btn.boundingBox(); await btn.scrollIntoViewIfNeeded(); const bb3=await btn.boundingBox();
+  await p.mouse.move(bb3.x+bb3.width/2,bb3.y+bb3.height/2); await p.mouse.down(); await p.waitForTimeout(1400); await p.mouse.up(); await p.waitForTimeout(250);
+  const price1=await getP(); ok(price1-price0>=25&&price1-price0<=120,'после удержания цена выросла на '+(price1-price0)+' ₽ (ожидаем 25–120)');
+  const price2=price1; await p.mouse.move(bb3.x+bb3.width/2,bb3.y+bb3.height/2); await p.mouse.down(); await p.mouse.up(); await p.waitForTimeout(250);
+  const price3=await getP(); ok(price3-price2===5,'обычное нажатие даёт ровно +5 ₽ (получилось '+(price3-price2)+')');
+  console.log('Шторка: свайп вниз');
+  await set({tab:'home'}); await p.evaluate(()=>window.__game.A.help()); await p.waitForTimeout(300);
+  const head=await p.$('.modal-head'); const hb=await head.boundingBox(); await swipe(hb.x+40,hb.y+20,hb.x+40,hb.y+240,10);
+  ok(!(await p.$('#modal .modal')),'шторка закрылась свайпом вниз');
+  await p.evaluate(()=>window.__game.A.help()); await p.waitForTimeout(300);
+  const hb2=await (await p.$('.modal-head')).boundingBox(); await swipe(hb2.x+40,hb2.y+20,hb2.x+40,hb2.y+40,5);
+  ok(!!(await p.$('#modal .modal')),'короткий свайп не закрывает шторку');
+  await p.evaluate(()=>window.__game.A.closemodal());
+  console.log('Кнопка «Назад» (внутри игры)');
+  await set({tab:'money',msub:'acc'}); const r1=await p.evaluate(()=>window.__appBack()); ok(r1&&(await p.evaluate(()=>window.__game.U.msub))==='month','Назад из раздела «Учёт» → «Месяц»');
+  const r2=await p.evaluate(()=>window.__appBack()); ok(r2&&(await tab())==='home','Назад из «Деньги» → «Главная»');
+  console.log(errs.length?errs.join('\n'):'ошибок страницы нет'); console.log(bad?('ПРОВАЛОВ: '+bad):'Жесты: всё хорошо'); await b.close(); process.exit(bad?1:0);
+})();

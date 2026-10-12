@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- блюдце -->
+    <path android:fillColor="#FFF3DE" android:pathData="M31.6,57.2 a22.4,6.72 0 1,0 44.8,0 a22.4,6.72 0 1,0 -44.8,0 z"/>
+    <!-- ножка и основание -->
+    <path android:fillColor="#FFF3DE" android:pathData="M53.1,57.2 h1.8 a1.92,1.92 0 0 1 1.92,1.92 v10.56 a1.92,1.92 0 0 1 -1.92,1.92 h-1.8 a1.92,1.92 0 0 1 -1.92,-1.92 v-10.56 a1.92,1.92 0 0 1 1.92,-1.92 z"/>
+    <path android:fillColor="#FFF3DE" android:pathData="M43.6,73.2 a10.4,2.88 0 1,0 20.8,0 a10.4,2.88 0 1,0 -20.8,0 z"/>
+    <!-- чашка -->
+    <path android:fillColor="#FFF3DE" android:pathData="M43.6,42 h15.04 v6.72 a7.52,7.52 0 0 1 -7.52,7.52 7.52,7.52 0 0 1 -7.52,-7.52 z"/>
+    <!-- ручка -->
+    <path android:strokeColor="#FFF3DE" android:strokeWidth="2.88" android:strokeLineCap="round" android:pathData="M58.64,43.92 h2.72 a3.04,3.04 0 0 1 0,6.08 h-2.72"/>
+    <!-- пар -->
+    <path android:strokeColor="#FFF3DE" android:strokeWidth="2.56" android:strokeLineCap="round" android:pathData="M48.4,36.4 c0,-2.56 2.56,-2.56 2.56,-5.12"/>
+    <path android:strokeColor="#FFF3DE" android:strokeWidth="2.56" android:strokeLineCap="round" android:pathData="M53.68,36.4 c0,-2.56 2.56,-2.56 2.56,-5.12"/>
+</vector>

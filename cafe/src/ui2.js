@@ -21,7 +21,7 @@ function titleHTML(){
    (sv?'<button class="btn" data-act="continue">'+ico('play')+' Продолжить: месяц '+Math.min(sv.S.month,TOTAL)+' из '+TOTAL+'</button><button class="btn secondary" data-act="newgame">'+ico('plus')+' Новая игра</button>':'<button class="btn" data-act="newgame">'+ico('play')+' Начать игру</button>')+
    '<div class="btnrow"><button class="btn ghost small" data-act="loadcode">'+ico('key')+' Загрузить код</button><button class="btn ghost small" data-act="teacher">'+ico('chart')+' Табло класса</button></div>'+
    '<div class="btnrow three"><button class="btn ghost small" data-act="help">'+ico('help')+' Как играть</button><button class="btn ghost small" data-act="glossary">'+ico('book')+' Словарик</button><button class="btn ghost small" data-act="awards">'+ico('award')+' Награды</button></div>'+
-   '</div>'+recordsHTML()+'</div></div>';
+   '</div>'+instCardHTML()+recordsHTML()+'</div></div>';
 }
 
 /* ---------- пролог ---------- */
@@ -39,7 +39,7 @@ function introHTML(){
 
 /* ---------- настройка партии ---------- */
 function setupHTML(){
-  var st=U.setup||(U.setup={name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'norm',awn:'#D1361A'}); if(!st.awn) st.awn='#D1361A';
+  var st=U.setup||(U.setup={name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'easy',awn:'#D1361A'}); if(!st.awn) st.awn='#D1361A';
   var tal=Object.keys(TALENTS).map(function(k){ var t=TALENTS[k]; return '<button type="button" aria-pressed="'+(st.talent===k)+'" data-act="settalent" data-v="'+k+'"><span class="ico">'+ico(t.icon)+'</span><span><b>'+t.name+'</b><small>'+t.desc+'</small></span></button>'; }).join('');
   var df=Object.keys(DIFFS).map(function(k){ var d=DIFFS[k]; return '<button type="button" aria-pressed="'+(st.diff===k)+'" data-act="setdiff" data-v="'+k+'"><span class="ico">'+ico(k==='easy'?'leaf':(k==='norm'?'target':'bolt'))+'</span><span><b>'+d.name+'</b><small>'+d.desc+'</small></span></button>'; }).join('');
   return '<h2>Создайте своё кафе</h2><p class="muted">Всё можно изменить: название, талант и сложность определяют стиль игры.</p>'+
@@ -194,16 +194,16 @@ function quizHTML(){
    '<h3 style="margin:10px 0">'+esc(q.q)+'</h3><div class="opts">'+q.a.map(function(a,k){ var cls=''; if(Q.picked!=null){ if(k===q.c) cls=' right'; else if(k===Q.picked) cls=' wrong'; } return '<button class="opt'+cls+'" data-act="qpick" data-k="'+k+'"'+(Q.picked!=null?' disabled':'')+'><span class="k">'+'АБВГ'.charAt(k)+'</span>'+esc(a)+'</button>'; }).join('')+'</div>'+
    (Q.picked!=null?'<div class="coach" role="status">'+avatarSVG('arsen',Q.picked===q.c?'happy':'neutral',46)+'<div><b>'+(Q.picked===q.c?'Верно!':'Не совсем.')+'</b><p>'+esc(q.why)+'</p></div></div><div class="row" style="justify-content:flex-end"><button class="btn" data-act="qnext">'+(Q.i+1>=Q.qs.length?'Закончить':'Дальше')+' '+ico('right')+'</button></div>':'')+'</div>';
 }
-A.qpick=function(el){ var Q=U.qz; if(Q.picked!=null) return; var k=+el.getAttribute('data-k'), q=Q.qs[Q.i]; Q.picked=k; if(k===q.c){ Q.ok++; S.cash+=4000; S.quizScore.push(1); sfx('good'); burst(24); } else { S.quizScore.push(0); sfx('bad'); } persist(); render(true); };
+A.qpick=function(el){ var Q=U.qz; if(Q.picked!=null) return; var k=+el.getAttribute('data-k'), q=Q.qs[Q.i]; Q.picked=k; if(k===q.c){ Q.ok++; S.cash+=4000; cfAdd(S,'other',4000); S.quizScore.push(1); sfx('good'); burst(24); } else { S.quizScore.push(0); sfx('bad'); } persist(); render(true); };
 A.qnext=function(){ var Q=U.qz; Q.i++; Q.picked=null; render(); };
-A.quizend=function(){ var act=U.qz.act; U.qz=null; if(S.month===9){ U.screen='lessonEnd'; render(); } else enterMonth(); };
+A.quizend=function(){ var act=U.qz.act; U.qz=null; if(U.qzFinal){ U.qzFinal=0; U.screen='finale'; U.finale=null; render(); return; } if(S.month===9){ U.screen='lessonEnd'; render(); } else enterMonth(); };
 
 /* ---------- конец урока 1 ---------- */
 function lessonEndHTML(){
   var g=goalNow(S), code=exportCode();
   return '<div class="actcard"><span class="kicker">Урок 1 завершён</span><h1>Восемь месяцев позади</h1><p class="muted" style="max-width:520px;margin:0 auto">Кафе открыто, у него есть характер и первые постоянные гости. Во втором уроке начнётся самое интересное: карта Тамары, кредиты, инвестор, города и сеть.</p>'+
    '<div class="kpi" style="max-width:520px;margin:12px auto"><div><small>Касса</small><b class="num">'+rubk(S.cash)+'</b></div><div><small>Капитал</small><b class="num">'+rubk(g.cap)+'</b></div><div><small>Рейтинг</small><b class="num">'+f1d(g.rating)+'</b></div><div><small>Рецептов</small><b class="num">'+S.recs.length+' из 7</b></div></div>'+
-   '<div class="card soft" style="text-align:left"><b>Как продолжить на втором уроке</b><p class="small">Игра сохраняется сама. На том же устройстве достаточно открыть её и нажать «Продолжить». На другом устройстве скопируйте код ниже и вставьте его на титульном экране в «Загрузить код».</p><textarea class="code" readonly aria-label="Код сохранения" id="savecode">'+esc(code)+'</textarea><div class="row"><button class="btn small secondary" data-act="copycode">'+ico('copy')+' Скопировать код</button></div></div>'+
+   '<div class="card soft" style="text-align:left"><b>Как продолжить на втором уроке</b><p class="small">Игра сохраняется сама. На том же устройстве достаточно открыть её и нажать «Продолжить». На другом устройстве скопируйте код ниже и вставьте его на титульном экране в «Загрузить код».</p><textarea class="code" readonly aria-label="Код сохранения" id="savecode">'+esc(code)+'</textarea><div class="row"><button class="btn small secondary" data-act="copycode">'+ico('copy')+' Скопировать код</button><button class="btn small secondary" data-act="savefile">'+ico('save')+' Скачать файлом</button></div></div>'+
    '<button class="btn" data-act="lesson2" style="margin-top:12px">К уроку 2 '+ico('right')+'</button></div>';
 }
 A.lesson2=function(){ enterMonth(); };
@@ -212,6 +212,6 @@ A.copycode=function(){ var t=$('#savecode'); if(!t) return; t.select(); try{ doc
 /* ---------- табло учителя ---------- */
 function teacherHTML(){
   var rows=parseResults(U.teacherText||''), t='';
-  if(rows.length) t='<div class="card tblwrap" style="overflow:auto"><table class="tbl" style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th style="text-align:left;padding:6px">#</th><th style="text-align:left">Имя</th><th style="text-align:left">Кафе</th><th>Мес.</th><th>Капитал</th><th>Города</th><th>Рейтинг</th><th>Цель</th><th>Награды</th></tr></thead><tbody>'+rows.map(function(r,i){ return '<tr style="border-top:2px solid var(--edge)"><td style="padding:6px">'+(i+1)+'</td><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.cafe)+'</td><td style="text-align:center">'+r.month+'</td><td class="num" style="text-align:right">'+rubk(r.cap)+'</td><td style="text-align:center">'+r.cities+'</td><td style="text-align:center">'+r.rating+'</td><td style="text-align:center">'+(r.goal?'✔':'—')+'</td><td style="text-align:center">'+r.ach+'</td></tr>'; }).join('')+'</tbody></table></div>';
-  return '<h2>Табло класса</h2><p class="muted">Ученики на итоговом экране нажимают «Скопировать результат» и присылают строку. Вставьте строки сюда, по одной на строку.</p><textarea class="code" id="tc-in" aria-label="Результаты учеников" placeholder="Вставьте результаты учеников...">'+esc(U.teacherText||'')+'</textarea><div class="row" style="margin:10px 0"><button class="btn" data-act="tcbuild">Показать таблицу</button><button class="btn ghost" data-act="totitle">'+ico('left')+' Назад</button></div>'+t;
+  if(rows.length) t='<div class="card tblwrap" style="overflow:auto"><table class="tbl" style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th style="text-align:left;padding:6px">#</th><th style="text-align:left">Имя</th><th style="text-align:left">Кафе</th><th>Мес.</th><th>Капитал</th><th>Города</th><th>Рейтинг</th><th>Цель</th><th>Баллы</th><th>Награды</th></tr></thead><tbody>'+rows.map(function(r,i){ return '<tr style="border-top:2px solid var(--edge)"><td style="padding:6px">'+(i+1)+'</td><td><b>'+esc(r.name)+'</b></td><td>'+esc(r.cafe)+'</td><td style="text-align:center">'+r.month+'</td><td class="num" style="text-align:right">'+rubk(r.cap)+'</td><td style="text-align:center">'+r.cities+'</td><td style="text-align:center">'+r.rating+'</td><td style="text-align:center">'+(r.goal?'✔':'—')+'</td><td style="text-align:center">'+(r.pts||'—')+'</td><td style="text-align:center">'+r.ach+'</td></tr>'; }).join('')+'</tbody></table></div>';
+  return '<h2>Табло класса</h2><p class="muted">Ученики на итоговом экране нажимают «Скопировать результат» и присылают строку. Вставьте строки сюда, по одной на строку.</p><textarea class="code" id="tc-in" aria-label="Результаты учеников" placeholder="Вставьте результаты учеников...">'+esc(U.teacherText||'')+'</textarea><div class="row" style="margin:10px 0"><button class="btn" data-act="tcbuild">Показать таблицу</button><button class="btn ghost" data-act="totitle">'+ico('left')+' Назад</button></div>'+t+reviewCard();
 }

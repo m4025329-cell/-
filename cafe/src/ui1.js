@@ -1,5 +1,5 @@
 /* ===== Интерфейс «Первого столика», часть 1: ядро, сохранение, звук, шапка, вкладки ===== */
-var KEY='ps-save-v1', THEME_KEY='ps-theme', SND_KEY='ps-sound', REC_KEY='ps-best', APP_VERSION='1.0.0';
+var KEY='ps-save-v1', THEME_KEY='ps-theme', SND_KEY='ps-sound', VIB_KEY='ps-vib', REC_KEY='ps-best', APP_VERSION='1.0.0', vibOn=true;
 var S=null, U={screen:'title'}, soundOn=false, actx=null, reduced=false, lastFocus=null, timers=[];
 try{ reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
 function $(s,r){ return (r||document).querySelector(s); }
@@ -42,6 +42,7 @@ function tone(freq,dur,delay,type,vol){
     var t=actx.currentTime+(delay||0), o=actx.createOscillator(), g=actx.createGain(); o.type=type||'triangle'; o.frequency.value=freq; g.gain.setValueAtTime(vol||0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur+0.03); }catch(e){}
 }
 function sfx(k){
+  if(k==='good') vib([12,50,12]); else if(k==='bad') vib([40,40,40]); else if(k==='win') vib([20,50,20,50,70]); else if(k==='coin') vib(14);
   if(k==='click') tone(560,0.05,0,'triangle',0.03);
   else if(k==='coin'){ tone(988,0.07,0,'square',0.035); tone(1319,0.16,0.07,'square',0.035); }
   else if(k==='good'){ tone(523,0.1,0,'triangle',0.07); tone(659,0.1,0.1,'triangle',0.07); tone(784,0.2,0.2,'triangle',0.07); }
@@ -81,7 +82,7 @@ function openModal(title,html){
 function closeModal(){ $('#modal').innerHTML=''; if(lastFocus&&lastFocus.focus){ try{ lastFocus.focus({preventScroll:true}); }catch(e){} } }
 function isDark(){ var d=document.documentElement.getAttribute('data-theme'); if(d) return d==='dark'; return !!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches); }
 function addTerm(k){ if(k&&S&&S.terms.indexOf(k)<0&&TERMS[k]) S.terms.push(k); }
-function termChip(k){ return TERMS[k]?'<button class="chip info" data-act="term" data-k="'+k+'" style="border:0;cursor:pointer;min-height:32px">'+ico('book','sm')+' '+esc(TERMS[k][0])+'</button>':''; }
+function termChip(k){ return TERMS[k]?'<button class="chip info tchip" data-act="term" data-k="'+k+'">'+ico('book','sm')+' '+esc(TERMS[k][0])+'</button>':''; }
 function glossaryHTML(){
   var keys=Object.keys(TERMS), got=S?S.terms:[], open=keys.filter(function(k){ return got.indexOf(k)>=0; });
   return '<p class="muted">Открыто терминов: <b>'+open.length+'</b> из '+keys.length+'. Новые появляются, когда вы встречаете их в игре.</p>'+(open.length?'<div class="terms">'+open.map(function(k){ return '<div class="termc"><b>'+TERMS[k][0]+'</b><span>'+TERMS[k][1]+'</span></div>'; }).join('')+'</div>':'<div class="termc"><b>Пока пусто</b><span>Первые термины откроются уже в этом месяце.</span></div>');
@@ -157,7 +158,7 @@ function nextStep(){
   if(S.month===1 && !S.tut.menuSeen) return {tab:'menu', t:'Откройте «Меню». Сейчас в нём 7 блюд из 8 мест. Добавьте салат или десерт, чтобы гостям было из чего выбирать.', b:'Открыть меню'};
   if(S.month===1 && !S.tut.placeSeen) return {tab:'place', t:'Загляните в «Зал и кухню»: проверьте, хватает ли людей и в чём узкое место. Нанять уборщика — самый дешёвый способ поднять рейтинг.', b:'Открыть зал и кухню'};
   if(S.month===1 && !S.tut.guestsSeen) return {tab:'guests', t:'Включите рекламу в «Гостях»: пока про кафе никто не знает, гостей будет мало.', b:'Открыть «Гости»'};
-  if(S.month===1 && !S.tut.moneySeen) return {tab:'money', t:'В «Деньгах» видно прогноз месяца и точку безубыточности. Посмотрите, сколько гостей в день нужно кафе.', b:'Открыть «Деньги»'};
+  if(S.month===1 && !S.tut.moneySeen) return {tab:'money', t:'В «Деньгах» пять разделов: прогноз месяца, учёт, анализ, банк и экономика страны. Посмотрите, сколько гостей в день нужно кафе, чтобы выйти в ноль.', b:'Открыть «Деньги»'};
   if(S.month<=2 && S.menu.length<menuSlots(S) && missingCats().length) return {tab:'menu', t:'В меню нет категорий: '+missingCats().map(function(c){ return CATN[c].toLowerCase(); }).join(', ')+'. Гости из-за этого уходят.', b:'К меню'};
   if(r && r.utilK>1.05){ var b=bottleneck(r); return {tab:'place', t:'Заведению не хватает '+(b==='seat'?'мест в зале':(b==='svc'?'официантов и баристы':'мощности кухни'))+': гости упираются в очередь. Усильте узкое место.', b:'Усилить'}; }
   if(!Object.keys(o.mk).some(function(k){ return o.mk[k]; })) return {tab:'guests', t:'Реклама выключена. Даже самый вкусный борщ не продастся, если о нём не знают.', b:'Включить рекламу'};

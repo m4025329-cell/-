@@ -1,6 +1,6 @@
 /* Проверки логики и данных: детерминизм, монотонность цены, налоги, целостность контента. */
 require('./load.js'); const B=require('./bots.js');
-let bad=0; const fail=(m)=>{ bad++; console.log('  ПЛОХО: '+m); }; const ok=(c,m)=>{ if(!c) fail(m); };
+let bad=0, checks=0; const fail=(m)=>{ bad++; console.log('  ПЛОХО: '+m); }; const ok=(c,m)=>{ checks++; if(!c) fail(m); };
 /* 1. детерминизм */
 { const a=B.run(B.good({expand:true,lev:true,at:8}),'det1','norm'), b=B.run(B.good({expand:true,lev:true,at:8}),'det1','norm'), c=B.run(B.good({expand:true,lev:true,at:8}),'det2','norm'); ok(JSON.stringify(a.hist)===JSON.stringify(b.hist),'один код класса даёт разные результаты'); ok(JSON.stringify(a.hist)!==JSON.stringify(c.hist),'разные коды дают одинаковые результаты'); }
 /* 2. цена: выше цена, меньше порций той же позиции */
@@ -39,4 +39,37 @@ Object.keys(TERMS).forEach(k=>ok(TERMS[k].length===2&&TERMS[k][1].length>20,'т�
 BANQ.forEach(b=>b.need.forEach(c=>ok(CATS.indexOf(c)>=0,'банкет '+b.kind)));
 /* 12. все ресурсы покрыты: каждый рецепт можно получить */
 RECIPES.forEach(r=>{ const sfx=JSON.stringify(SCENES.map(sc=>sc.ch).concat([]).map(c=>String(c.length)))+JSON.stringify(SCENES.map(sc=>sc.ch.map(q=>q.opts.map(o=>String(o.fx&&o.fx.recipe)+(o.chk?'chk':''))))); if(r.n>1&&r.n<7) ok(/recipe/.test(require('fs').readFileSync(__dirname+'/../src/story.js','utf8').split('recipe:'+r.n).length>1?'recipe':''),'нет способа открыть рецепт '+r.n); });
-console.log(bad?('Проблем: '+bad):'Логика и данные в порядке'); process.exit(bad?1:0);
+
+/* 13. учёт: журнал денег, отчёты, баланс, макроэкономика (версия 1.2) */
+{
+  const bots=[['passive',()=>{}],['good',B.good({})],['exp',B.good({expand:true,lev:true,at:8})]];
+  bots.forEach(([nm,pol])=>['easy','norm','hard'].forEach(df=>{
+    const s=B.run(pol,'acc-'+nm,df), tag=nm+'/'+df; ok(s.led.length>=Math.min(16,s.month-1),'журнал: записей '+s.led.length+' '+tag);
+    s.led.forEach(e=>{ ok(Math.abs(e.gap)<=3,'журнал не сходится на '+e.gap+' в месяце '+e.m+' '+tag); const pl=plStatement(e), cf=cfStatement(e); ok(Math.abs(pl.net-e.profit)<=3,'ОПиУ: чистая прибыль '+tag+' м'+e.m); ok(Math.abs(e.c0+cf.delta-e.c1)<=3,'ДДС: деньги не сходятся '+tag+' м'+e.m); const br=capBridge(s,e.m,e.m); const r=br.parts.filter(p=>p.id==='r')[0]; ok(!r,'капитал: есть необъяснённая часть '+(r&&Math.round(r.v))+' '+tag+' м'+e.m); });
+    const A=ledRange(s,1,s.led[s.led.length-1].m), pl=plStatement(A), cf=cfStatement(A); ok(Math.abs(pl.net-A.profit)<=3*s.led.length,'ОПиУ за игру '+tag); ok(Math.abs(A.c0+cf.delta-A.c1)<=3*s.led.length,'ДДС за игру '+tag);
+    const bal=balanceNow(s); ok(Math.abs(bal.assets-(bal.liab+bal.equity))<1&&Math.abs(bal.equity-capital(s))<1,'баланс не сходится '+tag);
+    ok(s.mac.key>=8&&s.mac.key<=24,'ставка вне границ '+s.mac.key); ok(realCapital(s)<=capital(s)+1||capital(s)<0,'реальный капитал больше номинального');
+    const k=kpiOf(A); ['food','labor','prime','rent','net','gross','op'].forEach(x=>ok(isFinite(k[x]),'показатель '+x));
+    const wt=workTasks(s); ok(wt.length>=7,'рабочий лист: заданий '+wt.length+' '+tag); wt.forEach(x=>ok(x.title&&x.text&&x.ans&&!/NaN|undefined|Infinity/.test(x.text+x.ans),'задание '+x.id+' с NaN '+tag));
+    const sc=autoScore(s); ok(sc.total>=0&&sc.total<=20.0001,'баллы вне 0–20: '+sc.total); ok([2,3,4,5].indexOf(gradeFor(sc.total+20))>=0,'оценка');
+    const line=resultLine(s), pr=parseResults(line)[0]; ok(pr&&pr.pts&&pr.real!==undefined&&pr.cap===Math.round(goalNow(s).cap),'строка результата не читается '+tag);
+  }));
+  /* ставка и ставка по кредиту */
+  { const s=newState({seed:'mac'}); ok(Math.abs(loanRate(s)-BANK.rate)<1e-9&&Math.abs(depRate(s)-0.009)<1e-9,'при ставке 14% проценты прежние'); s.mac.key=18; ok(loanRate(s)>BANK.rate&&depRate(s)>0.009&&macroDem(s)<1,'при росте ставки кредит и вклад дороже, спрос ниже'); }
+  /* вынужденный всплеск цен случается в каждом классе */
+  for(let k=0;k<30;k++){ const s=newState({seed:'cls:кл'+k}); let hit=0; for(let m=1;m<=TOTAL;m++){ s.month=m; s.newsM=m; const N=stepNews(s); if(N&&N.id==='infl'&&m===macroMonth(s)) hit=m; s.mods.forEach(x=>x.left--); s.mods=s.mods.filter(x=>x.left>0); } const mm=macroMonth(s); ok(mm>=5&&mm<=7,'месяц всплеска '+mm); ok(hit===mm||s.news.length>=0&&s.flags.macroShock===1,'всплеск цен не случился: класс '+k); }
+  /* старое сохранение без журнала */
+  { const s=newState({seed:'old'}); const t=JSON.parse(JSON.stringify(s)); delete t.cf; delete t.led; delete t.cashM; delete t.mac; ensureState(t); ok(t.led&&t.cf&&t.mac&&t.cashM===t.cash,'ensureState не создаёт журнал'); const R=simMonth(t,{}); applyMonth(t,R); ok(t.led.length===1&&Math.abs(t.led[0].gap)<=3,'месяц на старом сохранении'); }
+  /* налоги на труд */
+  { const p=payroll(65000); ok(Math.abs(p.net-43500)<1&&Math.abs(p.gross-50000)<1&&Math.abs(p.net+p.ndfl+p.contrib-65000)<1,'расчёт зарплаты и взносов'); }
+  /* лаборатории */
+  { const m=B.runTo(B.good({expand:true,lev:true,at:8}),'labs',10,'norm'), s=m.s; s.flags.expand=1; const rows=priceLab(s,null); ok(rows.length===7&&rows.every(r=>isFinite(r.profit)&&isFinite(r.q)),'лаборатория цены'); const E=elasticity(rows); ok(E!=null&&isFinite(E)&&E<0,'эластичность отрицательна: '+E); ok(rows[0].q>rows[6].q,'дешевле — больше порций');
+    const hl=hireLab(s,s.outlets[0].id); ok(hl.length===4&&hl.every(h=>isFinite(h.dProfit)),'предельный анализ'); const bi=bepInfo(s,simMonth(cloneState(s),{preview:true})); ok(bi&&isFinite(bi.perDay)&&bi.cm>0,'безубыточность');
+    const op=openPlan(s,'sochi','cafe'); ok(op&&op.steady&&isFinite(op.roi)&&op.cost.total>0,'бизнес-план точки'); const dc=dishCalc(s,s.outlets[0],DISH.latte,null); ok(dc.profit>0&&dc.margin<dc.markup,'калькуляция: наценка выше маржи'); }
+  /* вопросы: четыре разных варианта, верный в границах */
+  { const m=B.run(B.good({expand:true,lev:true,at:8}),'qz','norm'); [1,2,3,4].forEach(act=>{ const qs=quizFor(m,act,m.lastR); ok(qs.length>=3,'вопросов в акте '+act+': '+qs.length); qs.forEach(q=>{ ok(q.a.length===4&&new Set(q.a).size===4&&q.c>=0&&q.c<4&&q.why,'вопрос «'+q.q.slice(0,40)+'»'); ok(!/NaN|undefined/.test(q.q+q.a.join()+q.why),'NaN в вопросе'); }); }); }
+  /* понятия, на которые ссылается интерфейс, существуют */
+  { const src=['ui1','ui2','ui3','ui4','ui5','ui6','ui7','ending','story'].map(f=>require('fs').readFileSync(require('path').join(__dirname,'..','src',f+'.js'),'utf8')).join('\n'); const used=new Set(); src.replace(/termChip\('([a-z0-9]+)'\)|term:\s*'([a-z0-9]+)'|,'([a-z]+)'\);\s*\n/g,(m,a,b)=>{ if(a) used.add(a); if(b) used.add(b); return m; }); used.forEach(k=>ok(TERMS[k],'нет понятия «'+k+'» в словарике')); }
+  ACH.forEach(a=>ok(ICONS[a.icon],'значок награды '+a.id));
+}
+console.log(bad?('Проблем: '+bad):'Логика и данные в порядке (проверок: '+checks+')'); process.exit(bad?1:0);

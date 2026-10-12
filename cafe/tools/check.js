@@ -1,7 +1,7 @@
 /* Проверка вёрстки: текстовые блоки не должны накладываться друг на друга и выходить за экран */
 module.exports=`(() => {
-  const modal = document.querySelector('#modal .modal');
-  const skip = el => el.closest('svg,canvas,script,style,#fx,#actionbar,#tabbar,#toast,.sr-only,.skip,.outsel,.tblwrap,[hidden]') || (modal && !modal.contains(el)) || (el.closest('details:not([open])') && !el.closest('summary'));
+  const modal = document.querySelector('#modal .modal'), sheet = document.body.classList.contains('sheeting') ? document.getElementById('sheet') : null;
+  const skip = el => el.closest('svg,canvas,script,style,#fx,#actionbar,#tabbar,#toast,.sr-only,.skip,.outsel,.tblwrap,.sh-ov,[hidden]') || (sheet && !sheet.contains(el)) || (modal && !modal.contains(el)) || (el.closest('details:not([open])') && !el.closest('summary'));
   const items = [];
   const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let n;
@@ -17,7 +17,7 @@ module.exports=`(() => {
   for (let i = 0; i < items.length; i++) {
     const a = items[i];
     const VW = Math.min(innerWidth, (screen && screen.width) || innerWidth);
-    if ((a.r > VW + 1 || a.l < -1) && !a.el.closest('.tabs, .outsel, .tabbar, .tblwrap')) bad.push('вне экрана: «' + a.tx + '»');
+    if ((a.r > VW + 1 || a.l < -1) && !a.el.closest('.tabs, .outsel, .tabbar, .tblwrap, .sh-ov')) bad.push('вне экрана: «' + a.tx + '»');
     for (let j = i + 1; j < items.length; j++) {
       const b = items[j]; if (a.el === b.el) continue;
       const iw = Math.min(a.r, b.r) - Math.max(a.l, b.l), ih = Math.min(a.b, b.b) - Math.max(a.t, b.t);

@@ -22,6 +22,8 @@ for(const e of EVENTS_IDS()){ add('event-'+e,stateAt(late,10),{screen:'event',ev
 function EVENTS_IDS(){ require('./load.js'); return EVENTS.map(e=>e.id); }
 ['home','menu','place','guests','money'].forEach(t=>{ add('plan-early-'+t,clone(early.s),{screen:'plan',tab:t,outlet:'o1'}); });
 ['home','menu','place','guests','money','net'].forEach(t=>{ add('plan-late-'+t,clone(late.s),{screen:'plan',tab:t,outlet:late.s.outlets[1]?late.s.outlets[1].id:'o1',city:'kazan'}); });
+['month','acc','ana','bank','cty'].forEach(sub=>{ add('money-late-'+sub,clone(late.s),{screen:'plan',tab:'money',msub:sub,outlet:late.s.outlets[1]?late.s.outlets[1].id:'o1'}); add('money-early-'+sub,clone(early.s),{screen:'plan',tab:'money',msub:sub,outlet:'o1'}); });
+{ const o=clone(early.s); o.flags.expand=1; o.month=11; o.cash=3000000; add('plan-net-open',o,{screen:'plan',tab:'net',city:'sochi',outlet:'o1'}); }
 { const r=mkReport(early); add('report-early',r.S,{screen:'report',report:r.R}); const r2=mkReport(late); add('report-late',r2.S,{screen:'report',report:r2.R,repOutlet:late.s.outlets[1]?late.s.outlets[1].id:null}); }
 add('run',clone(early.s),{screen:'run',report:clone(early.R)});
 add('quiz',clone(late.s),{screen:'quiz',qz:{act:2,qs:quizFor(late.s,2,late.R),i:0,picked:null,ok:0}});
@@ -33,7 +35,10 @@ add('lessonEnd',stateAt(late,9),{screen:'lessonEnd'});
 add('finale',stateAt(late,16),{screen:'finale'});
 add('final',clone(late.s),{screen:'final'});
 add('teacher',null,{screen:'teacher',teacherText:'Аня | кафе «А» | талант Кулинар | Обычно | код 8Б | месяц 16 из 16 | капитал 2400000 ₽ | города 4 | рейтинг 4,1 | цель достигнута | Золотая вилка | переигрываний 1 | викторина 6 | награды 12\nБоря | кафе «Б» | талант Делец | Трудно | месяц 10 из 16 | капитал 900000 ₽ | города 2 | рейтинг 3,8 | цель не достигнута | Без награды | переигрываний 0 | викторина 3 | награды 5'},{wide:false});
-const modals=['menu','help','glossary','awards','recipes','showcode','loadcode'];
+const modals=['menu','help','glossary','awards','recipes','showcode','loadcode','installhelp'];
+add('modal-calc',clone(late.s),{screen:'plan',tab:'menu',modal:'calc',modalArg:'latte',outlet:'o1'});
+add('sheet',clone(late.s),{screen:'final',modal:'sheet'});
+add('sheet-key',clone(late.s),{screen:'final'});
 modals.forEach(a=>add('modal-'+a,clone(late.s),{screen:'plan',tab:'home',modal:a}));
 const only=process.argv[3]; 
 (async()=>{
@@ -48,11 +53,11 @@ const only=process.argv[3];
       for(const c of cases){
         if(only && c.name.indexOf(only)<0) continue;
         if(!c.wide && !(W===320||W===1280)) continue;
-        await p.evaluate(({S,U,modal})=>{ const g=window.__game; g.setState(S,U); if(modal) g.A[modal]({getAttribute:()=>''},{}); },{S:c.S,U:c.U,modal:c.U.modal});
+        await p.evaluate(({S,U,modal,arg})=>{ const g=window.__game; g.A.sheetclose(); document.getElementById('app').style.display=''; g.setState(S,U); if(modal) g.A[modal]({getAttribute:()=>arg||''},{}); if(modal==='sheet') document.getElementById('app').style.display='none'; },{S:c.S,U:c.U,modal:c.U.modal,arg:c.modalArg});
         await p.waitForTimeout(60);
         await p.evaluate(()=>window.scrollTo(0,0));
         const res=await p.evaluate(CHECK);
-        const ov=await p.evaluate(()=>{ const VW=Math.min(innerWidth,(screen&&screen.width)||innerWidth); const off=[]; document.querySelectorAll('#app *,#modal *,#actionbar *,#tabbar *').forEach(e=>{ if(e.closest('svg,.outsel,.tabbar,.tblwrap,#fx,[hidden]')&&e.tagName!=='BUTTON') return; if(e.closest('.outsel,.tabbar,.tblwrap')) return; const r=e.getBoundingClientRect(); if(r.width>2&&(r.right>VW+2||r.left<-2)) off.push(e.tagName+'.'+String(e.className&&e.className.baseVal!==undefined?e.className.baseVal:e.className).split(' ')[0]); }); const docW=document.documentElement.scrollWidth; return {off:off.slice(0,4),docW:docW,VW:VW}; });
+        const ov=await p.evaluate(()=>{ const VW=Math.min(innerWidth,(screen&&screen.width)||innerWidth); const off=[]; document.querySelectorAll('#app *,#modal *,#actionbar *,#tabbar *,#sheet *').forEach(e=>{ if(e.closest('svg,.outsel,.sh-ov,.tabbar,.tblwrap,#fx,[hidden]')&&e.tagName!=='BUTTON') return; if(e.closest('.outsel,.tabbar,.tblwrap')) return; const r=e.getBoundingClientRect(); if(r.width>2&&(r.right>VW+2||r.left<-2)) off.push(e.tagName+'.'+String(e.className&&e.className.baseVal!==undefined?e.className.baseVal:e.className).split(' ')[0]); }); const docW=document.documentElement.scrollWidth; return {off:off.slice(0,4),docW:docW,VW:VW}; });
         const lines=res.concat(ov.off.length?['вне экрана: '+ov.off.join(', ')]:[]).concat(ov.docW>ov.VW+2?['горизонтальная прокрутка: '+ov.docW+' > '+ov.VW]:[]);
         if(lines.length){ bad++; console.log(`W${W} ${th} ${c.name}: ${lines.join(' | ')}`); }
       }

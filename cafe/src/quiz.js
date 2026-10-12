@@ -112,8 +112,8 @@ function dynQuestions(s, R){
 }
 function quizFor(s, act, R){
   var pool=QUIZ.filter(function(q){ return q.act===act; }), rng=rngFor(s,'quiz'+act), out=[];
-  var dyn=dynQuestions(s,R), chosen=[];
-  for(var i=0;i<3 && pool.length;i++){ var k=Math.floor(rng()*pool.length); chosen.push(pool.splice(k,1)[0]); }
-  if(dyn.length && act>=2){ chosen[2]=dyn[Math.floor(rng()*dyn.length)]; }
-  return chosen.map(function(q,qi){ if(q.dyn) return q; var idx=q.a.map(function(_,i){ return i; }), r2=rngFor(s,'qs'+act+qi); for(var i=idx.length-1;i>0;i--){ var j=Math.floor(r2()*(i+1)), tmp=idx[i]; idx[i]=idx[j]; idx[j]=tmp; } return {q:q.q, a:idx.map(function(i){ return q.a[i]; }), c:idx.indexOf(q.c), why:q.why}; });
+  var nd=act===1?1:2, dyn=dynFor(s,act,R,nd), ns=(act===4?3:(act===1?3:2)), chosen=[];
+  for(var i=0;i<ns && pool.length;i++){ var k=Math.floor(rng()*pool.length); chosen.push(pool.splice(k,1)[0]); }
+  var list=chosen.map(function(q,qi){ var idx=q.a.map(function(_,i){ return i; }), r2=rngFor(s,'qs'+act+qi); for(var i=idx.length-1;i>0;i--){ var j=Math.floor(r2()*(i+1)), tmp=idx[i]; idx[i]=idx[j]; idx[j]=tmp; } return {q:q.q, a:idx.map(function(i){ return q.a[i]; }), c:idx.indexOf(q.c), why:q.why}; });
+  return list.concat(dyn);
 }

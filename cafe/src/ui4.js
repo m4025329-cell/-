@@ -85,7 +85,7 @@ A.rewind=function(){
 A.repnext=function(){
   var R=U.report; U.report=null; U.snap=null;
   if(S.bankrupt){ finishGame(); return; }
-  if(R.m===TOTAL){ U.screen='finale'; U.finale=null; render(); return; }
+  if(R.m===TOTAL){ U.qzFinal=1; quizInit(4); U.screen='quiz'; render(); return; }
   if(R.m===4||R.m===8||R.m===12){ quizInit(actOf(R.m)); U.screen='quiz'; render(); return; }
   enterMonth();
 };
@@ -127,7 +127,8 @@ function finalHTML(){
   var chron=(S.log||[]).slice(-14); if(chron.length) h+=card('Хроника партии','<ul class="chron">'+chron.map(function(x){ return '<li><b>'+esc(x.t)+'</b><small>'+MONTHS[Math.min(15,x.m-1)]+', месяц '+x.m+'</small></li>'; }).join('')+'</ul>',{ic:'calendar'});
   h+=card('Разбор партии','<div>'+gameInsights().map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p></div></div>'; }).join('')+'</div>',{ic:'sparkle'});
   h+=card('Награды ('+got.length+' из '+ACH.length+')','<div class="awards">'+got.map(function(a){ return '<div class="award on"><span class="fico">'+ico(a.icon)+'</span><div><b>'+esc(a.n)+'</b><small>'+esc(a.d)+'</small></div></div>'; }).join('')+'</div>',{ic:'award'});
-  h+=card('Для учителя','<p class="small muted">Скопируйте строку и отправьте учителю: он соберёт общую таблицу класса.</p><textarea class="code" readonly id="resline" aria-label="Результат">'+esc(line)+'</textarea><div class="row"><button class="btn small secondary" data-act="copyres">'+ico('copy')+' Скопировать результат</button></div>',{ic:'chart'});
+  h+=finalEconCards();
+  h+=card('Для учителя','<p class="small muted">Для проекта подготовьте отчёт: в нём цифры вашей партии, три финансовых отчёта, рабочий лист и критерии оценки. Его можно распечатать или сохранить в PDF. Строку результата учитель вставит в общее табло класса.</p><div class="row"><button class="btn small" data-act="sheet">'+ico('book','sm')+' Отчёт и рабочий лист</button><button class="btn small secondary" data-act="savefile">'+ico('save','sm')+' Скачать файл работы</button></div><textarea class="code" readonly id="resline" aria-label="Результат" style="margin-top:10px">'+esc(line)+'</textarea><div class="row"><button class="btn small secondary" data-act="copyres">'+ico('copy')+' Скопировать результат</button></div>',{ic:'chart'});
   h+='<div class="row" style="justify-content:space-between;margin:16px 0"><button class="btn secondary" data-act="totitle">В главное меню</button><button class="btn" data-act="newgame">'+ico('play')+' Сыграть снова</button></div>';
   return h;
 }
@@ -207,7 +208,7 @@ A.glossary=function(){ openModal('Словарик',glossaryHTML()); };
 A.awards=function(){ openModal('Награды',awardsHTML()); };
 A.menu=function(){
   var inGame=S&&U.screen!=='title';
-  openModal('Меню','<div class="pick"><button data-act="help"><span class="ico">'+ico('help')+'</span><span><b>Как играть</b></span></button><button data-act="glossary"><span class="ico">'+ico('book')+'</span><span><b>Словарик</b></span></button>'+(S?'<button data-act="awards"><span class="ico">'+ico('award')+'</span><span><b>Награды</b></span></button><button data-act="recipes"><span class="ico">'+ico('book')+'</span><span><b>Тетрадь Тамары</b></span></button><button data-act="showcode"><span class="ico">'+ico('save')+'</span><span><b>Код сохранения</b><small>Чтобы продолжить на другом устройстве</small></span></button>':'')+
+  openModal('Меню','<div class="pick"><button data-act="help"><span class="ico">'+ico('help')+'</span><span><b>Как играть</b></span></button><button data-act="glossary"><span class="ico">'+ico('book')+'</span><span><b>Словарик</b></span></button>'+'<button data-act="about"><span class="ico">'+ico('info')+'</span><span><b>Об игре</b><small>Чему учит, данные, версия</small></span></button>'+(isFramed()||isNativeApp()?'':'<button data-act="installhelp"><span class="ico">'+ico('phone')+'</span><span><b>Установить как приложение</b><small>Значок на экране, работа без интернета</small></span></button>')+((navigator.vibrate)?'<button data-act="togglevib"><span class="ico">'+ico('bolt')+'</span><span><b>Вибрация: '+(vibOn?'включена':'выключена')+'</b><small>Лёгкий отклик при нажатии (Android)</small></span></button>':'')+(S?'<button data-act="sheet"><span class="ico">'+ico('book')+'</span><span><b>Отчёт и рабочий лист</b><small>Для учителя: печать или PDF</small></span></button><button data-act="awards"><span class="ico">'+ico('award')+'</span><span><b>Награды</b></span></button><button data-act="recipes"><span class="ico">'+ico('book')+'</span><span><b>Тетрадь Тамары</b></span></button><button data-act="showcode"><span class="ico">'+ico('save')+'</span><span><b>Код сохранения</b><small>Чтобы продолжить на другом устройстве</small></span></button>':'')+
    '<button data-act="teacher"><span class="ico">'+ico('chart')+'</span><span><b>Табло класса</b></span></button>'+(inGame?'<button data-act="totitle"><span class="ico">'+ico('home')+'</span><span><b>В главное меню</b><small>Прогресс сохранится</small></span></button>':'')+'</div>');
 };
 A.showcode=function(){ openModal('Код сохранения','<p class="small muted">Скопируйте код и вставьте его на другом устройстве в «Загрузить код».</p><textarea class="code" readonly id="savecode">'+esc(exportCode())+'</textarea><div class="row"><button class="btn small secondary" data-act="copycode">'+ico('copy')+' Скопировать</button></div>'); };
@@ -218,7 +219,7 @@ A.tcbuild=function(){ U.teacherText=($('#tc-in')||{}).value||''; render(true); }
 A.totitle=function(){ closeModal(); clearTimers(); if(S) persist(); S=null; hudPrev={}; U={screen:'title'}; render(); };
 A.continue=function(){ var d=readSave(); if(!d){ toast('Сохранения нет',true); return; } applySave(d); hudPrev={}; render(); };
 A.newgame=function(){ var sv=readSave(); if(sv&&U.screen==='title'&&!U.confirmNew){ openModal('Начать заново?','<p>Сохранённая партия (месяц '+Math.min(sv.S.month,TOTAL)+') будет заменена новой.</p><div class="row"><button class="btn" data-act="newgameyes">Начать новую</button><button class="btn secondary" data-act="closemodal">Отмена</button></div>'); return; } A.newgameyes(); };
-A.newgameyes=function(){ closeModal(); lsDel(KEY); S=null; hudPrev={}; U={screen:'intro',intro:0,setup:{name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'norm'}}; render(); };
+A.newgameyes=function(){ closeModal(); lsDel(KEY); S=null; hudPrev={}; U={screen:'intro',intro:0,setup:{name:'',cafe:'Первый столик',code:'',talent:'cook',diff:'easy'}}; render(); };
 A.tointro=function(){ U.screen='intro'; render(); };
 A.introskip=function(){ U.screen='setup'; render(); }; A.intronext=function(){ if(U.intro>=INTRO.length-1) U.screen='setup'; else U.intro++; render(); };
 A.settalent=function(el){ readSetup(); U.setup.talent=el.getAttribute('data-v'); render(true); }; A.setdiff=function(el){ readSetup(); U.setup.diff=el.getAttribute('data-v'); render(true); };
@@ -230,7 +231,8 @@ A.startgame=function(){
   U={seen:{},actSeen:{},tab:'home'}; enterMonth();
 };
 A.togglesound=function(){ soundOn=!soundOn; lsSet(SND_KEY,soundOn?'1':'0'); if(soundOn) sfx('good'); renderTools(); };
-A.toggletheme=function(){ var d=isDark(); document.documentElement.setAttribute('data-theme',d?'light':'dark'); lsSet(THEME_KEY,d?'light':'dark'); renderTools(); };
+function syncThemeColor(){ var d=isDark(); $$('meta[name=theme-color]').forEach(function(m){ m.setAttribute('content',d?'#1B120E':'#D1361A'); m.removeAttribute('media'); }); }
+A.toggletheme=function(){ var d=isDark(); document.documentElement.setAttribute('data-theme',d?'light':'dark'); lsSet(THEME_KEY,d?'light':'dark'); syncThemeColor(); renderTools(); };
 A.closemodal=function(){ closeModal(); }; A.modalbg=function(el,ev){ if(ev.target===el) closeModal(); };
 A.skipnav=function(ev){ var s=$('#stage'); if(s){ s.focus(); } };
 
@@ -272,7 +274,7 @@ function render(keep){
 
 /* ---------- запуск ---------- */
 function boot(){
-  var th=lsGet(THEME_KEY); if(th) document.documentElement.setAttribute('data-theme',th);
+  var th=lsGet(THEME_KEY); if(th){ document.documentElement.setAttribute('data-theme',th); syncThemeColor(); }
   soundOn=lsGet(SND_KEY)==='1'; U={screen:'title'}; S=null; render();
   window.__game={get S(){ return S; }, get U(){ return U; }, A:A, render:render, enterMonth:enterMonth, toPlan:toPlan, setState:function(s,u){ S=s; U=u; render(); }};
   document.addEventListener('click',function(ev){
@@ -281,13 +283,14 @@ function boot(){
     if(act!=='modalbg'||ev.target===el){ A[act](el,ev); }
   });
   document.addEventListener('input',function(ev){ var el=ev.target; if(el&&el.getAttribute&&el.getAttribute('data-act')==='prange') A.prange(el); });
-  document.addEventListener('change',function(ev){ var el=ev.target; if(el&&el.getAttribute&&el.getAttribute('data-act')==='prange'){ persist(); render(true); } });
+  document.addEventListener('change',function(ev){ var el=ev.target; if(el&&el.getAttribute&&el.getAttribute('data-act')==='prange'){ persist(); render(true); } if(el&&el.id==='tc-file'){ readFileInto(el,function(txt){ var ta=$('#tc-code'); if(ta) ta.value=txt.trim(); A.tcopen(); el.value=''; }); } });
   document.addEventListener('keydown',function(ev){
     if((ev.key==='Enter'||ev.key===' ')&&ev.target&&ev.target.classList&&ev.target.classList.contains('pin')){ ev.preventDefault(); A.mapcity(ev.target); }
-    if(ev.key==='Escape'&&$('#modal .modal')) closeModal();
+    if(ev.key==='Escape'){ if(U.sheetOpen) A.sheetclose(); else if($('#modal .modal')) closeModal(); }
   });
+  initDevice();
   (function(){ var lastY=0, ticking=false; window.addEventListener('scroll',function(){ if(ticking) return; ticking=true; window.requestAnimationFrame(function(){ ticking=false; if(window.innerWidth>900){ document.body.classList.remove('hud-away'); lastY=window.scrollY; return; } var y=window.scrollY; if(y>lastY+10&&y>220) document.body.classList.add('hud-away'); else if(y<lastY-10||y<120) document.body.classList.remove('hud-away'); lastY=y; }); },{passive:true}); })();
   window.addEventListener('resize',function(){ setHudVar(); renderBar(); });
-  window.__appBack=function(){ if($('#modal .modal')){ closeModal(); return true; } if(!S||U.screen==='title') return false; if(U.screen==='teacher'){ U={screen:'title'}; S=null; render(); return true; } persist(); U={screen:'title'}; S=null; hudPrev={}; render(); toast('Прогресс сохранён: нажмите «Продолжить»'); return true; };
+  window.__appBack=function(){ if(U.sheetOpen){ A.sheetclose(); return true; } if($('#modal .modal')){ closeModal(); return true; } if(!S||U.screen==='title') return false; if(U.screen==='plan'&&U.tab==='money'&&U.msub&&U.msub!=='month'){ U.msub='month'; render(); return true; } if(U.screen==='plan'&&U.tab&&U.tab!=='home'){ U.tab='home'; render(); window.scrollTo(0,0); return true; } if(U.screen==='teacher'){ U={screen:'title'}; S=null; render(); return true; } persist(); U={screen:'title'}; S=null; hudPrev={}; render(); toast('Прогресс сохранён: нажмите «Продолжить»'); return true; };
 }
 boot();

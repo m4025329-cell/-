@@ -76,7 +76,7 @@ function ico(n, cls){ var p=ICONS[n]||ICONS.info; return '<svg class="ic'+(cls?'
 
 /* ---------- звёзды рейтинга ---------- */
 var _sid=0;
-function starsSVG(r, size){
+function starsSVG0(r, size){
   r=clamp(r||0,0,5); size=size||18; var id='sg'+(++_sid), out='<svg class="stars" width="'+(size*5+8)+'" height="'+size+'" viewBox="0 0 '+(24*5+8)+' 24" role="img" aria-label="Рейтинг '+f1d(r)+' из 5">';
   out+='<defs>'; for(var i=0;i<5;i++){ var f=clamp(r-i,0,1); out+='<linearGradient id="'+id+i+'" x1="0" x2="1" y1="0" y2="0"><stop offset="'+f+'" stop-color="var(--star)"/><stop offset="'+f+'" stop-color="var(--star-off)"/></linearGradient>'; } out+='</defs>';
   for(var j=0;j<5;j++) out+='<path transform="translate('+(j*26)+' 0)" d="'+ICONS.star+'" fill="url(#'+id+j+')" stroke="var(--star-line)" stroke-width="1.4" stroke-linejoin="round"/>';
@@ -93,7 +93,7 @@ function logoSVG(size){
 
 /* ---------- блюда: плоские иллюстрации 48×48 ---------- */
 var DISH_COL = {cocoa:['#7A4A2B','#C99565'], amber:['#D98A2B','#F2C16B'], sun:['#E4B02B','#F7DE8A'], tomato:['#CF3A1E','#F0795E'], berry:['#B83A6B','#E58AB0'], basil:['#3F8F4F','#8CCB86'], plum:['#7A55B0','#B79BE0'], sky:['#2B78B5','#8BC3EA']};
-function dishSVG(g, cat, size){
+function dishSVG0(g, cat, size){
   size=size||44; var c=DISH_COL[CATC[cat]||'amber']||DISH_COL.amber, a=c[0], b=c[1], p='';
   var plate='<ellipse cx="24" cy="36" rx="19" ry="6.5" fill="var(--plate)" stroke="var(--plate-line)" stroke-width="1.2"/>';
   function steam(x,y){ return '<path class="steam" d="M'+x+' '+y+'c0-2.5 2.5-2.5 2.5-5M'+(x+4)+' '+y+'c0-2.5 2.5-2.5 2.5-5" fill="none" stroke="var(--steam)" stroke-width="1.8" stroke-linecap="round"/>'; }
@@ -120,7 +120,7 @@ function dishSVG(g, cat, size){
 }
 
 /* ---------- персонажи ---------- */
-function avatarSVG(who, mood, size){
+function avatarSVG0(who, mood, size){
   size=size||56; var c=CHARS[who]||CHARS.nar, id='av'+(++_sid), p='';
   if(who==='borsch'){
     return '<svg class="avatar" width="'+size+'" height="'+size+'" viewBox="0 0 64 64" role="img" aria-label="Борщ, кот кафе"><circle cx="32" cy="32" r="31" fill="var(--av-bg)"/><path d="M12 14l8 10M52 14l-8 10" stroke="#C97A22" stroke-width="3" stroke-linecap="round"/><path d="M13 13l11 8-6 6zM51 13l-11 8 6 6z" fill="#E8A23A"/><circle cx="32" cy="36" r="20" fill="#E8A23A"/><path d="M26 18c1 4 0 6-2 8M32 17v8M38 18c-1 4 0 6 2 8" stroke="#C97A22" stroke-width="2.4" stroke-linecap="round" fill="none"/><ellipse cx="32" cy="43" rx="9" ry="7" fill="#FFF1DC"/>'+
@@ -295,3 +295,8 @@ function diplomaSVG(name, cafe, verdictName, lines, awn){
   out+='<text x="470" y="352" text-anchor="middle" font-size="30" fill="#2B1810" font-family="Caveat,cursive" font-weight="700">Тамара</text><line x1="400" x2="540" y1="360" y2="360" stroke="#B9791A" stroke-width="1.2"/><text x="470" y="378" text-anchor="middle" font-size="11" fill="#7D6253" font-family="Nunito,sans-serif">хранитель тетради</text>';
   return out+'</svg>';
 }
+
+/* графика не зависит от состояния игры: готовые строки запоминаем, чтобы вкладки открывались быстрее на слабых телефонах */
+var SVG_CACHE={};
+function memoSvg(tag,fn){ return function(){ var k=tag+'|'+Array.prototype.join.call(arguments,'|'), v=SVG_CACHE[k]; if(v===undefined){ v=fn.apply(null,arguments); SVG_CACHE[k]=v; } return v; }; }
+var dishSVG=memoSvg('d',dishSVG0), avatarSVG=memoSvg('a',avatarSVG0), starsSVG=memoSvg('s',function(r,size){ return starsSVG0(Math.round(r*20)/20,size); });
