@@ -1,59 +1,60 @@
 from cadgen import build123d as bd
 from cadgen import step, stl, threemf
 
-# Dachshund (такса), nose points to +X, feet on Z=0. Millimeters, ~120 mm long.
-LEG_H = 14.0
-BODY_Z = 27.0
+# Такса (dachshund). Nose points to +X, paws on Z=0. Millimeters, ~140 mm long.
+BODY_Z = 30.0
+LEG_TOP = 26.0
 
 
-def ellipsoid(rx, ry, rz, at):
-    # spheroid of revolution about X (ry/rz averaged), built as a revolved half-ellipse
-    r = (ry + rz) / 2
+def spheroid(rx, r, at, tilt=0.0):
+    """Ellipsoid of revolution about X (half-length rx, radius r); tilt rotates about Y (deg, negative = nose up)."""
     with bd.BuildSketch(bd.Plane.XY) as sk:
         bd.Ellipse(rx, r)
         bd.split(bisect_by=bd.Plane.XZ, keep=bd.Keep.TOP)
     s = bd.revolve(sk.sketch, axis=bd.Axis.X)
+    if tilt:
+        s = s.rotate(bd.Axis.Y, tilt)
     return s.moved(bd.Location(at))
 
 
 def leg(x, y):
-    # slightly tapered leg with a rounded paw, overlapping into the belly
-    cyl = bd.Cone(4.4, 3.4, LEG_H + 8, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
-    paw = ellipsoid(5.2, 4.2, 2.6, (1.2, 0, 2.2))
-    return (cyl.moved(bd.Location((0, 0, 0))) + paw).moved(bd.Location((x, y, 0)))
+    thigh = bd.Cone(4.6, 3.6, LEG_TOP, align=(bd.Align.CENTER, bd.Align.CENTER, bd.Align.MIN))
+    paw = spheroid(6.5, 3.4, (2.0, 0, 3.0))
+    return (thigh + paw).moved(bd.Location((x, y, 0)))
 
 
-def ear(y):
-    e = bd.extrude(bd.Plane.XZ * bd.Ellipse(6.5, 11), amount=2.2, both=True)
-    e = e.rotate(bd.Axis.X, -12 if y > 0 else 12)
-    return e.moved(bd.Location((83, y * 8.4, 50)))
+def ear(side):
+    # flat drop ear hanging from the top of the head, flared slightly outwards
+    e = bd.extrude(bd.Plane.XZ * bd.Ellipse(6.5, 11.5), amount=1.6, both=True)
+    e = e.rotate(bd.Axis.X, 14 * side)
+    e = e.rotate(bd.Axis.Y, -8)
+    return e.moved(bd.Location((103, side * 9.0, 49)))
 
 
 @step(out="../STEP/dachshund.step")
-@stl(out="../STL/dachshund.stl")
-@threemf(out="../3MF/dachshund.3mf")
+@stl(out="../STL/dachshund.stl", mesh_tolerance=1e-3)
+@threemf(out="../3MF/dachshund.3mf", mesh_tolerance=1e-3)
 def dachshund():
-    body = ellipsoid(46, 12.5, 13.5, (45, 0, BODY_Z))
-    chest = ellipsoid(18, 13.5, 14.5, (70, 0, BODY_Z + 0.5))
-    neck = ellipsoid(14, 8.5, 13, (86, 0, BODY_Z + 11)).rotate(bd.Axis.Y, 0)
-    head = ellipsoid(13, 9.5, 9.5, (96, 0, BODY_Z + 22))
-    snout = ellipsoid(14, 5.6, 5.0, (110, 0, BODY_Z + 19.5))
-    nose = ellipsoid(3.2, 3.6, 3.0, (123.5, 0, BODY_Z + 20.5))
-    tail = ellipsoid(14, 3.2, 3.0, (-6, 0, BODY_Z + 8)).rotate(
-        bd.Axis.Y, 0)
-    tail = bd.Pos(-2, 0, 0) * tail.rotate(bd.Axis.Y, 28) if False else tail
-
-    parts = [body, chest, neck, head, snout, nose, tail, ear(1), ear(-1)]
-    for x in (72, 14):
-        for y in (-8.5, 8.5):
+    parts = [
+        spheroid(50, 13, (48, 0, BODY_Z)),             # long body
+        spheroid(21, 15.5, (78, 0, BODY_Z - 1)),        # deep chest
+        spheroid(17, 9.5, (95, 0, 41), tilt=-42),       # neck rising to the head
+        spheroid(12.5, 9.5, (106, 0, 52)),              # head
+        spheroid(16, 5.6, (122, 0, 48.5), tilt=8),      # long snout
+        spheroid(3.6, 3.6, (136.5, 0, 46.5)),           # nose
+        spheroid(16, 3.2, (-9, 0, 40), tilt=35),        # tail raised, root inside the rump
+        ear(1),
+        ear(-1),
+    ]
+    for x in (80, 14):
+        for y in (-8, 8):
             parts.append(leg(x, y))
 
     dog = parts[0]
     for p in parts[1:]:
         dog = dog + p
-    # flatten the paws so the model sits flat on the build plate
-    cut = bd.Pos(60, 0, -20) * bd.Box(300, 100, 40)
-    dog = dog - cut
+    # flat bottom for printing
+    dog = dog - bd.Pos(60, 0, -20) * bd.Box(400, 100, 40)
     dog.label = "dachshund"
     return dog
 
