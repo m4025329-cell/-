@@ -18,8 +18,8 @@ android {
         applicationId = "ru.pervyistolik.game"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1          // при каждой новой загрузке в Google Play увеличивай на 1
-        versionName = "1.2.0"
+        versionCode = 2          // при каждой новой загрузке в Google Play увеличивай на 1
+        versionName = "2.0.0"
     }
 
     signingConfigs {

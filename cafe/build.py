@@ -3,7 +3,7 @@
 import base64, json, pathlib
 root = pathlib.Path(__file__).parent
 src = root / 'src'
-APP_VERSION = '1.2.0'
+APP_VERSION = '2.0.0'
 
 def fonts_css():
     meta = json.loads((root / 'fonts' / 'fonts.json').read_text(encoding='utf-8'))
@@ -17,7 +17,7 @@ def js(name):
     return (src / name).read_text(encoding='utf-8')
 
 logic = '\n'.join(js(n) for n in ['data.js', 'engine.js', 'fin.js', 'orders.js', 'events.js', 'events2.js', 'story.js', 'quiz.js', 'econ.js', 'ending.js', 'art.js'])
-ui = '(function(){\n\'use strict\';\n' + '\n'.join(js(n) for n in ['ui1.js', 'ui2.js', 'ui3.js', 'ui5.js', 'ui6.js', 'ui7.js', 'ui4.js']).replace('APP_VERSION=\'1.0.0\'', "APP_VERSION='%s'" % APP_VERSION) + '\n})();'
+ui = '(function(){\n\'use strict\';\n' + '\n'.join(js(n) for n in ['ui1.js', 'ui2.js', 'ui3.js', 'ui5.js', 'ui6.js', 'ui7.js', 'ui8.js', 'ui9.js', 'ui4.js']).replace('APP_VERSION=\'1.0.0\'', "APP_VERSION='%s'" % APP_VERSION) + '\n})();'
 scripts = logic + '\n' + ui
 css = (src / 'style.css').read_text(encoding='utf-8').replace('/*FONTS*/', fonts_css())
 frag = (src / 'body.html').read_text(encoding='utf-8').replace('/*STYLE*/', css).replace('/*SCRIPTS*/', scripts)

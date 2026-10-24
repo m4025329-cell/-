@@ -7,11 +7,17 @@ var MSUBS=[
  {id:'bank',  n:'Банк',  ic:'bank'},
  {id:'cty',   n:'Страна',ic:'flag'}
 ];
+var MSUB_OPEN={month:1,bank:2,acc:3,ana:4,cty:5};
+var MSUB_NEW={bank:['Банк','Кредит и вклад: деньги можно занять, но проценты придётся платить. А свободные деньги можно положить под процент.'],acc:['Учёт','Отчёт о прибылях и убытках, движение денег и баланс. Здесь видно, почему прибыль и деньги в кассе не равны.'],ana:['Анализ','Что будет, если поднять цену, сколько гостей нужно, чтобы выйти в ноль, и какое блюдо выгодно держать в меню.'],cty:['Страна','Ключевая ставка, инфляция и спрос: то, что решает не ваше кафе, а экономика вокруг.']};
+function msubOpen(id){ return !S || S.month>=(MSUB_OPEN[id]||1) || !!(S.flags&&S.flags.allTools); }
 function msubHTML(){
-  var cur=U.msub||'month';
-  return '<div class="msub" role="tablist" aria-label="Разделы вкладки «Деньги»">'+MSUBS.map(function(t){ return '<button role="tab" aria-selected="'+(cur===t.id)+'" data-act="msub" data-v="'+t.id+'">'+ico(t.ic,'sm')+'<span>'+t.n+'</span></button>'; }).join('')+'</div>';
+  var cur=msubOpen(U.msub||'month')?(U.msub||'month'):'month';
+  return '<div class="msub" role="tablist" aria-label="Разделы вкладки «Деньги»">'+MSUBS.map(function(t){ var ok=msubOpen(t.id); return '<button role="tab" aria-selected="'+(cur===t.id)+'" data-act="msub" data-v="'+t.id+'"'+(ok?'':' class="locked" aria-disabled="true" title="Откроется в месяце '+MSUB_OPEN[t.id]+'"')+'>'+ico(ok?t.ic:'lock','sm')+'<span>'+t.n+'</span></button>'; }).join('')+'</div>';
 }
-A.msub=function(el){ U.msub=el.getAttribute('data-v'); if(S) S.seen['sub_'+U.msub]=1; U.pv=null; persist(); render(); window.scrollTo(0,0); };
+function newToolCards(){
+  var h=''; Object.keys(MSUB_OPEN).forEach(function(id){ if(id==='month'||S.month!==MSUB_OPEN[id]||S.seen['sub_'+id]||!MSUB_NEW[id]) return; h+='<section class="advice newtool"><div class="advice-h"><span class="fico">'+ico('sparkle')+'</span><div><small>Новый инструмент</small><b>Раздел «'+MSUB_NEW[id][0]+'»</b></div></div><p>'+MSUB_NEW[id][1]+'</p><button class="btn small" data-act="msub" data-v="'+id+'">'+ico('right','sm')+' Открыть</button></section>'; }); return h;
+}
+A.msub=function(el){ var v=el.getAttribute('data-v'); if(!msubOpen(v)){ toast('Откроется в месяце '+MSUB_OPEN[v]+': сначала освойте то, что уже есть'); return; } U.msub=v; if(S) S.seen['sub_'+U.msub]=1; U.pv=null; persist(); render(); window.scrollTo(0,0); };
 
 /* ---------- мелкие помощники ---------- */
 function shortRub(v){ var a=Math.abs(v), s=v<0?'−':''; if(a>=1000000) return s+f1d(a/1000000)+' млн'; if(a>=1000) return s+Math.round(a/1000)+' тыс'; return s+Math.round(a); }

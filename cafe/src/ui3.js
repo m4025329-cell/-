@@ -52,17 +52,18 @@ function homeHTML(){
   var h=outletSelector('home');
   h+='<div class="cafe-hero">'+cafeSVG(o,{cal:CAL[S.month-1],guests:guestsViz,queue:queue,awn:S.awn})+'<div class="caption"><div><b>'+esc(o.nm||S.cafe)+'</b><div class="small muted">'+ico('pin','sm')+' '+esc(CITIES[o.city].n)+' · '+esc(FORMATS[o.fmt].name)+(o.built?' · строится':'')+'</div></div><div class="row" style="gap:8px">'+starsSVG(stars(o.rep),18)+'<b class="num">'+f1d(stars(o.rep))+'</b></div></div></div>';
   var ns=nextStep();
-  h+=coachCard('Что дальше?',esc(ns.t),ns.tab?'<button class="btn small" data-act="tab" data-tab="'+ns.tab+'">'+esc(ns.b)+'</button>':'');
+  if(S.month===1) h+=chkHTML(); else if(S.hints!==false) h+=coachCard('Что дальше?',esc(ns.t),ns.tab?'<button class="btn small" data-act="tab" data-tab="'+ns.tab+'">'+esc(ns.b)+'</button>':'');
+  h+=advCardHTML();
   h+=goalChalk();
   h+=questsCard();
   h+=holidayCard(o);
-  if(R){ h+=card('Прогноз на этот месяц','<div class="kpi">'+metric('Выручка',rubk(R.revTotal))+metric('Прибыль',sgn(Math.round(R.profit/1000)*1000).replace(/ ₽$/,'')+' ₽',R.profit>0?'в плюс':'в минус',R.profit>0?'ok':'bad')+metric('Гостей в день',Math.round((r.guests||0)/30),'в «'+esc(CITIES[o.city].n)+'»')+metric('Рейтинг',f1d(r.rating||stars(o.rep)),'после месяца')+'</div><p class="small muted" style="margin:0">Прогноз считается по текущим настройкам. Случайности (погода, новости) могут сдвинуть его на 5–10%.</p>',{ic:'trend'}); }
-  h+=card('Сезонный спрос','<p class="sub">Индекс спроса в «'+esc(CITIES[o.city].n)+'» на ближайшие 6 месяцев (100 — средний уровень группы гостей).</p>'+seasonBarsHome(o)+termChip('season'),{ic:'calendar'});
   h+=card('Постоянные гости',regularsHTML(false)+'<button class="btn secondary small" data-act="tab" data-tab="guests" style="margin-top:8px">Подробнее</button>',{ic:'heart'});
   h+=newsCardHTML();
-  h+=card('Тетрадь Тамары','<p class="muted">Открыто рецептов: <b>'+S.recs.length+' из 7</b>. Они появляются по ходу истории и дают блюда с особым вкусом.</p><button class="btn secondary small" data-act="recipes">'+ico('book')+' Читать тетрадь</button>',{ic:'book'});
+  if(R){ h+=accBlock('h-fc','Прогноз на этот месяц','выручка, прибыль, гости','<div class="kpi">'+metric('Выручка',rubk(R.revTotal))+metric('Прибыль',sgn(Math.round(R.profit/1000)*1000).replace(/ ₽$/,'')+' ₽',R.profit>0?'в плюс':'в минус',R.profit>0?'ok':'bad')+metric('Гостей в день',Math.round((r.guests||0)/30),'в «'+esc(CITIES[o.city].n)+'»')+metric('Рейтинг',f1d(r.rating||stars(o.rep)),'после месяца')+'</div><p class="small muted" style="margin:0">Прогноз считается по текущим настройкам. Случайности (погода, новости) могут сдвинуть его на 5–10%.</p>'); }
+  h+=accBlock('h-season','Сезонный спрос','на ближайшие 6 месяцев','<p class="sub">Индекс спроса в «'+esc(CITIES[o.city].n)+'» (100 — средний уровень группы гостей).</p>'+seasonBarsHome(o)+termChip('season'));
+  h+=accBlock('h-note','Тетрадь Тамары','рецептов: '+S.recs.length+' из 7','<p class="muted">Открыто рецептов: <b>'+S.recs.length+' из 7</b>. Они появляются по ходу истории и дают блюда с особым вкусом.</p><button class="btn secondary small" data-act="recipes">'+ico('book')+' Читать тетрадь</button>');
   var lastRev=S.hist.slice(-6);
-  if(lastRev.length>1) h+=card('Динамика','<p class="sub">Прибыль по месяцам</p>'+sparkSVG(lastRev.map(function(x){ return x.profit; }),lastRev.map(function(x){ return MONTHS_SHORT[x.m-1]; })),{ic:'chart'});
+  if(lastRev.length>1) h+=accBlock('h-dyn','Динамика','прибыль по месяцам',sparkSVG(lastRev.map(function(x){ return x.profit; }),lastRev.map(function(x){ return MONTHS_SHORT[x.m-1]; })));
   return h;
 }
 function sparkSVG(vals,labels){
@@ -180,13 +181,14 @@ function plHTML(R){
   return '<div class="pl">'+plRow('Выручка',R.total.rev,'plus','гости, доставка, банкеты',mx)+plRow('Роялти франшиз',t.royalty,'plus','',mx)+plRow('Продукты',t.cogs,'minus','себестоимость',mx)+plRow('Зарплаты',t.wages,'minus','с налогами работодателя',mx)+plRow('Аренда',t.rent,'minus','',mx)+plRow('Коммунальные и прочее',t.util+t.other,'minus','',mx)+plRow('Реклама',t.mkt,'minus','',mx)+plRow('Комиссия доставки',t.delComm,'minus','',mx)+plRow('Штаб-квартира сети',t.hq,'minus','управление и особые люди',mx)+plRow('Проценты по кредитам',R.interest,'minus','',mx)+plRow('Налог',R.tax,'minus',S.flags.emmaAuto?'Эмма выбирает режим':(S.tax==='15'?'15% с разницы':'6% с выручки'),mx)+plRow('Доля партнёров',R.div,'minus','инвестор и партнёр',mx)+'<div class="pl-row total"><span>Прибыль</span><b class="num '+(R.profit>=0?'gain-t':'loss-t')+'">'+sgn(R.profit)+'</b></div></div>';
 }
 function moneyHTML(){
-  var s=U.msub||'month';
+  var s=msubOpen(U.msub||'month')?(U.msub||'month'):'month';
   if(s==='acc') return accHTML(); if(s==='ana') return anaHTML(); if(s==='bank') return bankHTML(); if(s==='cty') return ctyHTML();
   return monthHTML();
 }
 function monthHTML(){
   var R=getPV(), h=msubHTML(); if(!R) return h+'<p class="muted">Прогноз временно недоступен.</p>';
   var be=bepInfo(S,R);
+  h+=newToolCards();
   h+=card('Прогноз месяца',plHTML(R),{ic:'coins',sub:'Так выглядит месяц при текущих настройках. Он считается по тем же правилам, что и итоги.'});
   if(be&&isFinite(be.perDay)) h+=card('Точка безубыточности','<div class="kpi">'+metric('Нужно гостей в день',Math.round(be.perDay),'чтобы выйти в ноль')+metric('Ожидается',Math.round(be.actual),'в день',be.actual>=be.perDay?'ok':'bad')+metric('Постоянные расходы',rubk(be.fixed),'за месяц')+metric('Запас',be.actual>=be.perDay?'+'+Math.round(be.actual-be.perDay):'−'+Math.round(be.perDay-be.actual),'гостей в день',be.actual>=be.perDay?'ok':'bad')+'</div><div class="row"><button class="btn small secondary" data-act="msub" data-v="ana">'+ico('chart','sm')+' График и формула</button></div><div class="chips">'+termChip('breakeven')+termChip('fixed')+'</div>',{ic:'target'});
   var at=S.flags.emmaAuto;

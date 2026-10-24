@@ -25,6 +25,14 @@ function EVENTS_IDS(){ require('./load.js'); return EVENTS.map(e=>e.id); }
 ['month','acc','ana','bank','cty'].forEach(sub=>{ add('money-late-'+sub,clone(late.s),{screen:'plan',tab:'money',msub:sub,outlet:late.s.outlets[1]?late.s.outlets[1].id:'o1'}); add('money-early-'+sub,clone(early.s),{screen:'plan',tab:'money',msub:sub,outlet:'o1'}); });
 { const o=clone(early.s); o.flags.expand=1; o.month=11; o.cash=3000000; add('plan-net-open',o,{screen:'plan',tab:'net',city:'sochi',outlet:'o1'}); }
 { const r=mkReport(early); add('report-early',r.S,{screen:'report',report:r.R}); const r2=mkReport(late); add('report-late',r2.S,{screen:'report',report:r2.R,repOutlet:late.s.outlets[1]?late.s.outlets[1].id:null}); }
+{ const ALL={tips:1,chk:1,out:1,days:1,fun:1,sold:1,ban:1,quests:1,regs:1,secret:1,'h-fc':1,'h-season':1,'h-note':1,'h-dyn':1};
+  const r=mkReport(early), r2=mkReport(late);
+  add('report-open-early',r.S,{screen:'report',report:r.R,acc:ALL}); add('report-open-late',r2.S,{screen:'report',report:r2.R,acc:ALL,repOutlet:late.s.outlets[1]?late.s.outlets[1].id:null});
+  add('plan-home-open',clone(late.s),{screen:'plan',tab:'home',acc:ALL,outlet:'o1'});
+  add('plan-m1-home',stateAt(early,1),{screen:'plan',tab:'home',outlet:'o1'}); add('plan-m1-money',stateAt(early,1),{screen:'plan',tab:'money',outlet:'o1'});
+  { const s=stateAt(early,3); s.adv={m:2,t:'Продукты дороги',d:'Продукты съели 40% выручки. Пересмотрите блюда с низкой маржой.',tab:'menu',sub:null}; add('plan-adv-home',s,{screen:'plan',tab:'home',outlet:'o1'}); }
+  { const s=stateAt(early,4); add('money-newtool',s,{screen:'plan',tab:'money',msub:'month',outlet:'o1'}); }
+}
 add('run',clone(early.s),{screen:'run',report:clone(early.R)});
 add('quiz',clone(late.s),{screen:'quiz',qz:{act:2,qs:quizFor(late.s,2,late.R),i:0,picked:null,ok:0}});
 { const qs=quizFor(late.s,3,late.R); add('quiz-ans',clone(late.s),{screen:'quiz',qz:{act:3,qs:qs,i:0,picked:0,ok:0}}); add('quiz-end',clone(late.s),{screen:'quiz',qz:{act:3,qs:qs,i:3,picked:null,ok:2}}); }

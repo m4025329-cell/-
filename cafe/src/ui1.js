@@ -9,7 +9,7 @@ function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
 function setText(id,t){ var e=document.getElementById(id); if(e && e.textContent!==t) e.textContent=t; }
 function later(fn,ms){ var t=setTimeout(fn,ms); timers.push(t); return t; }
-function clearTimers(){ timers.forEach(clearTimeout); timers=[]; if(U.rushT){ clearInterval(U.rushT); U.rushT=0; } }
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; if(typeof liveStop==='function') liveStop(); if(U.rushT){ clearInterval(U.rushT); U.rushT=0; } }
 function nm(){ return (S&&S.name)||'Хозяин'; }
 function curO(){ var o=S&&outletById(S,U.outlet); if(!o||o.fmt==='fran'||o.built){ o=liveOutlets(S)[0]||S.outlets[0]; U.outlet=o.id; } return o; }
 function money(n){ return rub(n); }
@@ -110,10 +110,10 @@ function pbar(p,cls){ return '<div class="gauge-bar '+(cls||'')+'"><i style="wid
 function goalProgress(){ var g=goalNow(S); return clamp(0.5*Math.min(1,Math.max(0,g.cap)/g.needCap)+0.35*Math.min(1,g.cities/g.needCities)+0.15*Math.min(1,g.rating/g.needRating),0,1); }
 var hudPrev={};
 function hudHTML(){
-  var m=Math.min(S.month,TOTAL), act=ACTS[actOf(m)-1], g=goalNow(S), pr=goalProgress(), C=2*Math.PI*19, off=C*(1-pr);
+  var rep=U.screen==='report'&&U.report, m=rep?U.report.m:Math.min(S.month,TOTAL), act=ACTS[actOf(m)-1], g=goalNow(S), pr=goalProgress(), C=2*Math.PI*19, off=C*(1-pr);
   var rating=networkRating(S)||stars(flagship(S).rep), dots='';
-  for(var i=1;i<=TOTAL;i++) dots+='<li class="'+(i<S.month?'done':(i===S.month?'now':''))+(i===8?' lessonend':'')+'"></li>';
-  return '<div class="hud-month"><b>'+MONTHS[m-1]+'</b><span>Месяц '+m+' из '+TOTAL+' · '+act.name+'</span></div>'+
+  for(var i=1;i<=TOTAL;i++) dots+='<li class="'+(rep?(i<=m?'done':''):(i<S.month?'done':(i===S.month?'now':'')))+(i===8?' lessonend':'')+'"></li>';
+  return '<div class="hud-month"><b>'+MONTHS[m-1]+'</b><span>Месяц '+m+' из '+TOTAL+'<em class="hm-act"> · '+act.name+'</em><em class="hm-goal"> · цель '+Math.round(pr*100)+'%</em></span></div>'+
    '<div class="hud-stats"><div class="stat cash"><small>Касса</small><b class="num" id="h-cash">'+money(S.cash)+'</b></div><div class="stat cap"><small>Капитал</small><b class="num" id="h-cap">'+rubk(capital(S))+'</b></div><div class="stat"><small>Рейтинг</small><b class="num" id="h-rate">'+f1d(rating)+'</b></div></div>'+
    '<div class="hud-goal"><span class="gt small muted">Путь к цели</span><div class="ring" role="img" aria-label="Прогресс к цели: '+Math.round(pr*100)+'%"><svg viewBox="0 0 46 46"><circle class="bg" cx="23" cy="23" r="19"/><circle class="fg" cx="23" cy="23" r="19" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><b>'+Math.round(pr*100)+'%</b></div></div>'+
    '<ol class="mdots" aria-hidden="true">'+dots+'</ol>';
@@ -156,9 +156,9 @@ function navHTML(){
 function nextStep(){
   var o=curO(), r=S.lastR&&S.lastR.outlets.filter(function(x){ return x.id===o.id; })[0], pv=U.pv;
   if(S.month===1 && !S.tut.menuSeen) return {tab:'menu', t:'Откройте «Меню». Сейчас в нём 7 блюд из 8 мест. Добавьте салат или десерт, чтобы гостям было из чего выбирать.', b:'Открыть меню'};
-  if(S.month===1 && !S.tut.placeSeen) return {tab:'place', t:'Загляните в «Зал и кухню»: проверьте, хватает ли людей и в чём узкое место. Нанять уборщика — самый дешёвый способ поднять рейтинг.', b:'Открыть зал и кухню'};
+  if(S.month===1 && !S.tut.placeSeen) return {tab:'place', t:'Загляните в «Зал и кухню»: проверьте, хватает ли людей и в чём узкое место. Уборщик поднимает рейтинг, но стоит денег: сравните, окупится ли.', b:'Открыть зал и кухню'};
   if(S.month===1 && !S.tut.guestsSeen) return {tab:'guests', t:'Включите рекламу в «Гостях»: пока про кафе никто не знает, гостей будет мало.', b:'Открыть «Гости»'};
-  if(S.month===1 && !S.tut.moneySeen) return {tab:'money', t:'В «Деньгах» пять разделов: прогноз месяца, учёт, анализ, банк и экономика страны. Посмотрите, сколько гостей в день нужно кафе, чтобы выйти в ноль.', b:'Открыть «Деньги»'};
+  if(S.month===1 && !S.tut.moneySeen) return {tab:'money', t:'В «Деньгах» сейчас прогноз месяца. Посмотрите, сколько гостей в день нужно кафе, чтобы выйти в ноль. Новые разделы (банк, учёт, анализ, страна) откроются позже.', b:'Открыть «Деньги»'};
   if(S.month<=2 && S.menu.length<menuSlots(S) && missingCats().length) return {tab:'menu', t:'В меню нет категорий: '+missingCats().map(function(c){ return CATN[c].toLowerCase(); }).join(', ')+'. Гости из-за этого уходят.', b:'К меню'};
   if(r && r.utilK>1.05){ var b=bottleneck(r); return {tab:'place', t:'Заведению не хватает '+(b==='seat'?'мест в зале':(b==='svc'?'официантов и баристы':'мощности кухни'))+': гости упираются в очередь. Усильте узкое место.', b:'Усилить'}; }
   if(!Object.keys(o.mk).some(function(k){ return o.mk[k]; })) return {tab:'guests', t:'Реклама выключена. Даже самый вкусный борщ не продастся, если о нём не знают.', b:'Включить рекламу'};

@@ -22,18 +22,12 @@ function doGo(){
   applyMonth(S,R); U.newAch=checkAch(S,R); U.newAch.forEach(function(a){ logEv(S,'ach','Награда «'+a.n+'»'); }); U.pv=null;
   if(S.emerg>600000 || (S.emerg>0 && S.debt+S.emerg>2600000)){ S.bankrupt=R.m; }
   U.screen='run'; U.runT0=Date.now(); render(); sfx('bell');
-  if(!reduced) later(function(){ if(U.screen==='run') A.runskip(); },4600); else later(function(){ if(U.screen==='run') A.runskip(); },600);
 }
 function runHTML(){
-  var R=U.report, r=R.outlets.filter(function(x){ return x.days&&x.days.length; })[0], days=(r&&r.days)||[], mx=Math.max.apply(null,days.concat([1])), out='';
-  var cells=days.map(function(v,i){ var h=Math.round(v/mx*100); return '<i class="'+(h>66?'hi ':'')+'" style="--i:'+i+';--h:'+h+'">'+(i+1)+'</i>'; }).join('');
-  return '<article class="card" style="text-align:center"><h2>Идёт месяц: '+MONTHS[R.m-1]+'</h2><p class="muted">Каждая клетка — день. Чем краснее, тем больше выручка.</p><div class="cal" style="max-width:420px;margin:10px auto" aria-hidden="true">'+cells+'</div><div class="fact">'+ico('sparkle')+'<span><b>Знаете ли вы?</b> '+esc(FACTS[(R.m*5+hashStr(S.seed))%FACTS.length])+'</span></div><p class="muted">'+(r?esc(CITIES[r.city].n)+': ':'')+'гостей <b class="num" id="run-g">0</b>, выручка <b class="num" id="run-r">0 ₽</b></p><button class="btn secondary" data-act="runskip">Показать итоги '+ico('right')+'</button></article>';
+  var R=U.report; return '<h2 class="lv-h">'+MONTHS[R.m-1]+': кафе работает</h2>'+liveHTML()+'<div class="fact">'+ico('sparkle')+'<span><b>Знаете ли вы?</b> '+esc(FACTS[(R.m*5+hashStr(S.seed))%FACTS.length])+'</span></div>';
 }
-function runAnim(){
-  var R=U.report, g=$('#run-g'), rr=$('#run-r'); if(!g) return;
-  var tg=R.guests, tr=R.revTotal; animateNumber(g,0,tg,3200,function(v){ return String(Math.round(v)); }); animateNumber(rr,0,tr,3200,rub);
-}
-A.runskip=function(){ clearTimers(); U.screen='report'; render(); if(U.newAch&&U.newAch.length){ sfx('win'); burst(60); } else sfx('good'); };
+function runAnim(){ liveStart(); }
+A.runskip=function(){ liveStop(); clearTimers(); U.screen='report'; render(); if(U.newAch&&U.newAch.length){ sfx('win'); burst(60); } else sfx('good'); };
 
 /* ---------- итоги месяца ---------- */
 function reportOutlet(){ var R=U.report, id=U.repOutlet||(R.outlets[0]&&R.outlets[0].id); return R.outlets.filter(function(x){ return x.id===id; })[0]||R.outlets[0]; }
@@ -43,39 +37,6 @@ function funnelHTML(r){
   return '<div class="funnel">'+row('Были поблизости',pool,'')+row('Узнали и заинтересовались',a,'','Не узнали о вас: '+Math.round(m.aware))+row('Меню и цена подошли',w,'','Ушли из-за меню и цены: '+Math.round(m.menuprice))+row('Обслужили',s,'','Не хватило мест, людей или кухни: '+Math.round(m.cap))+'</div>';
 }
 function dlt(cur,prev,fmtf){ if(prev==null||!isFinite(prev)||Math.abs(prev)<1) return ''; var d=(cur-prev)/Math.abs(prev); if(Math.abs(d)<0.005) return ''; return '<span class="delta '+(d>0?'up':'dn')+'">'+(d>0?'▲ +':'▼ −')+Math.abs(Math.round(d*100))+'%</span>'; }
-function reportHTML(){
-  var R=U.report; if(!R) return ''; var prevH=S.hist.length>=2?S.hist[S.hist.length-2]:null; var r=reportOutlet(), h='', t=R.total, mx=Math.max(1,R.revTotal);
-  var multi=R.outlets.length>1;
-  h+='<div class="ticket"><div class="tag">Итоги месяца</div><h2>'+MONTHS[R.m-1]+' · месяц '+R.m+' из '+TOTAL+'</h2>'+
-   '<div class="row" style="justify-content:center;margin:8px 0">'+starsSVG(R.rating,20)+'<b class="num">'+f1d(R.rating)+'</b></div>'+
-   '<div class="pl-row total" style="border-top:0;margin:0"><span>Прибыль</span><b class="num '+(R.profit>=0?'gain-t':'loss-t')+'" id="rp-prof">'+sgn(R.profit)+'</b></div>'+
-   '<div class="kpi" style="margin-top:12px">'+metric('Выручка',rubk(R.revTotal),'к прошлому месяцу '+(prevH?dlt(R.revTotal,prevH.rev)||'без изменений':'—'))+metric('Гостей',Math.round(R.guests).toLocaleString('ru-RU').replace(/,/g,' '),'за месяц '+(prevH?dlt(R.guests,prevH.guests):''))+metric('Фуд-кост',pct(t.cogs/Math.max(1,t.rev)),'продукты',t.cogs/Math.max(1,t.rev)>0.36?'bad':'ok')+metric('Прайм-кост',pct((t.cogs+t.wages)/Math.max(1,t.rev)),'продукты + зарплаты',(t.cogs+t.wages)/Math.max(1,t.rev)>0.67?'bad':'ok')+'</div>'+plHTML(R)+(R.depInterest>0?'<p class="small muted" style="text-align:center;margin:6px 0 0">Проценты по вкладу: +'+rub(R.depInterest)+' (идут в капитал)</p>':'')+'<p class="small muted" style="text-align:center;margin:8px 0 0">В кассе: '+rub(S.cash)+'</p></div>';
-  if(multi) h+='<div class="outsel" role="group" aria-label="Заведение в отчёте">'+R.outlets.map(function(x){ return '<button aria-pressed="'+(r&&r.id===x.id)+'" data-act="repout" data-o="'+x.id+'">'+ico('building','sm')+' '+esc(CITIES[x.city].n)+(x.building?' (стройка)':'')+'</button>'; }).join('')+'</div>';
-  if(r && !r.building){
-    h+=card('«'+esc(CITIES[r.city].n)+'»: как прошёл месяц','<div class="kpi">'+metric('Выручка',rubk(r.rev))+metric('Гостей в день',Math.round(r.guests/30),'')+metric('Средний чек',rub(r.avgCheck),'')+metric('Загрузка',pct(r.utilK),r.utilK>1?'спрос выше возможностей':'есть запас',r.utilK>1?'bad':'ok')+'</div><div class="row">'+starsSVG(r.rating,18)+'<span class="small muted">'+(r.rating>r.ratingOld+0.02?'рейтинг вырос':(r.rating<r.ratingOld-0.02?'рейтинг упал':'рейтинг стабилен'))+'</span></div>',{ic:'building'});
-    var days=r.days, dmx=Math.max.apply(null,days.concat([1]));
-    h+=card('Выручка по дням','<div class="cal" aria-hidden="true">'+days.map(function(v,i){ var hh=Math.round(v/dmx*100); return '<i style="--i:'+i+';--h:'+hh+'" class="'+(hh>66?'hi':'')+'">'+(i+1)+'</i>'; }).join('')+'</div><p class="small muted" style="margin:6px 0 0">Каждая клетка — день месяца. Выходные и погода меняют поток гостей.</p>',{ic:'calendar'});
-    h+=card('Куда делись гости','<p class="sub">Путь гостя за месяц.</p>'+funnelHTML(r),{ic:'people'});
-    var top=r.mix.slice().sort(function(a,b){ return b.rev-a.rev; }).slice(0,6);
-    h+=card('Что покупали','<div class="pl">'+top.map(function(m,i){ var d=DISH[m.id]||localDish({city:r.city}); return '<div class="pl-row"><span>'+esc(m.name)+' <span class="cls '+m.cls+'">'+{star:'Звезда',horse:'Конь',puzzle:'Загадка',dog:'Балласт'}[m.cls]+'</span></span><b class="num">'+Math.round(m.qty)+' шт.</b><div class="bar"><i style="width:'+clamp(m.rev/Math.max(1,top[0].rev)*100,0,100)+'%"></i></div></div>'; }).join('')+'</div>'+termChip('menueng'),{ic:'book'});
-    if(r.reviews&&r.reviews.length) h+=card('Отзывы',r.reviews.map(function(rv){ return '<div class="review">'+starsSVG(rv.st,14)+'<div><div class="who">Гость</div><p>'+esc(rv.t)+'</p></div></div>'; }).join(''),{ic:'chat'});
-    if(r.banNote&&r.banNote.length) h+=card('Банкеты и заказы',r.banNote.map(function(b){ return '<div class="pl-row '+(b.ok?'plus':'minus')+'"><span>'+esc(b.name)+' <span class="hint">'+(b.ok?'справились':'не справились: вернули часть денег')+'</span></span><b class="num">'+rub(b.rev)+'</b></div>'; }).join(''),{ic:'gift'});
-  }
-  if(R.goals&&R.goals.length){ var gs=R.goals, got=gs.filter(function(x){ return x.ok; }); h+=card('Задания месяца: '+got.length+' из '+gs.length,'<div class="questres">'+gs.map(function(x){ var q=QUEST_BY_ID[x.id]; return '<div class="qr '+(x.ok?'ok':'')+'">'+ico(x.ok?'check':'x')+'<span><b>'+esc(q.n)+'</b><div class="small muted">'+esc(q.d)+'</div></span><b class="num '+(x.ok?'gain-t':'')+'">'+(x.ok?'+'+rub(q.rew):'—')+'</b></div>'; }).join('')+'</div>',{ic:'target'}); }
-  if(R.regs&&R.regs.length){ h+=card('Постоянные гости','<div class="regs">'+R.regs.map(function(x){ var d=REG_BY_ID[x.id]; return '<div class="reg">'+avatarSVG(d.who,x.h>=3?'happy':'',42)+'<div class="grow"><b>'+esc(d.n)+'</b> '+heartsHTML(x.h)+'<div class="small muted">'+(x.gift?'Стал другом кафе! '+esc(d.gift)+' +10 000 ₽':(x.dh>0?'Стал ближе: ему понравилось меню':(x.dh<0?'Скучает по любимому блюду':'Всё по-прежнему')))+'</div></div></div>'; }).join('')+'</div>',{ic:'heart'}); }
-  if(S.hq.upg.secret && R.outlets.some(function(x){ return !x.building&&x.dims; })){ h+=card('Отчёт тайного гостя','<div class="insights-list">'+R.outlets.filter(function(x){ return !x.building&&x.dims; }).map(function(x){ var names={food:'вкус',svc:'сервис',cln:'чистоту',atmo:'уют',val:'цену и качество'}, w=Object.keys(x.dims).sort(function(a,b){ return x.dims[a]-x.dims[b]; })[0]; return '<div class="insight info"><span class="ico">'+ico('eye')+'</span><div><b>«'+esc(CITIES[x.city].n)+'»: слабее всего '+names[w]+'</b><p>Оценка '+Math.round(x.dims[w])+' из 100. Вкус '+Math.round(x.dims.food)+', сервис '+Math.round(x.dims.svc)+', чистота '+Math.round(x.dims.cln)+', уют '+Math.round(x.dims.atmo)+'.</p></div></div>'; }).join('')+'</div>',{ic:'eye'}); }
-  var ins=monthInsights(S,R); ins.forEach(function(x){ if(x.term) addTerm(x.term); });
-  if(ins.length) h+=card('Подсказки Борща и Арсена','<div>'+ins.map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p>'+(x.term?termChip(x.term):'')+'</div></div>'; }).join('')+'</div>',{ic:'sparkle'});
-  var ev=[]; if(U.newAch&&U.newAch.length) U.newAch.forEach(function(a){ ev.push('<div class="award on"><span class="fico">'+ico(a.icon)+'</span><div><b>Награда: '+esc(a.n)+'</b><small>'+esc(a.d)+'</small></div></div>'); });
-  (R.quits||[]).forEach(function(q){ ev.push('<div class="insight warn"><span class="ico">'+ico('warn')+'</span><div><b>Ушёл сотрудник</b><p>Из-за низкого настроения команды ушёл человек: '+ROLES[q.role].n.toLowerCase()+' в «'+esc(CITIES[outletById(S,q.o)?outletById(S,q.o).city:'tula'].n)+'». Подумайте о зарплате и нагрузке.</p></div></div>'); });
-  if(S.emergStep) ev.push('<div class="insight warn"><span class="ico">'+ico('bank')+'</span><div><b>Касса опустела</b><p>Не хватило '+rub(S.emergStep)+', это стало экстренным долгом под 3,5% в месяц. Погасите его, как только появятся деньги.</p></div></div>');
-  if(ev.length) h+=card('Что ещё случилось','<div class="awards">'+ev.join('')+'</div>',{ic:'bolt'});
-  var g=goalNow(S);
-  h+='<div class="chalk"><h3>'+ico('flag')+'До цели</h3><ul><li class="'+(g.okCities?'done':'')+'">'+ico(g.okCities?'check':'target')+'<span>Города: '+g.cities+' из '+g.needCities+'</span></li><li class="'+(g.okCap?'done':'')+'">'+ico(g.okCap?'check':'target')+'<span>Капитал: '+rubk(g.cap)+' из '+rubk(g.needCap)+'</span></li><li class="'+(g.okRating?'done':'')+'">'+ico(g.okRating?'check':'target')+'<span>Рейтинг: '+f1d(g.rating)+' из '+f1d(g.needRating)+'</span></li></ul></div>';
-  var last=R.m>=TOTAL;
-  h+='<div class="row" style="justify-content:space-between;margin:16px 0 8px"><button class="btn ghost" data-act="rewind">'+ico('undo')+' Переиграть месяц</button><button class="btn" data-act="repnext">'+(S.bankrupt?'К итогам':(last?'К финалу':'Дальше'))+' '+ico('right')+'</button></div>';
-  return h;
-}
 A.repout=function(el){ U.repOutlet=el.getAttribute('data-o'); render(true); };
 A.rewind=function(){
   if(!U.snap){ toast('Нечего переигрывать',true); return; }
@@ -145,7 +106,7 @@ function enterMonth(){
   if(S.month===TOTAL){ toPlan(); return; }
   U.screen='scene'; U.sc={step:0,done:[]}; render();
 }
-function toPlan(){ U.screen='plan'; U.tab=U.tab&&U.tab!=='net'?U.tab:'home'; if(S.month===1&&!S.tut.homeSeen) U.tab='home'; U.outlet=null; U.goOK=false; U.snapMonth=S.month; makeBoard(S); persist(); render(); }
+function toPlan(){ hintsAuto(); U.lastP=null; U.dChip=null; U.screen='plan'; U.tab=U.tab&&U.tab!=='net'?U.tab:'home'; if(S.month===1&&!S.tut.homeSeen) U.tab='home'; U.outlet=null; U.goOK=false; U.snapMonth=S.month; makeBoard(S); persist(); render(); }
 A.actgo=function(){ var a=actOf(S.month); if(S.month===TOTAL){ U.screen='plan'; toPlan(); return; } U.screen='scene'; U.sc={step:0,done:[]}; render(); };
 A.forkpick=function(el){ S.flags.forkOutlet=el.getAttribute('data-o'); render(true); };
 
@@ -208,7 +169,7 @@ A.glossary=function(){ openModal('Словарик',glossaryHTML()); };
 A.awards=function(){ openModal('Награды',awardsHTML()); };
 A.menu=function(){
   var inGame=S&&U.screen!=='title';
-  openModal('Меню','<div class="pick"><button data-act="help"><span class="ico">'+ico('help')+'</span><span><b>Как играть</b></span></button><button data-act="glossary"><span class="ico">'+ico('book')+'</span><span><b>Словарик</b></span></button>'+'<button data-act="about"><span class="ico">'+ico('info')+'</span><span><b>Об игре</b><small>Чему учит, данные, версия</small></span></button>'+(isFramed()||isNativeApp()?'':'<button data-act="installhelp"><span class="ico">'+ico('phone')+'</span><span><b>Установить как приложение</b><small>Значок на экране, работа без интернета</small></span></button>')+((navigator.vibrate)?'<button data-act="togglevib"><span class="ico">'+ico('bolt')+'</span><span><b>Вибрация: '+(vibOn?'включена':'выключена')+'</b><small>Лёгкий отклик при нажатии (Android)</small></span></button>':'')+(S?'<button data-act="sheet"><span class="ico">'+ico('book')+'</span><span><b>Отчёт и рабочий лист</b><small>Для учителя: печать или PDF</small></span></button><button data-act="awards"><span class="ico">'+ico('award')+'</span><span><b>Награды</b></span></button><button data-act="recipes"><span class="ico">'+ico('book')+'</span><span><b>Тетрадь Тамары</b></span></button><button data-act="showcode"><span class="ico">'+ico('save')+'</span><span><b>Код сохранения</b><small>Чтобы продолжить на другом устройстве</small></span></button>':'')+
+  openModal('Меню','<div class="pick"><button data-act="help"><span class="ico">'+ico('help')+'</span><span><b>Как играть</b></span></button>'+(inGame&&S?'<button data-act="togglehints"><span class="ico">'+ico('sparkle')+'</span><span><b>Подсказки Борща: '+(S.hints===false?'выкл':'вкл')+'</b><small>'+(S.hints===false?'Нажмите, чтобы вернуть':'Нажмите, чтобы выключить')+'</small></span></button>':'')+'<button data-act="glossary"><span class="ico">'+ico('book')+'</span><span><b>Словарик</b></span></button>'+'<button data-act="about"><span class="ico">'+ico('info')+'</span><span><b>Об игре</b><small>Чему учит, данные, версия</small></span></button>'+(isFramed()||isNativeApp()?'':'<button data-act="installhelp"><span class="ico">'+ico('phone')+'</span><span><b>Установить как приложение</b><small>Значок на экране, работа без интернета</small></span></button>')+((navigator.vibrate)?'<button data-act="togglevib"><span class="ico">'+ico('bolt')+'</span><span><b>Вибрация: '+(vibOn?'включена':'выключена')+'</b><small>Лёгкий отклик при нажатии (Android)</small></span></button>':'')+(S?'<button data-act="sheet"><span class="ico">'+ico('book')+'</span><span><b>Отчёт и рабочий лист</b><small>Для учителя: печать или PDF</small></span></button><button data-act="awards"><span class="ico">'+ico('award')+'</span><span><b>Награды</b></span></button><button data-act="recipes"><span class="ico">'+ico('book')+'</span><span><b>Тетрадь Тамары</b></span></button><button data-act="showcode"><span class="ico">'+ico('save')+'</span><span><b>Код сохранения</b><small>Чтобы продолжить на другом устройстве</small></span></button>':'')+
    '<button data-act="teacher"><span class="ico">'+ico('chart')+'</span><span><b>Табло класса</b></span></button>'+(inGame?'<button data-act="totitle"><span class="ico">'+ico('home')+'</span><span><b>В главное меню</b><small>Прогресс сохранится</small></span></button>':'')+'</div>');
 };
 A.showcode=function(){ openModal('Код сохранения','<p class="small muted">Скопируйте код и вставьте его на другом устройстве в «Загрузить код».</p><textarea class="code" readonly id="savecode">'+esc(exportCode())+'</textarea><div class="row"><button class="btn small secondary" data-act="copycode">'+ico('copy')+' Скопировать</button></div>'); };
@@ -256,7 +217,8 @@ function renderBar(){
   if(!plan){ b.hidden=true; b.innerHTML=''; tb.hidden=true; tb.innerHTML=''; document.documentElement.style.setProperty('--bar-h','0px'); return; }
   tb.hidden=false; tb.innerHTML=navHTML();
   var R=getPV(), p=R?R.profit:0;
-  b.hidden=false; b.innerHTML='<div class="in"><div class="fc"><small>Прогноз прибыли</small><b class="num '+(p>=0?'gain-t':'loss-t')+'">'+sgn(Math.round(p/1000)*1000).replace(/ ₽$/,'')+' ₽</b></div><button class="btn" data-act="go">'+ico('play')+' Запустить месяц</button></div>';
+  var dc=deltaChip(p);
+  b.hidden=false; b.innerHTML='<div class="in"><div class="fc"><small>Прогноз прибыли</small><b class="num '+(p>=0?'gain-t':'loss-t')+'">'+sgn(Math.round(p/1000)*1000).replace(/ ₽$/,'')+' ₽</b>'+dc+'</div><button class="btn" data-act="go">'+ico('play')+' Запустить месяц</button></div>';
   var h=(b.offsetHeight||70)+(window.innerWidth<900?(tb.offsetHeight||64):0); document.documentElement.style.setProperty('--bar-h',h+'px');
 }
 function render(keep){

@@ -172,7 +172,7 @@ function simOutlet(s, o, env, rng){
   /* дни месяца */
   var days=[], wk=[[1.15,1,.8,.9,.9],[1.15,1,.8,.9,.9],[1.15,1,.8,.9,.9],[1.15,1,.8,.9,.9],[1,1.1,1,1.1,1.15],[.45,.9,1.5,1.3,1.25],[.35,.8,1.45,1.2,1.1]];
   var wkm=SEGS.map(function(g,i){ var t=0; for(var d=0; d<7; d++) t+=wk[d][i]; return t/7; });
-  var tot={want:0, served:0, lostCap:0, del:0, delLost:0}, dayRev=[], dayGuests=[], servedSeg={stu:0,off:0,fam:0,tur:0,gou:0}, utilSum=0;
+  var tot={want:0, served:0, lostCap:0, del:0, delLost:0}, dayRev=[], dayGuests=[], dayLost=[], dayWx=[], servedSeg={stu:0,off:0,fam:0,tur:0,gou:0}, utilSum=0;
   var start=(s.month*2+hashStr(s.seed)%7)%7, delShare=0.07*modM(s,'del',o.city)*(o.mk.deliv?1:0)*(s.hq.upg.site?1.2:1);
   for(var d=0; d<30; d++){
     var dow=(start+d)%7, wr=rng(), wx, wxF, seasonRain=0.26, snow=(cal===11||cal===0||cal===1)?1:0;
@@ -186,7 +186,7 @@ function simOutlet(s, o, env, rng){
     SEGS.forEach(function(g){ servedSeg[g]+=wSeg[g]*k; });
     var kitLeft=Math.max(0, kitchenGuests-served), dp=w*delShare*(wx==='rain'?1.7:1), dserv=Math.min(dp, kitLeft*0.85);
     tot.want+=w; tot.served+=served; tot.lostCap+=w-served; tot.del+=dserv; tot.delLost+=dp-dserv; utilSum+=w/cap;
-    dayGuests.push(served); dayRev.push(served*rpgA+dserv*rpgA);
+    dayGuests.push(served); dayRev.push(served*rpgA+dserv*rpgA); dayLost.push(Math.max(0,w-served)); dayWx.push(wx);
   }
   var util=utilSum/30;
   /* заказы, потери по причинам */
@@ -238,7 +238,7 @@ function simOutlet(s, o, env, rng){
   res.guests=guests; res.avgCheck=avgCheck; res.dineRev=dineRev; res.delRev=delRev; res.banRev=banRev; res.rev=dineRev+delRev+banRev;
   res.cogs=cogs+banCogs; res.wages=wages; res.rent=rent; res.util=util2; res.mkt=mk; res.other=other; res.delComm=delComm; res.waste=waste; res.stockLoss=stockLoss;
   res.dims={food:food,svc:svcQ,cln:cln,atmo:atmo,val:val}; res.score=score; res.repOld=o.rep; res.repNew=repNew; res.rating=stars(repNew); res.ratingOld=stars(o.rep);
-  res.util=res.util; res.utilK=util; res.days=dayRev; res.dayGuests=dayGuests; res.mix=mix; res.reviews=reviews; res.banNote=banNote; res.banFail=banFail;
+  res.util=res.util; res.utilK=util; res.days=dayRev; res.dayGuests=dayGuests; res.dayLost=dayLost; res.wx=dayWx; res.startDow=start; res.mix=mix; res.reviews=reviews; res.banNote=banNote; res.banFail=banFail;
   res.caps={seat:seatsNow(o,cal,0.5)*fmt.turns*hf.hf, svc:svc, kit:kitchenGuests}; res.upg=upg; res.tierA=tierA; res.absent=absent;
   res.awrNew=awrNew; res.loyNew=loyNew; res.rW=rWavg; res.rpg=rpgA; res.segServed=servedSeg; res.segFit=SEGS.reduce(function(a,g){ a[g]=M.seg[g].fit; return a; },{}); res.segRpg=SEGS.reduce(function(a,g){ a[g]=M.seg[g].rpg; return a; },{}); res.wantDay=tot.want/30; res.cogsRate=cpgA/Math.max(1,rpgA);
   res.deductCogs=(o.sup==='market')?0:res.cogs;

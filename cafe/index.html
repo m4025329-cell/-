@@ -106,7 +106,7 @@ p{margin:0 0 .6em} a{color:var(--brand-soft-ink)} b,strong{font-weight:800}
 /* ---- шапка с показателями ---- */
 .hud{position:sticky;top:0;z-index:30;display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;margin:0 calc(var(--gutter)*-1);padding:8px var(--gutter);background:color-mix(in srgb,var(--ground) 92%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:2px solid var(--edge);transition:transform var(--d-base) var(--ease-out)}
 .hud-month{display:flex;flex-direction:column;line-height:1.1}
-.hud-month b{font-family:var(--font-h);font-size:18px} .hud-month span{font-size:12px;color:var(--ink-3);font-weight:700}
+.hud-month b{font-family:var(--font-h);font-size:18px} .hud-month span{font-size:12px;color:var(--ink-3);font-weight:700} .hud-month em{font-style:normal} .hm-goal{display:none}
 .hud-stats{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap;min-width:0}
 .stat{display:flex;flex-direction:column;align-items:center;padding:4px 10px;background:var(--surface);border:2px solid var(--edge);border-radius:12px;min-width:0;line-height:1.1}
 .stat small{font-size:11px;font-weight:800;color:var(--ink-3);letter-spacing:.03em;text-transform:uppercase}
@@ -348,7 +348,8 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .modal-box{width:100%;max-width:620px;max-height:90vh;overflow:auto;background:var(--surface);border:2px solid var(--edge);border-radius:26px 26px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow-lg);animation:sheet var(--d-enter) var(--ease-out) both}
 .modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;position:sticky;top:-18px;background:var(--surface);padding:6px 0;z-index:1}
 @keyframes fade{from{opacity:0}to{opacity:1}} @keyframes sheet{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
-.toast{position:fixed;left:50%;bottom:calc(var(--bar-h) + 14px);transform:translateX(-50%);z-index:120;background:var(--ink);color:var(--ground);padding:11px 18px;border-radius:999px;font-weight:800;box-shadow:var(--shadow-lg);max-width:92vw;width:max-content;animation:rise var(--d-enter) var(--ease-out) both}
+.toast{position:fixed;left:50%;bottom:calc(var(--bar-h) + 14px);transform:translateX(-50%);z-index:120;background:var(--ink);color:var(--ground);padding:11px 18px;border-radius:999px;font-weight:800;box-shadow:var(--shadow-lg);max-width:92vw;width:max-content;animation:toastIn var(--d-enter) var(--ease-out) both}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%)}}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:110;width:100%;height:100%}
 textarea.code{width:100%;min-height:110px;border-radius:14px;border:2px solid var(--edge-strong);background:var(--surface-2);padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
 
@@ -384,7 +385,7 @@ textarea.code{width:100%;min-height:110px;border-radius:14px;border:2px solid va
   .logo small{display:none}
   .hud{grid-template-columns:1fr auto auto;grid-template-areas:'m s g' 'd d d';gap:6px 8px;padding:6px var(--gutter) 8px} .hud-month{grid-area:m;min-width:0} .hud-month b{font-size:17px} .hud-stats{grid-area:s;gap:5px} .hud-goal{grid-area:g} .mdots{grid-area:d}
   .hud-stats .stat{padding:3px 8px;border-radius:11px} .stat small{font-size:10.5px} .stat b{font-size:14.5px} .stat.cap{display:none}
-  .ring,.ring svg{width:40px;height:40px} .ring b{font-size:11px} .mdots li{height:5px}
+  .hud{grid-template-columns:1fr auto;grid-template-areas:'m s' 'd d'} .hud-goal{display:none} .hm-act{display:none} .hm-goal{display:inline} .mdots li{height:5px}
 }
 @media (max-width:380px){ .role{grid-template-columns:minmax(0,1fr)} .role .stepper{justify-content:space-between} .stepper .val{min-width:56px} .item{grid-template-columns:auto minmax(0,1fr)} .item>:last-child{grid-column:1/-1;justify-self:start} .tab{min-width:48px;font-size:11.5px} }
 @media (max-width:560px){
@@ -562,6 +563,83 @@ input,textarea,select{font-size:16px}
 
 .iconbtn{flex:none;min-width:44px;min-height:44px}
 .sh-kpi small,.sh-kpi i{font-size:12px} .sh-tbl th{font-size:12px} @media (max-width:380px){.sh-tbl th{font-size:12px}}
+
+/* ===== v2.0: живой месяц ===== */
+.lv-h{margin:6px 2px 8px;text-align:center}
+.card.live{padding:12px;text-align:center}
+.lv-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;text-align:left}
+.lv-day{font-family:var(--font-h);font-size:19px} .lv-wx{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;background:var(--info-bg);color:var(--info-ink);font-size:12.5px;font-weight:800}
+.lv-city{font-size:13px;font-weight:800;color:var(--ink-3);white-space:nowrap}
+.lv-stage{border-radius:16px;overflow:hidden;border:2px solid var(--edge-strong);background:#CFE6F2;line-height:0}
+.lv-stage canvas{width:100%;height:auto;display:block;aspect-ratio:360/212}
+.lv-track{height:7px;border-radius:5px;background:var(--edge);margin:10px 2px 6px;overflow:hidden} .lv-track i{display:block;height:100%;width:0;background:var(--brand);border-radius:5px;transition:width .25s linear}
+.lv-tick{min-height:28px;display:grid;place-items:center;margin-bottom:4px}
+.lv-line{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--surface-3);font-size:14px;font-weight:800;color:var(--ink-2);animation:lvIn .35s var(--ease-out) both}
+@keyframes lvIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.lv-stats{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px}
+.lv-stats div{padding:8px 10px;border:2px solid var(--edge);border-radius:14px;background:var(--surface-2);text-align:left;min-width:0} .lv-stats small{display:block;font-size:12px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.03em} .lv-stats b{font-size:18px;display:block;overflow-wrap:anywhere}
+.lv-stats .bad{border-color:var(--loss-bg)} .lv-stats .bad b{color:var(--loss-ink)}
+.btn.pulse{animation:btnGlow 1.4s ease-out infinite}
+@keyframes btnGlow{0%,100%{box-shadow:0 4px 0 var(--brand-dark),0 0 0 0 color-mix(in srgb,var(--brand) 55%,transparent)}60%{box-shadow:0 4px 0 var(--brand-dark),0 0 0 12px color-mix(in srgb,var(--brand) 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){.btn.pulse{animation:none}.lv-line{animation:none}}
+
+/* ===== v2.0: итоги месяца как история ===== */
+.rep-hero{margin:12px 0;padding:14px 14px 12px;border:2px solid var(--edge-strong);border-radius:var(--r-card);background:linear-gradient(180deg,var(--brand-soft) 0,var(--surface) 62%);box-shadow:var(--shadow)}
+.rep-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.rep-st{display:inline-flex;gap:2px}
+.rst{width:30px;height:30px;fill:var(--edge);stroke:var(--edge-strong);stroke-width:1.2;transform-origin:50% 55%}
+.rst.on{fill:var(--mustard);stroke:#B9811A;animation:rstPop .5s var(--ease-out,ease-out) both}
+.rst.on:nth-child(2){animation-delay:.18s} .rst.on:nth-child(3){animation-delay:.36s}
+@keyframes rstPop{0%{transform:scale(.2) rotate(-40deg);opacity:0}70%{transform:scale(1.25) rotate(8deg);opacity:1}100%{transform:none}}
+.rep-say{display:flex;gap:10px;align-items:center;margin:10px 0 6px}
+.rep-say .bubble{flex:1;min-width:0;font-size:15px;padding:9px 12px}
+.rep-big{text-align:center;padding:6px 0 2px}
+.rep-big small{display:block;font-size:12px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}
+.rep-big b{display:block;font-family:var(--font-h);font-size:clamp(34px,10vw,46px);line-height:1.1;margin:2px 0}
+.rep-d{font-size:14px}
+.rep-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0 8px}
+.rep-tiles>div{padding:8px 8px;border:2px solid var(--edge);border-radius:14px;background:var(--surface);text-align:center;min-width:0}
+.rep-tiles small{display:block;font-size:12px;font-weight:800;color:var(--ink-3);text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere}
+.rep-tiles b{display:block;font-size:19px;line-height:1.25} .rep-tiles i{display:block;font-size:12px;font-style:normal;color:var(--ink-3)}
+.rep-tiles .bad{border-color:var(--brand)} .rep-tiles .delta{display:block;font-size:12px}
+.rep-stl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:2px 0 6px}
+.rep-stl span{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:800;background:var(--surface-3);color:var(--ink-3)}
+.rep-stl span.ok{background:var(--gain-bg);color:var(--gain-ink)}
+.rep-cash{text-align:center;margin:4px 0 0;font-size:14px;color:var(--ink-2)}
+.rep-ev{display:grid;gap:8px;margin:10px 0}
+.advice{margin:12px 0;padding:14px;border:2px solid var(--mustard);border-radius:var(--r-card);background:var(--warn-bg);color:var(--warn-ink)}
+.advice-h{display:flex;gap:10px;align-items:center;margin-bottom:6px} .advice-h small{display:block;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;opacity:.85} .advice-h b{font-size:17px;line-height:1.25}
+.advice p{margin:0 0 8px} .advice .chips{display:flex;flex-wrap:wrap;gap:6px}
+.advice.home{margin:12px 0}
+.acc{border:2px solid var(--edge);border-radius:16px;background:var(--surface);margin:8px 0;overflow:hidden}
+.acc-h{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:52px;padding:10px 14px;background:transparent;border:0;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.acc-h span{display:block;min-width:0} .acc-h b{display:block;font-size:16px} .acc-h small{display:block;color:var(--ink-3);font-size:13px;font-weight:700}
+.acc-h .ic{flex:none;color:var(--brand)}
+.acc.open{border-color:var(--edge-strong)} .acc-b{padding:2px 14px 14px;animation:lvIn .22s ease-out both}
+@media (max-width:380px){.rep-tiles b{font-size:17px}.rep-tiles small{letter-spacing:0}}
+@media (prefers-reduced-motion:reduce){.rst.on,.acc-b{animation:none}}
+
+.rep-tiles b{white-space:nowrap}
+.awards-line{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.awards-line span{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;border-radius:999px;background:var(--surface-3);font-size:13px;font-weight:800}
+.awards-line .ic{width:18px;height:18px;color:#B9811A}
+.actionbar .fc{position:relative}
+.dchip{position:absolute;left:0;top:-30px;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:14px;font-weight:900;border:2px solid transparent;animation:dchipUp 2.8s ease-out both;pointer-events:none}
+.dchip.up{background:var(--gain-bg);color:var(--gain-ink);border-color:var(--basil)} .dchip.dn{background:var(--loss-bg);color:var(--loss-ink);border-color:var(--brand)}
+@keyframes dchipUp{0%{opacity:0;transform:translateY(10px) scale(.8)}10%{opacity:1;transform:translateY(0) scale(1.08)}18%{transform:scale(1)}78%{opacity:1;transform:translateY(-4px)}100%{opacity:0;transform:translateY(-12px)}}
+.chk{margin:12px 0;padding:14px;border:2px solid var(--mustard);border-radius:var(--r-card);background:var(--warn-bg);color:var(--warn-ink)}
+.chk-h{display:flex;gap:10px;align-items:center} .chk-h b{display:block;font-size:17px;line-height:1.25} .chk-h small{display:block;font-size:13px;font-weight:700;opacity:.9}
+.chk-bar{height:8px;border-radius:5px;background:color-mix(in srgb,var(--warn-ink) 18%,transparent);margin:10px 0 6px;overflow:hidden} .chk-bar i{display:block;height:100%;background:var(--basil);border-radius:5px;transition:width .5s var(--ease-out,ease-out)}
+.chk ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.chk li button{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 12px;border:2px solid color-mix(in srgb,var(--warn-ink) 22%,transparent);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.chk li button>span{flex:1;min-width:0} .chk li b{display:block;font-size:15px} .chk li small{display:block;font-size:13px;color:var(--ink-3);font-weight:700}
+.chk li .ic{flex:none;color:var(--brand)} .chk li.done button{background:var(--gain-bg);border-color:var(--basil);color:var(--gain-ink)} .chk li.done .ic{color:var(--gain-ink)} .chk li.done b{text-decoration:line-through;text-decoration-thickness:2px;opacity:.85}
+.msub button.locked{opacity:.55} .msub button.locked .ic{color:var(--ink-3)}
+.advice.newtool{border-color:var(--basil);background:var(--gain-bg);color:var(--gain-ink)} .advice.newtool .fico{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--basil);color:#fff;flex:none}
+.award.on{align-items:flex-start}
+@media (prefers-reduced-motion:reduce){.dchip{animation:none}}
+
+.advice .row{flex-wrap:wrap;gap:8px} .advice .row .btn{white-space:nowrap}
 
 </style>
 <a class="skip" href="#stage" data-act="skipnav">К содержимому игры</a>
@@ -1190,7 +1268,7 @@ function simOutlet(s, o, env, rng){
   /* дни месяца */
   var days=[], wk=[[1.15,1,.8,.9,.9],[1.15,1,.8,.9,.9],[1.15,1,.8,.9,.9],[1.15,1,.8,.9,.9],[1,1.1,1,1.1,1.15],[.45,.9,1.5,1.3,1.25],[.35,.8,1.45,1.2,1.1]];
   var wkm=SEGS.map(function(g,i){ var t=0; for(var d=0; d<7; d++) t+=wk[d][i]; return t/7; });
-  var tot={want:0, served:0, lostCap:0, del:0, delLost:0}, dayRev=[], dayGuests=[], servedSeg={stu:0,off:0,fam:0,tur:0,gou:0}, utilSum=0;
+  var tot={want:0, served:0, lostCap:0, del:0, delLost:0}, dayRev=[], dayGuests=[], dayLost=[], dayWx=[], servedSeg={stu:0,off:0,fam:0,tur:0,gou:0}, utilSum=0;
   var start=(s.month*2+hashStr(s.seed)%7)%7, delShare=0.07*modM(s,'del',o.city)*(o.mk.deliv?1:0)*(s.hq.upg.site?1.2:1);
   for(var d=0; d<30; d++){
     var dow=(start+d)%7, wr=rng(), wx, wxF, seasonRain=0.26, snow=(cal===11||cal===0||cal===1)?1:0;
@@ -1204,7 +1282,7 @@ function simOutlet(s, o, env, rng){
     SEGS.forEach(function(g){ servedSeg[g]+=wSeg[g]*k; });
     var kitLeft=Math.max(0, kitchenGuests-served), dp=w*delShare*(wx==='rain'?1.7:1), dserv=Math.min(dp, kitLeft*0.85);
     tot.want+=w; tot.served+=served; tot.lostCap+=w-served; tot.del+=dserv; tot.delLost+=dp-dserv; utilSum+=w/cap;
-    dayGuests.push(served); dayRev.push(served*rpgA+dserv*rpgA);
+    dayGuests.push(served); dayRev.push(served*rpgA+dserv*rpgA); dayLost.push(Math.max(0,w-served)); dayWx.push(wx);
   }
   var util=utilSum/30;
   /* заказы, потери по причинам */
@@ -1256,7 +1334,7 @@ function simOutlet(s, o, env, rng){
   res.guests=guests; res.avgCheck=avgCheck; res.dineRev=dineRev; res.delRev=delRev; res.banRev=banRev; res.rev=dineRev+delRev+banRev;
   res.cogs=cogs+banCogs; res.wages=wages; res.rent=rent; res.util=util2; res.mkt=mk; res.other=other; res.delComm=delComm; res.waste=waste; res.stockLoss=stockLoss;
   res.dims={food:food,svc:svcQ,cln:cln,atmo:atmo,val:val}; res.score=score; res.repOld=o.rep; res.repNew=repNew; res.rating=stars(repNew); res.ratingOld=stars(o.rep);
-  res.util=res.util; res.utilK=util; res.days=dayRev; res.dayGuests=dayGuests; res.mix=mix; res.reviews=reviews; res.banNote=banNote; res.banFail=banFail;
+  res.util=res.util; res.utilK=util; res.days=dayRev; res.dayGuests=dayGuests; res.dayLost=dayLost; res.wx=dayWx; res.startDow=start; res.mix=mix; res.reviews=reviews; res.banNote=banNote; res.banFail=banFail;
   res.caps={seat:seatsNow(o,cal,0.5)*fmt.turns*hf.hf, svc:svc, kit:kitchenGuests}; res.upg=upg; res.tierA=tierA; res.absent=absent;
   res.awrNew=awrNew; res.loyNew=loyNew; res.rW=rWavg; res.rpg=rpgA; res.segServed=servedSeg; res.segFit=SEGS.reduce(function(a,g){ a[g]=M.seg[g].fit; return a; },{}); res.segRpg=SEGS.reduce(function(a,g){ a[g]=M.seg[g].rpg; return a; },{}); res.wantDay=tot.want/30; res.cogsRate=cpgA/Math.max(1,rpgA);
   res.deductCogs=(o.sup==='market')?0:res.cogs;
@@ -2992,7 +3070,7 @@ var dishSVG=memoSvg('d',dishSVG0), avatarSVG=memoSvg('a',avatarSVG0), starsSVG=m
 (function(){
 'use strict';
 /* ===== Интерфейс «Первого столика», часть 1: ядро, сохранение, звук, шапка, вкладки ===== */
-var KEY='ps-save-v1', THEME_KEY='ps-theme', SND_KEY='ps-sound', VIB_KEY='ps-vib', REC_KEY='ps-best', APP_VERSION='1.2.0', vibOn=true;
+var KEY='ps-save-v1', THEME_KEY='ps-theme', SND_KEY='ps-sound', VIB_KEY='ps-vib', REC_KEY='ps-best', APP_VERSION='2.0.0', vibOn=true;
 var S=null, U={screen:'title'}, soundOn=false, actx=null, reduced=false, lastFocus=null, timers=[];
 try{ reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
 function $(s,r){ return (r||document).querySelector(s); }
@@ -3002,7 +3080,7 @@ function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
 function setText(id,t){ var e=document.getElementById(id); if(e && e.textContent!==t) e.textContent=t; }
 function later(fn,ms){ var t=setTimeout(fn,ms); timers.push(t); return t; }
-function clearTimers(){ timers.forEach(clearTimeout); timers=[]; if(U.rushT){ clearInterval(U.rushT); U.rushT=0; } }
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; if(typeof liveStop==='function') liveStop(); if(U.rushT){ clearInterval(U.rushT); U.rushT=0; } }
 function nm(){ return (S&&S.name)||'Хозяин'; }
 function curO(){ var o=S&&outletById(S,U.outlet); if(!o||o.fmt==='fran'||o.built){ o=liveOutlets(S)[0]||S.outlets[0]; U.outlet=o.id; } return o; }
 function money(n){ return rub(n); }
@@ -3103,10 +3181,10 @@ function pbar(p,cls){ return '<div class="gauge-bar '+(cls||'')+'"><i style="wid
 function goalProgress(){ var g=goalNow(S); return clamp(0.5*Math.min(1,Math.max(0,g.cap)/g.needCap)+0.35*Math.min(1,g.cities/g.needCities)+0.15*Math.min(1,g.rating/g.needRating),0,1); }
 var hudPrev={};
 function hudHTML(){
-  var m=Math.min(S.month,TOTAL), act=ACTS[actOf(m)-1], g=goalNow(S), pr=goalProgress(), C=2*Math.PI*19, off=C*(1-pr);
+  var rep=U.screen==='report'&&U.report, m=rep?U.report.m:Math.min(S.month,TOTAL), act=ACTS[actOf(m)-1], g=goalNow(S), pr=goalProgress(), C=2*Math.PI*19, off=C*(1-pr);
   var rating=networkRating(S)||stars(flagship(S).rep), dots='';
-  for(var i=1;i<=TOTAL;i++) dots+='<li class="'+(i<S.month?'done':(i===S.month?'now':''))+(i===8?' lessonend':'')+'"></li>';
-  return '<div class="hud-month"><b>'+MONTHS[m-1]+'</b><span>Месяц '+m+' из '+TOTAL+' · '+act.name+'</span></div>'+
+  for(var i=1;i<=TOTAL;i++) dots+='<li class="'+(rep?(i<=m?'done':''):(i<S.month?'done':(i===S.month?'now':'')))+(i===8?' lessonend':'')+'"></li>';
+  return '<div class="hud-month"><b>'+MONTHS[m-1]+'</b><span>Месяц '+m+' из '+TOTAL+'<em class="hm-act"> · '+act.name+'</em><em class="hm-goal"> · цель '+Math.round(pr*100)+'%</em></span></div>'+
    '<div class="hud-stats"><div class="stat cash"><small>Касса</small><b class="num" id="h-cash">'+money(S.cash)+'</b></div><div class="stat cap"><small>Капитал</small><b class="num" id="h-cap">'+rubk(capital(S))+'</b></div><div class="stat"><small>Рейтинг</small><b class="num" id="h-rate">'+f1d(rating)+'</b></div></div>'+
    '<div class="hud-goal"><span class="gt small muted">Путь к цели</span><div class="ring" role="img" aria-label="Прогресс к цели: '+Math.round(pr*100)+'%"><svg viewBox="0 0 46 46"><circle class="bg" cx="23" cy="23" r="19"/><circle class="fg" cx="23" cy="23" r="19" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><b>'+Math.round(pr*100)+'%</b></div></div>'+
    '<ol class="mdots" aria-hidden="true">'+dots+'</ol>';
@@ -3149,9 +3227,9 @@ function navHTML(){
 function nextStep(){
   var o=curO(), r=S.lastR&&S.lastR.outlets.filter(function(x){ return x.id===o.id; })[0], pv=U.pv;
   if(S.month===1 && !S.tut.menuSeen) return {tab:'menu', t:'Откройте «Меню». Сейчас в нём 7 блюд из 8 мест. Добавьте салат или десерт, чтобы гостям было из чего выбирать.', b:'Открыть меню'};
-  if(S.month===1 && !S.tut.placeSeen) return {tab:'place', t:'Загляните в «Зал и кухню»: проверьте, хватает ли людей и в чём узкое место. Нанять уборщика — самый дешёвый способ поднять рейтинг.', b:'Открыть зал и кухню'};
+  if(S.month===1 && !S.tut.placeSeen) return {tab:'place', t:'Загляните в «Зал и кухню»: проверьте, хватает ли людей и в чём узкое место. Уборщик поднимает рейтинг, но стоит денег: сравните, окупится ли.', b:'Открыть зал и кухню'};
   if(S.month===1 && !S.tut.guestsSeen) return {tab:'guests', t:'Включите рекламу в «Гостях»: пока про кафе никто не знает, гостей будет мало.', b:'Открыть «Гости»'};
-  if(S.month===1 && !S.tut.moneySeen) return {tab:'money', t:'В «Деньгах» пять разделов: прогноз месяца, учёт, анализ, банк и экономика страны. Посмотрите, сколько гостей в день нужно кафе, чтобы выйти в ноль.', b:'Открыть «Деньги»'};
+  if(S.month===1 && !S.tut.moneySeen) return {tab:'money', t:'В «Деньгах» сейчас прогноз месяца. Посмотрите, сколько гостей в день нужно кафе, чтобы выйти в ноль. Новые разделы (банк, учёт, анализ, страна) откроются позже.', b:'Открыть «Деньги»'};
   if(S.month<=2 && S.menu.length<menuSlots(S) && missingCats().length) return {tab:'menu', t:'В меню нет категорий: '+missingCats().map(function(c){ return CATN[c].toLowerCase(); }).join(', ')+'. Гости из-за этого уходят.', b:'К меню'};
   if(r && r.utilK>1.05){ var b=bottleneck(r); return {tab:'place', t:'Заведению не хватает '+(b==='seat'?'мест в зале':(b==='svc'?'официантов и баристы':'мощности кухни'))+': гости упираются в очередь. Усильте узкое место.', b:'Усилить'}; }
   if(!Object.keys(o.mk).some(function(k){ return o.mk[k]; })) return {tab:'guests', t:'Реклама выключена. Даже самый вкусный борщ не продастся, если о нём не знают.', b:'Включить рекламу'};
@@ -3434,17 +3512,18 @@ function homeHTML(){
   var h=outletSelector('home');
   h+='<div class="cafe-hero">'+cafeSVG(o,{cal:CAL[S.month-1],guests:guestsViz,queue:queue,awn:S.awn})+'<div class="caption"><div><b>'+esc(o.nm||S.cafe)+'</b><div class="small muted">'+ico('pin','sm')+' '+esc(CITIES[o.city].n)+' · '+esc(FORMATS[o.fmt].name)+(o.built?' · строится':'')+'</div></div><div class="row" style="gap:8px">'+starsSVG(stars(o.rep),18)+'<b class="num">'+f1d(stars(o.rep))+'</b></div></div></div>';
   var ns=nextStep();
-  h+=coachCard('Что дальше?',esc(ns.t),ns.tab?'<button class="btn small" data-act="tab" data-tab="'+ns.tab+'">'+esc(ns.b)+'</button>':'');
+  if(S.month===1) h+=chkHTML(); else if(S.hints!==false) h+=coachCard('Что дальше?',esc(ns.t),ns.tab?'<button class="btn small" data-act="tab" data-tab="'+ns.tab+'">'+esc(ns.b)+'</button>':'');
+  h+=advCardHTML();
   h+=goalChalk();
   h+=questsCard();
   h+=holidayCard(o);
-  if(R){ h+=card('Прогноз на этот месяц','<div class="kpi">'+metric('Выручка',rubk(R.revTotal))+metric('Прибыль',sgn(Math.round(R.profit/1000)*1000).replace(/ ₽$/,'')+' ₽',R.profit>0?'в плюс':'в минус',R.profit>0?'ok':'bad')+metric('Гостей в день',Math.round((r.guests||0)/30),'в «'+esc(CITIES[o.city].n)+'»')+metric('Рейтинг',f1d(r.rating||stars(o.rep)),'после месяца')+'</div><p class="small muted" style="margin:0">Прогноз считается по текущим настройкам. Случайности (погода, новости) могут сдвинуть его на 5–10%.</p>',{ic:'trend'}); }
-  h+=card('Сезонный спрос','<p class="sub">Индекс спроса в «'+esc(CITIES[o.city].n)+'» на ближайшие 6 месяцев (100 — средний уровень группы гостей).</p>'+seasonBarsHome(o)+termChip('season'),{ic:'calendar'});
   h+=card('Постоянные гости',regularsHTML(false)+'<button class="btn secondary small" data-act="tab" data-tab="guests" style="margin-top:8px">Подробнее</button>',{ic:'heart'});
   h+=newsCardHTML();
-  h+=card('Тетрадь Тамары','<p class="muted">Открыто рецептов: <b>'+S.recs.length+' из 7</b>. Они появляются по ходу истории и дают блюда с особым вкусом.</p><button class="btn secondary small" data-act="recipes">'+ico('book')+' Читать тетрадь</button>',{ic:'book'});
+  if(R){ h+=accBlock('h-fc','Прогноз на этот месяц','выручка, прибыль, гости','<div class="kpi">'+metric('Выручка',rubk(R.revTotal))+metric('Прибыль',sgn(Math.round(R.profit/1000)*1000).replace(/ ₽$/,'')+' ₽',R.profit>0?'в плюс':'в минус',R.profit>0?'ok':'bad')+metric('Гостей в день',Math.round((r.guests||0)/30),'в «'+esc(CITIES[o.city].n)+'»')+metric('Рейтинг',f1d(r.rating||stars(o.rep)),'после месяца')+'</div><p class="small muted" style="margin:0">Прогноз считается по текущим настройкам. Случайности (погода, новости) могут сдвинуть его на 5–10%.</p>'); }
+  h+=accBlock('h-season','Сезонный спрос','на ближайшие 6 месяцев','<p class="sub">Индекс спроса в «'+esc(CITIES[o.city].n)+'» (100 — средний уровень группы гостей).</p>'+seasonBarsHome(o)+termChip('season'));
+  h+=accBlock('h-note','Тетрадь Тамары','рецептов: '+S.recs.length+' из 7','<p class="muted">Открыто рецептов: <b>'+S.recs.length+' из 7</b>. Они появляются по ходу истории и дают блюда с особым вкусом.</p><button class="btn secondary small" data-act="recipes">'+ico('book')+' Читать тетрадь</button>');
   var lastRev=S.hist.slice(-6);
-  if(lastRev.length>1) h+=card('Динамика','<p class="sub">Прибыль по месяцам</p>'+sparkSVG(lastRev.map(function(x){ return x.profit; }),lastRev.map(function(x){ return MONTHS_SHORT[x.m-1]; })),{ic:'chart'});
+  if(lastRev.length>1) h+=accBlock('h-dyn','Динамика','прибыль по месяцам',sparkSVG(lastRev.map(function(x){ return x.profit; }),lastRev.map(function(x){ return MONTHS_SHORT[x.m-1]; })));
   return h;
 }
 function sparkSVG(vals,labels){
@@ -3562,13 +3641,14 @@ function plHTML(R){
   return '<div class="pl">'+plRow('Выручка',R.total.rev,'plus','гости, доставка, банкеты',mx)+plRow('Роялти франшиз',t.royalty,'plus','',mx)+plRow('Продукты',t.cogs,'minus','себестоимость',mx)+plRow('Зарплаты',t.wages,'minus','с налогами работодателя',mx)+plRow('Аренда',t.rent,'minus','',mx)+plRow('Коммунальные и прочее',t.util+t.other,'minus','',mx)+plRow('Реклама',t.mkt,'minus','',mx)+plRow('Комиссия доставки',t.delComm,'minus','',mx)+plRow('Штаб-квартира сети',t.hq,'minus','управление и особые люди',mx)+plRow('Проценты по кредитам',R.interest,'minus','',mx)+plRow('Налог',R.tax,'minus',S.flags.emmaAuto?'Эмма выбирает режим':(S.tax==='15'?'15% с разницы':'6% с выручки'),mx)+plRow('Доля партнёров',R.div,'minus','инвестор и партнёр',mx)+'<div class="pl-row total"><span>Прибыль</span><b class="num '+(R.profit>=0?'gain-t':'loss-t')+'">'+sgn(R.profit)+'</b></div></div>';
 }
 function moneyHTML(){
-  var s=U.msub||'month';
+  var s=msubOpen(U.msub||'month')?(U.msub||'month'):'month';
   if(s==='acc') return accHTML(); if(s==='ana') return anaHTML(); if(s==='bank') return bankHTML(); if(s==='cty') return ctyHTML();
   return monthHTML();
 }
 function monthHTML(){
   var R=getPV(), h=msubHTML(); if(!R) return h+'<p class="muted">Прогноз временно недоступен.</p>';
   var be=bepInfo(S,R);
+  h+=newToolCards();
   h+=card('Прогноз месяца',plHTML(R),{ic:'coins',sub:'Так выглядит месяц при текущих настройках. Он считается по тем же правилам, что и итоги.'});
   if(be&&isFinite(be.perDay)) h+=card('Точка безубыточности','<div class="kpi">'+metric('Нужно гостей в день',Math.round(be.perDay),'чтобы выйти в ноль')+metric('Ожидается',Math.round(be.actual),'в день',be.actual>=be.perDay?'ok':'bad')+metric('Постоянные расходы',rubk(be.fixed),'за месяц')+metric('Запас',be.actual>=be.perDay?'+'+Math.round(be.actual-be.perDay):'−'+Math.round(be.perDay-be.actual),'гостей в день',be.actual>=be.perDay?'ok':'bad')+'</div><div class="row"><button class="btn small secondary" data-act="msub" data-v="ana">'+ico('chart','sm')+' График и формула</button></div><div class="chips">'+termChip('breakeven')+termChip('fixed')+'</div>',{ic:'target'});
   var at=S.flags.emmaAuto;
@@ -3648,11 +3728,17 @@ var MSUBS=[
  {id:'bank',  n:'Банк',  ic:'bank'},
  {id:'cty',   n:'Страна',ic:'flag'}
 ];
+var MSUB_OPEN={month:1,bank:2,acc:3,ana:4,cty:5};
+var MSUB_NEW={bank:['Банк','Кредит и вклад: деньги можно занять, но проценты придётся платить. А свободные деньги можно положить под процент.'],acc:['Учёт','Отчёт о прибылях и убытках, движение денег и баланс. Здесь видно, почему прибыль и деньги в кассе не равны.'],ana:['Анализ','Что будет, если поднять цену, сколько гостей нужно, чтобы выйти в ноль, и какое блюдо выгодно держать в меню.'],cty:['Страна','Ключевая ставка, инфляция и спрос: то, что решает не ваше кафе, а экономика вокруг.']};
+function msubOpen(id){ return !S || S.month>=(MSUB_OPEN[id]||1) || !!(S.flags&&S.flags.allTools); }
 function msubHTML(){
-  var cur=U.msub||'month';
-  return '<div class="msub" role="tablist" aria-label="Разделы вкладки «Деньги»">'+MSUBS.map(function(t){ return '<button role="tab" aria-selected="'+(cur===t.id)+'" data-act="msub" data-v="'+t.id+'">'+ico(t.ic,'sm')+'<span>'+t.n+'</span></button>'; }).join('')+'</div>';
+  var cur=msubOpen(U.msub||'month')?(U.msub||'month'):'month';
+  return '<div class="msub" role="tablist" aria-label="Разделы вкладки «Деньги»">'+MSUBS.map(function(t){ var ok=msubOpen(t.id); return '<button role="tab" aria-selected="'+(cur===t.id)+'" data-act="msub" data-v="'+t.id+'"'+(ok?'':' class="locked" aria-disabled="true" title="Откроется в месяце '+MSUB_OPEN[t.id]+'"')+'>'+ico(ok?t.ic:'lock','sm')+'<span>'+t.n+'</span></button>'; }).join('')+'</div>';
 }
-A.msub=function(el){ U.msub=el.getAttribute('data-v'); if(S) S.seen['sub_'+U.msub]=1; U.pv=null; persist(); render(); window.scrollTo(0,0); };
+function newToolCards(){
+  var h=''; Object.keys(MSUB_OPEN).forEach(function(id){ if(id==='month'||S.month!==MSUB_OPEN[id]||S.seen['sub_'+id]||!MSUB_NEW[id]) return; h+='<section class="advice newtool"><div class="advice-h"><span class="fico">'+ico('sparkle')+'</span><div><small>Новый инструмент</small><b>Раздел «'+MSUB_NEW[id][0]+'»</b></div></div><p>'+MSUB_NEW[id][1]+'</p><button class="btn small" data-act="msub" data-v="'+id+'">'+ico('right','sm')+' Открыть</button></section>'; }); return h;
+}
+A.msub=function(el){ var v=el.getAttribute('data-v'); if(!msubOpen(v)){ toast('Откроется в месяце '+MSUB_OPEN[v]+': сначала освойте то, что уже есть'); return; } U.msub=v; if(S) S.seen['sub_'+U.msub]=1; U.pv=null; persist(); render(); window.scrollTo(0,0); };
 
 /* ---------- мелкие помощники ---------- */
 function shortRub(v){ var a=Math.abs(v), s=v<0?'−':''; if(a>=1000000) return s+f1d(a/1000000)+' млн'; if(a>=1000) return s+Math.round(a/1000)+' тыс'; return s+Math.round(a); }
@@ -4094,6 +4180,366 @@ function initDevice(){
   window.__onSwUpdate=function(){ toast('Вышла новая версия игры. Закройте и откройте приложение, чтобы обновить.'); };
 }
 
+/* ===== Интерфейс, часть 8: «Живой месяц» — анимированное кафе на canvas ===== */
+
+var LV_W=360, LV_H=212, LV_DAY=270, LV_FLOOR=162, LV_DOOR=118;
+var LV_SEG={stu:'#2B78B5',off:'#6B7280',fam:'#2E7D4F',tur:'#E8A628',gou:'#B83A6B'};
+var LV_TABLES=[{x:158,y:158},{x:214,y:158},{x:158,y:196},{x:214,y:196},{x:262,y:198}];
+var LV_STAND=[{x:272,y:186},{x:283,y:191},{x:294,y:186},{x:305,y:191},{x:316,y:186},{x:327,y:191},{x:338,y:186},{x:349,y:191}];
+var LV_SKIN=['#F2C9A0','#E8B88A','#D9A074','#BC8458','#8D5A3C'];
+var LV_HAIR=['#2B1810','#5A3825','#8A5A2C','#C79A4B','#3B3B3B'];
+var LV_WXN={sun:'Солнечно',cloud:'Облачно',rain:'Дождь',hot:'Жара'};
+var LV_DOWN=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+var LV={on:false,raf:0};
+
+function lvRng(seed){ return mulberry32(hashStr(seed)); }
+function lvData(R){
+  var outs=R.outlets.filter(function(r){ return r.days&&r.days.length&&!r.building; }), main=outs[0]||null;
+  var D={rev:[],gst:[],lost:[],wx:main?main.wx:[],dow0:main?main.startDow:0,main:main,outs:outs,seg:{stu:1,off:1,fam:1,tur:1,gou:1}};
+  for(var i=0;i<30;i++){ var a=0,b=0,c=0; outs.forEach(function(r){ a+=r.days[i]||0; b+=r.dayGuests[i]||0; c+=r.dayLost?r.dayLost[i]||0:0; }); D.rev.push(a); D.gst.push(b); D.lost.push(c); }
+  if(main&&main.segServed) D.seg=main.segServed;
+  return D;
+}
+function lvLines(D,R){
+  /* реплики для ленты: по одной на заметный день */
+  var out={}, mxR=0, mxI=0, tot=sumArr(D.rev)||1, avg=tot/30; D.rev.forEach(function(v,i){ if(v>mxR){ mxR=v; mxI=i; } });
+  var m=D.main, cityN=m?CITIES[m.city].n:'';
+  out[0]='Открываемся: «'+(m?m.name||S.cafe:S.cafe)+'»';
+  D.rev.forEach(function(v,i){
+    if(out[i]) return; var wx=D.wx[i], dow=(D.dow0+i)%7, lostShare=D.lost[i]/Math.max(1,D.lost[i]+D.gst[i]);
+    if(i===mxI && v>avg*1.25) out[i]='Рекордный день: '+rub(Math.round(v/100)*100);
+    else if(lostShare>0.22) out[i]='Очередь у двери: часть гостей уходит';
+    else if(wx==='rain' && i>2 && !out[i-1] && v<avg*0.9) out[i]='Дождь: на улице пусто';
+    else if(dow===5 && v>avg) out[i]='Суббота: зал гудит';
+    else if(wx==='hot' && v<avg*0.95) out[i]='Жара: гости ищут прохладу';
+  });
+  if(m && m.stockLoss>0.06 && !out[12]) out[12]='Стоп-лист: любимое блюдо закончилось';
+  if(m && m.waste>0.1 && !out[19]) out[19]='На кухне выбрасывают испортившееся';
+  if(m && m.dims && m.dims.svc<50 && !out[8]) out[8]='Гости ждут официанта слишком долго';
+  if(m && m.dims && m.dims.food>=78 && !out[22]) out[22]='«Вкусно!» — шепчутся за столиками';
+  if(m && m.utilK>1.05 && !out[15]) out[15]='Мест не хватает: стоят у стойки';
+  out[29]='Закрываем смену. Считаем кассу…';
+  return out;
+}
+
+/* ---------- рисование ---------- */
+function lvRound(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.quadraticCurveTo(x+w,y,x+w,y+r); c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h); c.lineTo(x+r,y+h); c.quadraticCurveTo(x,y+h,x,y+h-r); c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y); c.closePath(); }
+function lvSky(wx,dark){ var m={sun:['#9FD3F0','#DDF0FA'],cloud:['#B7C9D6','#E4ECF1'],rain:['#7F95A4','#B4C3CC'],hot:['#F6C873','#FCE9BE']}[wx]||['#B7C9D6','#E4ECF1']; return dark?['#1E2B3A','#34465A']:m; }
+function lvBg(c,L,t){
+  var wx=L.wx, dark=isDark(), sk=lvSky(wx,dark), g=c.createLinearGradient(0,0,0,150); g.addColorStop(0,sk[0]); g.addColorStop(1,sk[1]); c.fillStyle=g; c.fillRect(0,0,100,LV_H);
+  /* дома вдали */
+  c.fillStyle=dark?'#2A3A4D':'#C9D6DE'; [[4,70,22],[30,52,18],[52,76,26],[80,60,18]].forEach(function(b){ c.fillRect(b[0],b[1],b[2],150-b[1]); });
+  if(wx==='sun'||wx==='hot'){ c.fillStyle=wx==='hot'?'#FFB22E':'#FFE08A'; c.beginPath(); c.arc(70,26,wx==='hot'?13:10,0,6.283); c.fill(); if(wx==='hot'){ c.strokeStyle='rgba(255,178,46,.6)'; c.lineWidth=2; for(var k=0;k<8;k++){ var a=k*0.785+t*0.4; c.beginPath(); c.moveTo(70+Math.cos(a)*17,26+Math.sin(a)*17); c.lineTo(70+Math.cos(a)*23,26+Math.sin(a)*23); c.stroke(); } } }
+  if(wx==='cloud'||wx==='rain'){ c.fillStyle=dark?'#44566A':'#F3F6F8'; [[20,22,18],[40,18,14],[64,26,16]].forEach(function(b){ c.beginPath(); c.arc(b[0]+Math.sin(t*0.3+b[0])*2,b[1],b[2],0,6.283); c.fill(); }); }
+  /* тротуар */
+  c.fillStyle=dark?'#4A4038':'#E5DACB'; c.fillRect(0,150,100,LV_H-150); c.fillStyle=dark?'#3A322C':'#CDBBA2'; c.fillRect(0,150,100,3);
+  /* фонарь */
+  c.fillStyle=dark?'#74808C':'#5B6670'; c.fillRect(22,70,3,82); c.fillRect(18,68,12,3); c.fillStyle=dark?'#FFD98A':'#FFF1BE'; c.beginPath(); c.arc(24,66,4.5,0,6.283); c.fill();
+  /* фасад и зал */
+  c.fillStyle=dark?'#3A2A22':'#FFF3DE'; c.fillRect(100,0,LV_W-100,LV_FLOOR-6);
+  c.fillStyle=dark?'#2E211B':'#F2DFBF'; c.fillRect(100,96,LV_W-100,LV_FLOOR-102);
+  c.fillStyle=dark?'#4A3629':'#E5CFA8'; c.fillRect(100,94,LV_W-100,3);
+  for(var yy=LV_FLOOR-6; yy<LV_H; yy+=18){ for(var xx=100; xx<LV_W; xx+=18){ c.fillStyle=(((xx-100)/18+(yy-LV_FLOOR+6)/18)%2<1)?(dark?'#4A382C':'#F4E3C6'):(dark?'#3E2F25':'#EBD3AE'); c.fillRect(xx,yy,18,18); } }
+  /* дверь */
+  c.fillStyle='#8A5A2C'; c.fillRect(102,56,34,LV_FLOOR-56+6); c.fillStyle=dark?'#34465A':'#CFE6F2'; c.fillRect(106,62,26,50); c.fillStyle='rgba(255,255,255,.35)'; c.fillRect(108,64,8,46);
+  c.fillStyle='#F2B233'; c.fillRect(129,110,3,6);
+  /* маркиза */
+  var awn=S&&S.awn||'#D1361A'; for(var s2=0;s2<8;s2++){ c.fillStyle=s2%2?'#FFF6E7':awn; c.fillRect(96+s2*10,38,10,14); c.beginPath(); c.arc(101+s2*10,52,5,0,3.1416); c.fill(); }
+  c.fillStyle='rgba(0,0,0,.08)'; c.fillRect(96,38,80,3);
+  /* меловое меню */
+  c.fillStyle='#8A5A2C'; c.fillRect(150,26,56,46); c.fillStyle='#2F3D35'; c.fillRect(153,29,50,40); c.fillStyle='#F6F2E6'; c.font='700 11px Caveat, cursive'; c.textAlign='center'; c.fillText('МЕНЮ',178,43); c.fillRect(158,48,30,1.5); c.fillRect(158,55,38,1.5); c.fillRect(158,62,24,1.5); c.textAlign='left';
+  /* окно кухни */
+  c.fillStyle='#8A5A2C'; c.fillRect(226,22,92,52); c.fillStyle='#3A2A1F'; c.fillRect(230,26,84,44);
+  /* гирлянда, растение */
+  if(L.deco){ for(var b=0;b<10;b++){ c.fillStyle=['#F2B233','#D1361A','#2E7D4F','#B83A6B'][b%4]; c.globalAlpha=0.55+0.45*Math.abs(Math.sin(t*2+b)); c.beginPath(); c.arc(106+b*24,90+Math.sin(b*1.3)*3,2.6,0,6.283); c.fill(); } c.globalAlpha=1; }
+  c.fillStyle='#2E7D4F'; c.beginPath(); c.arc(346,118,9,0,6.283); c.arc(338,126,7,0,6.283); c.arc(352,128,7,0,6.283); c.fill(); c.fillStyle='#B0693A'; c.fillRect(340,132,13,12);
+  if(dark){ c.fillStyle='rgba(15,8,4,.22)'; c.fillRect(0,0,LV_W,LV_H); }
+}
+function lvCounter(c,t,busy){
+  c.fillStyle='#8A5A2C'; c.fillRect(256,126,100,8); c.fillStyle='#B07A3E'; c.fillRect(258,134,96,38); c.fillStyle='rgba(0,0,0,.12)'; for(var i=0;i<6;i++) c.fillRect(264+i*16,138,2,30);
+  /* касса */
+  c.fillStyle='#2B1810'; c.fillRect(296,112,22,14); c.fillStyle='#8EE8B4'; c.fillRect(299,115,16,6); c.fillStyle='#F2B233'; c.fillRect(301,122,12,3);
+  /* кофемашина */
+  c.fillStyle='#4A4F57'; c.fillRect(268,104,22,22); c.fillStyle='#C0C6CE'; c.fillRect(271,108,16,5); c.fillStyle=busy?'#D1361A':'#6FD09A'; c.beginPath(); c.arc(279,119,2.2,0,6.283); c.fill();
+  /* бариста */
+  var by=Math.sin(t*5)*(busy?1.6:0.6); c.fillStyle='#FFF6E7'; lvRound(c,324,104+by,14,22,5); c.fill(); c.fillStyle='#D1361A'; c.fillRect(327,112+by,8,14); c.fillStyle=LV_SKIN[1]; c.beginPath(); c.arc(331,98+by,6,0,6.283); c.fill(); c.fillStyle='#2B1810'; c.beginPath(); c.arc(331,95+by,6,3.14,6.283); c.fill();
+}
+function lvKitchen(c,t,busy){
+  var cx=272, bob=Math.sin(t*(busy?9:3))*(busy?2:0.8);
+  c.fillStyle='#FFFFFF'; lvRound(c,cx-9,40+bob,18,26,6); c.fill(); c.fillStyle=LV_SKIN[2]; c.beginPath(); c.arc(cx,36+bob,6,0,6.283); c.fill(); c.fillStyle='#FFFFFF'; lvRound(c,cx-7,22+bob,14,10,4); c.fill(); c.fillRect(cx-8,29+bob,16,4);
+  c.strokeStyle='#C0C6CE'; c.lineWidth=2.5; c.beginPath(); c.moveTo(cx+6,50+bob); c.lineTo(cx+20+Math.sin(t*10)*4,56+bob); c.stroke();
+  c.fillStyle='#C0C6CE'; c.fillRect(250,62,44,6);
+  if(busy){ c.strokeStyle='rgba(255,255,255,.75)'; c.lineWidth=1.8; for(var k=0;k<3;k++){ var x0=292+k*8, ph=(t*1.2+k*0.6)%1; c.beginPath(); c.moveTo(x0,60-ph*18); c.bezierCurveTo(x0-3,56-ph*18,x0+3,52-ph*18,x0,48-ph*18); c.globalAlpha=1-ph; c.stroke(); } c.globalAlpha=1; }
+}
+function lvTable(c,tb,t,occ){
+  c.fillStyle='rgba(0,0,0,.12)'; c.beginPath(); c.ellipse(tb.x,tb.y+10,17,5,0,0,6.283); c.fill();
+  c.fillStyle='#8A5A2C'; c.fillRect(tb.x-1.5,tb.y-2,3,12);
+  c.fillStyle='#FFFBF3'; c.beginPath(); c.ellipse(tb.x,tb.y-2,16,6.5,0,0,6.283); c.fill(); c.strokeStyle='#D9C3A5'; c.lineWidth=1.5; c.stroke();
+  c.strokeStyle='rgba(209,54,26,.35)'; c.lineWidth=1; c.beginPath(); c.ellipse(tb.x,tb.y-2,11,4,0,0,6.283); c.stroke();
+}
+function lvPerson(c,g,t,bubble){
+  var sz=g.kid?0.72:1, x=g.x, y=g.y, walk=g.walk, bob=walk?Math.abs(Math.sin(g.ph*9))*1.4:0, col=LV_SEG[g.seg]||'#888';
+  c.save(); c.translate(x,y-bob); c.scale(sz*(g.dir<0?-1:1),sz);
+  c.fillStyle='rgba(0,0,0,.14)'; c.beginPath(); c.ellipse(0,bob+1,7,2.4,0,0,6.283); c.fill();
+  if(!g.sit){ var sw=walk?Math.sin(g.ph*9)*3.2:0; c.strokeStyle='#3B2A1F'; c.lineWidth=2.4; c.lineCap='round'; c.beginPath(); c.moveTo(-2,-8); c.lineTo(-2+sw,0); c.moveTo(2,-8); c.lineTo(2-sw,0); c.stroke(); }
+  c.fillStyle=col; lvRound(c,-5.5,-22,11,15,4); c.fill();
+  if(g.seg==='stu'){ c.fillStyle='#1C4A85'; c.fillRect(-8,-19,4,9); }
+  if(g.seg==='off'){ c.fillStyle='#fff'; c.fillRect(-1.2,-21,2.4,6); c.fillStyle='#D1361A'; c.fillRect(-1,-20,2,6); }
+  if(g.seg==='fam'){ c.fillStyle='#A6D9B8'; c.fillRect(-5,-14,10,2.4); }
+  c.fillStyle=g.skin; c.beginPath(); c.arc(0,-27,5,0,6.283); c.fill();
+  c.fillStyle=g.hair; c.beginPath(); c.arc(0,-28.4,5,3.14,6.283); c.fill();
+  if(g.seg==='tur'){ c.fillStyle='#F2B233'; c.fillRect(-7,-31.5,14,2.2); c.beginPath(); c.arc(0,-32,4.6,3.14,6.283); c.fill(); c.fillStyle='#2B1810'; c.fillRect(4,-17,6,4); }
+  if(g.seg==='gou'){ c.fillStyle='#F6F2E6'; lvRound(c,-4,-37,8,7,2); c.fill(); c.fillRect(-5,-31.4,10,2); }
+  if(g.mood==='bad'){ c.strokeStyle='#8F1D0E'; c.lineWidth=1.3; c.beginPath(); c.moveTo(-2.5,-25.5); c.lineTo(-0.5,-26); c.moveTo(0.5,-26); c.lineTo(2.5,-25.5); c.moveTo(-2,-23.6); c.quadraticCurveTo(0,-25,2,-23.6); c.stroke(); }
+  else { c.fillStyle='#2B1810'; c.fillRect(-2.4,-27,1.3,1.5); c.fillRect(1.1,-27,1.3,1.5); if(g.mood==='good'){ c.strokeStyle='#8F2410'; c.lineWidth=1; c.beginPath(); c.arc(0,-25,2,0.2,2.9); c.stroke(); } }
+  c.restore();
+  if(bubble){ c.font='800 9px Nunito, sans-serif'; var w=c.measureText(bubble.t).width+10, bx=x-w/2, by=y-48*sz; bx=Math.max(2,Math.min(LV_W-w-2,bx)); c.fillStyle='#fff'; lvRound(c,bx,by,w,14,6); c.fill(); c.strokeStyle=bubble.bad?'#D1361A':'#2E7D4F'; c.lineWidth=1.3; c.stroke(); c.fillStyle=bubble.bad?'#8F1D0E':'#14532D'; c.textAlign='center'; c.fillText(bubble.t,bx+w/2,by+10); c.textAlign='left'; }
+}
+function lvDish(c,x,y,kind,t){
+  c.fillStyle='#fff'; c.beginPath(); c.ellipse(x,y-4,6,2.4,0,0,6.283); c.fill(); c.strokeStyle='#CDB89A'; c.lineWidth=1; c.stroke();
+  if(kind===0){ c.fillStyle='#6B3E26'; c.beginPath(); c.arc(x,y-7,3.4,3.14,6.283); c.fill(); c.fillRect(x-3.4,y-7,6.8,3); }
+  else if(kind===1){ c.fillStyle='#E8A628'; c.beginPath(); c.arc(x,y-6,4,0,6.283); c.fill(); c.fillStyle='#8EBF5A'; c.fillRect(x-2,y-8,4,2); }
+  else { c.fillStyle='#C97B4A'; c.beginPath(); c.ellipse(x,y-6,4,2.6,0,0,6.283); c.fill(); }
+  c.strokeStyle='rgba(120,100,80,.55)'; c.lineWidth=1; for(var k=0;k<2;k++){ var ph=(t*0.9+k*0.5)%1; c.globalAlpha=0.8-ph*0.8; c.beginPath(); c.moveTo(x-2+k*4,y-10-ph*9); c.quadraticCurveTo(x-4+k*4,y-13-ph*9,x-2+k*4,y-16-ph*9); c.stroke(); } c.globalAlpha=1;
+}
+function lvCat(c,t,L){
+  var x=74, y=164, tail=Math.sin(t*2.2)*5;
+  c.fillStyle='#E8863A'; c.beginPath(); c.ellipse(x,y-6,11,7,0,0,6.283); c.fill(); c.beginPath(); c.arc(x+8,y-12,6,0,6.283); c.fill();
+  c.beginPath(); c.moveTo(x+4,y-16); c.lineTo(x+5,y-22); c.lineTo(x+9,y-17); c.fill(); c.beginPath(); c.moveTo(x+9,y-17); c.lineTo(x+12,y-22); c.lineTo(x+13,y-15); c.fill();
+  c.strokeStyle='#E8863A'; c.lineWidth=3; c.lineCap='round'; c.beginPath(); c.moveTo(x-10,y-5); c.quadraticCurveTo(x-18,y-8+tail,x-16,y-16+tail); c.stroke();
+  c.fillStyle='#F6F2E6'; c.beginPath(); c.ellipse(x+6,y-4,4,2.4,0,0,6.283); c.fill();
+  c.strokeStyle='#2B1810'; c.lineWidth=1.2; c.beginPath(); c.moveTo(x+6,y-12.5); c.lineTo(x+9,y-12.5); c.moveTo(x+11,y-12.5); c.lineTo(x+13,y-12.5); c.stroke();
+}
+function lvRain(c,t,wx){
+  if(wx!=='rain') return; c.strokeStyle='rgba(60,90,120,.55)'; c.lineWidth=1.2;
+  for(var i=0;i<26;i++){ var x=(i*17.3+t*80)%110, y=((i*29.7)+t*220)%LV_H; c.beginPath(); c.moveTo(x,y); c.lineTo(x-2,y+7); c.stroke(); }
+}
+
+/* ---------- логика сцены ---------- */
+function lvMk(L,seg,lost){
+  var r=L.rng; return {seg:seg,x:-12,y:LV_FLOOR+8+r()*8,dir:1,state:lost?'peek':'in',t:0,ph:r()*6,skin:LV_SKIN[Math.floor(r()*5)],hair:LV_HAIR[Math.floor(r()*5)],kid:seg==='fam'&&r()<0.35,spot:-1,eat:0.45+r()*0.5,mood:'ok',walk:true,sit:false,lost:lost,dish:Math.floor(r()*3),sp:50+r()*16,bub:null,bt:0,pay:0};
+}
+function lvPickSeg(L){ var r=L.rng()*L.segSum, a=0, ks=['stu','off','fam','tur','gou']; for(var i=0;i<5;i++){ a+=L.seg[ks[i]]; if(r<=a) return ks[i]; } return 'stu'; }
+function lvStartDay(L,d){
+  var gu=L.D.gst[d], lo=L.D.lost[d], ns=gu>0?clamp(Math.round(gu/L.unit),1,2):0, nl=lo>0.6?clamp(Math.round(lo/L.unit*1.5),1,2):0;
+  L.day=d; L.wx=L.D.wx[d]||'cloud'; L.revDay=L.D.rev[d]; L.perSprite=ns?L.D.rev[d]/ns:0; L.gPer=ns?gu/ns:0; L.lPer=nl?lo/nl:0;
+  for(var i=0;i<ns;i++) L.spawn.push({at:L.el+L.rng()*LV_DAY*0.9,lost:false});
+  for(var j=0;j<nl;j++) L.spawn.push({at:L.el+L.rng()*LV_DAY*0.9,lost:true});
+  var dow=(L.D.dow0+d)%7; L.dowN=LV_DOWN[dow]; L.weekend=dow>=5;
+  var el=document.getElementById('lv-day'); if(el) el.textContent='День '+(d+1)+' · '+L.dowN; var w=document.getElementById('lv-wx'); if(w) w.textContent=LV_WXN[L.wx]||'';
+  var line=L.lines[d]; if(line) lvSay(line);
+}
+function lvSay(t){ var el=document.getElementById('lv-tick'); if(!el) return; el.innerHTML='<span class="lv-line">'+esc(t)+'</span>'; }
+function lvFreeSpot(L){
+  for(var i=0;i<LV_TABLES.length*2;i++){ if(!L.occ[i]) return i; }
+  for(var k=0;k<LV_STAND.length;k++){ if(!L.occ[10+k]) return 10+k; }
+  return -1;
+}
+function lvSpotPos(i){ if(i<10){ var tb=LV_TABLES[i>>1]; return {x:tb.x+((i&1)?13:-13),y:tb.y+2,sit:true,tb:tb}; } var s=LV_STAND[i-10]; return {x:s.x,y:s.y,sit:false}; }
+function lvCoin(L,x,y,v){ L.coins.push({x:x,y:y-26,t:0,v:v,sx:x,sy:y-26}); }
+function lvStep(L,dt){
+  /* появление гостей */
+  for(var i=L.spawn.length-1;i>=0;i--){ if(L.el>=L.spawn[i].at){ var sp=L.spawn.splice(i,1)[0]; L.gs.push(lvMk(L,lvPickSeg(L),sp.lost)); } }
+  var gs=L.gs;
+  for(var k=gs.length-1;k>=0;k--){
+    var g=gs[k]; g.t+=dt; g.ph+=dt; var s=g.state;
+    if(g.bt>0){ g.bt-=dt; if(g.bt<=0) g.bub=null; }
+    var spd=g.sp*(g.x<LV_DOOR-6?2.3:1);
+    if(s==='in'){ g.x+=spd*dt; g.dir=1; g.walk=true; if(g.x>=LV_DOOR){ g.state='go'; g.spot=lvFreeSpot(L); if(g.spot>=0) L.occ[g.spot]=true; else { g.spot=-1; g.state='out'; g.mood='bad'; g.bub={t:'Нет мест',bad:true}; g.bt=1.1; } } }
+    else if(s==='peek'){ g.x+=spd*dt; g.dir=1; g.walk=true; if(g.x>=LV_DOOR-14){ g.state='peeked'; g.t=0; g.walk=false; g.mood='bad'; g.bub={t:L.lostMsg,bad:true}; g.bt=1.0; L.lost+=L.lPer; } }
+    else if(s==='peeked'){ if(g.t>0.55){ g.state='leave'; } }
+    else if(s==='leave'){ g.x-=spd*1.3*dt; g.dir=-1; g.walk=true; if(g.x<-20) gs.splice(k,1); }
+    else if(s==='go'){ var p=g.spot>=0?lvSpotPos(g.spot):{x:LV_DOOR,y:LV_FLOOR+8,sit:false}, dx=p.x-g.x, dy=p.y-g.y, d=Math.sqrt(dx*dx+dy*dy)||1, st=g.sp*dt; g.dir=dx>=0?1:-1; g.walk=true; if(d<=st+0.5){ g.x=p.x; g.y=p.y; g.state='eat'; g.t=0; g.walk=false; g.sit=p.sit; g.dir=p.sit?((g.spot&1)?-1:1):1; } else { g.x+=dx/d*st; g.y+=dy/d*st; } }
+    else if(s==='eat'){ if(g.t>g.eat){ g.state='pay'; g.t=0; lvCoin(L,g.x,g.y,L.perSprite); L.guests+=L.gPer; g.mood=L.happy?'good':'ok'; if(L.rng()<0.28){ var m=L.praise[Math.floor(L.rng()*L.praise.length)]; g.bub=m; g.bt=1.0; } } }
+    else if(s==='pay'){ if(g.t>0.25){ if(g.spot>=0){ L.occ[g.spot]=false; g.spot=-1; } g.state='out'; g.sit=false; g.walk=true; } }
+    else if(s==='out'){ var tx2=g.x>LV_DOOR+2?LV_DOOR:-20, ty2=LV_FLOOR+8, ddx=tx2-g.x, ddy=ty2-g.y, dd=Math.sqrt(ddx*ddx+ddy*ddy)||1, s2=spd*dt; g.dir=ddx>=0?1:-1; g.walk=true; if(dd<=s2+0.5){ g.x=tx2; g.y=ty2; if(tx2<0) gs.splice(k,1); } else { g.x+=ddx/dd*s2; g.y+=ddy/dd*s2; } if(g.x<=LV_DOOR+2&&tx2===LV_DOOR) { g.x=LV_DOOR-1; } }
+  }
+  /* монеты летят в кассу */
+  for(var c2=L.coins.length-1;c2>=0;c2--){ var cn=L.coins[c2]; cn.t+=dt*1.5; var u=Math.min(1,cn.t); cn.x=cn.sx+(307-cn.sx)*u; cn.y=cn.sy+(116-cn.sy)*u-Math.sin(u*3.14)*22; if(u>=1){ L.rev+=cn.v; L.coins.splice(c2,1); if(L.coinSnd++%6===0) sfx('coin'); L.pulse=1; } }
+  if(L.pulse>0) L.pulse=Math.max(0,L.pulse-dt*4);
+}
+function lvDraw(L){
+  var c=L.ctx, t=L.time; c.setTransform(L.k,0,0,L.k,0,0); c.clearRect(0,0,LV_W,LV_H);
+  lvBg(c,L,t); lvRain(c,t,L.wx);
+  var occN=0; L.occ.forEach(function(v){ if(v) occN++; }); var busy=occN>2;
+  lvKitchen(c,t,busy); lvCounter(c,t,busy); lvCat(c,t,L);
+  var list=[]; LV_TABLES.forEach(function(tb,i){ list.push({y:tb.y,f:function(){ lvTable(c,tb,t); }}); });
+  L.gs.forEach(function(g){ list.push({y:g.y+(g.sit?5:0),f:function(){ lvPerson(c,g,t,g.bub); }}); });
+  /* официант */
+  var wy=LV_FLOOR+14, wx=290-Math.abs(Math.sin(t*0.9))*120, carry=Math.sin(t*0.9)>0;
+  list.push({y:wy,f:function(){ lvPerson(c,{seg:'off',x:wx,y:wy,dir:Math.cos(t*0.9)>0?-1:1,ph:t,skin:LV_SKIN[1],hair:LV_HAIR[0],walk:busy,sit:false,mood:'good',kid:false},t); c.fillStyle='#FFF6E7'; c.fillRect(wx-5,wy-20,10,9); c.fillStyle='#D1361A'; c.fillRect(wx-5,wy-12,10,2); if(busy&&carry){ c.fillStyle='#C0C6CE'; c.fillRect(wx+5,wy-22,10,2); lvDish(c,wx+10,wy-20,1,t); } }});
+  list.sort(function(a,b){ return a.y-b.y; }).forEach(function(o){ o.f(); });
+  L.gs.forEach(function(g){ if(g.state==='eat'&&g.sit){ var p=lvSpotPos(g.spot); lvDish(c,p.tb.x+(g.spot&1?7:-7),p.tb.y-1,g.dish,t); } });
+  /* монеты */
+  L.coins.forEach(function(cn){ c.fillStyle='#F2B233'; c.strokeStyle='#B9811A'; c.lineWidth=1.4; c.beginPath(); c.arc(cn.x,cn.y,4.4,0,6.283); c.fill(); c.stroke(); c.fillStyle='#B9811A'; c.font='900 6px Nunito, sans-serif'; c.textAlign='center'; c.fillText('₽',cn.x,cn.y+2.2); c.textAlign='left'; });
+  if(L.pulse>0){ c.strokeStyle='rgba(242,178,51,'+L.pulse+')'; c.lineWidth=3; c.beginPath(); c.arc(307,118,10+(1-L.pulse)*10,0,6.283); c.stroke(); }
+  if(L.weekend){ c.fillStyle='rgba(209,54,26,.9)'; lvRound(c,LV_W-76,6,70,16,8); c.fill(); c.fillStyle='#fff'; c.font='800 9.5px Nunito, sans-serif'; c.textAlign='center'; c.fillText('ВЫХОДНОЙ',LV_W-41,17.2); c.textAlign='left'; }
+}
+function lvCounters(L){
+  var r=document.getElementById('lv-rev'), g=document.getElementById('lv-g'), l=document.getElementById('lv-l'), bar=document.getElementById('lv-bar');
+  if(r) r.textContent=rub(Math.round(L.rev)); if(g) g.textContent=Math.round(L.guests).toLocaleString('ru-RU').replace(/,/g,' '); if(l) l.textContent=Math.round(L.lost).toLocaleString('ru-RU').replace(/,/g,' '); if(bar) bar.style.width=Math.min(100,((L.day+1)/30*100))+'%';
+}
+function lvFrame(ts){
+  var L=LV.L; if(!L||!LV.on) return;
+  var dt=Math.min(0.05,(ts-(L.last||ts))/1000); L.last=ts; if(L.fast) dt*=3;
+  L.time+=dt; L.el+=dt*1000;
+  while(L.day<29 && L.el>=(L.day+1)*LV_DAY) lvStartDay(L,L.day+1);
+  lvStep(L,dt); lvDraw(L);
+  if((L.cnt=(L.cnt||0)+1)%4===0) lvCounters(L);
+  if(L.el>=30*LV_DAY && !L.gs.length && !L.coins.length && !L.done){ L.done=true; L.rev=L.D.rev.reduce(function(a,b){ return a+b; },0); L.guests=sumArr(L.D.gst); L.lost=sumArr(L.D.lost); lvCounters(L); lvFinish(); return; }
+  LV.raf=requestAnimationFrame(lvFrame);
+}
+function lvFinish(){
+  var b=document.getElementById('lv-btn'); if(b){ b.classList.remove('secondary'); b.classList.add('pulse'); b.innerHTML=ico('right')+' Итоги месяца'; }
+  lvSay('Смена закончена!'); sfx('bell');
+  later(function(){ if(U.screen==='run') A.runskip(); },reduced?400:3600);
+}
+function liveStop(){ LV.on=false; if(LV.raf) cancelAnimationFrame(LV.raf); LV.raf=0; }
+function liveStart(){
+  liveStop(); var cv=document.getElementById('lv-canvas'); if(!cv||!U.report) return;
+  var R=U.report, D=lvData(R), k=Math.min(2.5,Math.max(1,window.devicePixelRatio||1)); cv.width=Math.round(LV_W*k); cv.height=Math.round(LV_H*k);
+  var m=D.main, mxG=Math.max.apply(null,D.gst.concat([1])), segSum=0; ['stu','off','fam','tur','gou'].forEach(function(x){ segSum+=D.seg[x]||0; }); if(!segSum){ segSum=5; D.seg={stu:1,off:1,fam:1,tur:1,gou:1}; }
+  var rng=lvRng((S.seed||'x')+'|live'+R.m), dims=m&&m.dims||{food:60,svc:60,val:70};
+  var praise=[]; if(dims.food>=70) praise.push({t:'Вкусно!'}); if(dims.atmo>=60) praise.push({t:'Уютно'}); if(dims.svc>=65) praise.push({t:'Быстро'}); if(dims.val>=85) praise.push({t:'Недорого'}); if(dims.val<55) praise.push({t:'Дороговато',bad:true}); if(dims.food<55) praise.push({t:'Пресно',bad:true}); if(!praise.length) praise.push({t:'Нормально'});
+  var lostMsg=m&&m.utilK>1.0?'Не успели':(m&&m.m&&m.m.menuprice>m.m.cap?'Не то меню':'Закрыто?');
+  var L={ctx:cv.getContext('2d'),k:k,D:D,rng:rng,seg:D.seg,segSum:segSum,unit:Math.max(1,mxG/1.5),day:-1,el:0,time:0,spawn:[],gs:[],coins:[],occ:[],rev:0,guests:0,lost:0,lines:lvLines(D,R),wx:D.wx[0]||'cloud',deco:!!(m&&m.dims&&m.dims.atmo>=60),praise:praise,lostMsg:lostMsg,happy:(m&&m.rating>=3.8),pulse:0,coinSnd:0,fast:false,done:false,perSprite:0,gPer:0,lPer:0};
+  LV.L=L; LV.on=true; lvStartDay(L,0);
+  if(reduced){ L.rev=sumArr(D.rev); L.guests=sumArr(D.gst); L.lost=sumArr(D.lost); L.day=29; lvStartDay(L,29); lvCounters(L); lvDraw(L); L.done=true; lvFinish(); LV.on=false; return; }
+  lvDraw(L); LV.raf=requestAnimationFrame(lvFrame);
+}
+function liveHTML(){
+  var R=U.report, D=lvData(R), city=D.main?CITIES[D.main.city].n:'', n=D.outs.length;
+  return '<article class="card live"><div class="lv-top"><div><b id="lv-day" class="lv-day">День 1</b><span class="lv-wx" id="lv-wx"></span></div><div class="lv-city">'+ico('pin','sm')+' '+esc(city)+(n>1?' + ещё '+(n-1):'')+'</div></div><div class="lv-stage"><canvas id="lv-canvas" role="img" aria-label="Кафе работает: гости приходят, заказывают, платят и уходят" width="360" height="212"></canvas></div><div class="lv-track" aria-hidden="true"><i id="lv-bar"></i></div><div class="lv-tick" id="lv-tick" aria-live="polite"></div>'+
+   '<div class="lv-stats"><div><small>Касса</small><b class="num" id="lv-rev">0 ₽</b></div><div><small>Гостей</small><b class="num" id="lv-g">0</b></div><div class="bad"><small>Ушли</small><b class="num" id="lv-l">0</b></div></div>'+
+   '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn secondary" id="lv-btn" data-act="runskip">Показать итоги '+ico('right')+'</button><button class="btn ghost small" data-act="runfast" aria-label="Ускорить">'+ico('right','sm')+ico('right','sm')+'</button></div></article>';
+}
+A.runfast=function(){ if(LV.L) LV.L.fast=!LV.L.fast; };
+
+/* ===== Интерфейс, часть 9: итоги месяца как история: герой, звёзды, главный совет, подробности по желанию ===== */
+
+var REP_SAY={
+  big:['Мяу! Касса звенит. Так держать!','Отличная смена: гости довольны, касса полна.','Вот это месяц! Борщ одобряет.'],
+  plus:['В плюсе! А можно ещё лучше: смотри совет.','Месяц закрыт с прибылью. Идём дальше!','Неплохо: деньги растут.'],
+  first:['Первый месяц всегда разгон. Минус бывает у всех, главное понять причину.','О нас ещё мало кто знает. Смотри совет ниже и поправим.'],
+  minus:['Минус. Давай найдём, куда утекают деньги.','Месяц в убыток: проверим расходы и цены.','Так нельзя долго. Но есть что подкрутить!'],
+  broke:['Касса опустела. Нужен план спасения: экономия, цены или кредит.']
+};
+function repPick(a,R){ return a[(hashStr((S.seed||'x')+'|rep'+R.m))%a.length]; }
+function repMood(R){ return R.profit<0?'angry':(R.profit>R.revTotal*0.12?'happy':'neutral'); }
+function repSay(R){
+  var m=R.profit/Math.max(1,R.revTotal);
+  if(S.emergStep>0) return repPick(REP_SAY.broke,R);
+  if(R.profit<0) return repPick(R.m<=2?REP_SAY.first:REP_SAY.minus,R);
+  if(m>0.14) return repPick(REP_SAY.big,R);
+  return repPick(REP_SAY.plus,R);
+}
+function repStars(R){
+  var live=R.outlets.filter(function(r){ return !r.building&&r.dims; }), dR=0, avgR=0; live.forEach(function(r){ dR+=(r.rating-(r.ratingOld||r.rating)); avgR+=r.rating; }); if(live.length){ dR/=live.length; avgR/=live.length; }
+  var goals=R.goals||[], goalOk=goals.some(function(g){ return g.ok; }), maxU=0; live.forEach(function(r){ maxU=Math.max(maxU,r.utilK||0); });
+  var list=[{ok:R.profit>0,t:'В плюсе'},{ok:dR>=0.02||avgR>=4.3,t:'Рейтинг растёт'},{ok:goals.length?goalOk:maxU<=1.0,t:goals.length?'Задание выполнено':'Без очередей'}];
+  return {n:list.filter(function(x){ return x.ok; }).length,list:list};
+}
+function insightGo(x){
+  var m={foodcost:{tab:'menu'},prime:{tab:'place'},rent:{tab:'guests'},capacity:{tab:'place'},waste:{tab:'place'},stock:{tab:'place'},loyalty:{tab:'guests'},pricing:{tab:'menu'},simple:{tab:'money',sub:'month'},menueng:{tab:'menu'},loan:{tab:'money',sub:'bank'},commission:{tab:'guests'},cashflow:{tab:'money',sub:'acc'},netprofit:{tab:'money',sub:'ana'},keyrate:{tab:'money',sub:'cty'},safety:{tab:'money',sub:'ana'},inflation:{tab:'menu'},rating:{tab:'place'}};
+  return (x&&x.term&&m[x.term])||{tab:'place'};
+}
+var TABN={home:'Главная',menu:'Меню',place:'Кухня',guests:'Гости',money:'Деньги',net:'Сеть'};
+function accHead(id,title,sub,open){
+  return '<button class="acc-h" data-act="accord" data-id="'+id+'" aria-expanded="'+open+'"><span><b>'+title+'</b>'+(sub?'<small>'+sub+'</small>':'')+'</span>'+ico(open?'up':'down','sm')+'</button>';
+}
+function accBlock(id,title,sub,body){ var open=!!(U.acc&&U.acc[id]); return '<section class="acc'+(open?' open':'')+'">'+accHead(id,title,sub,open)+(open?'<div class="acc-b">'+body+'</div>':'')+'</section>'; }
+A.accord=function(el){ var id=el.getAttribute('data-id'); U.acc=U.acc||{}; U.acc[id]=!U.acc[id]; render(true); };
+
+function reportHTML(){
+  var R=U.report; if(!R) return ''; var prevH=S.hist.length>=2?S.hist[S.hist.length-2]:null, r=reportOutlet(), t=R.total, st=repStars(R), ins=monthInsights(S,R), h='';
+  ins.forEach(function(x){ if(x.term) addTerm(x.term); });
+  var main=ins.filter(function(x){ return x.k==='warn'; })[0]||ins.filter(function(x){ return x.k==='info'; })[0]||ins[0], go=main?insightGo(main):null;
+  if(main){ S.adv={m:R.m,t:main.h,d:main.t,tab:go.tab,sub:go.sub||null}; }
+  var lost=0; R.outlets.forEach(function(x){ if(x.m) lost+=x.m.cap||0; });
+  var topDish=null; R.outlets.forEach(function(x){ (x.mix||[]).forEach(function(m){ if(!topDish||m.qty>topDish.qty) topDish=m; }); });
+  var multi=R.outlets.length>1, last=R.m>=TOTAL;
+  /* герой */
+  h+='<article class="rep-hero"><div class="rep-top"><span class="chip brand">'+ico('flag','sm')+' '+MONTHS[R.m-1]+' · месяц '+R.m+' из '+TOTAL+'</span><span class="rep-st" role="img" aria-label="Звёзд за месяц: '+st.n+' из 3">'+[1,2,3].map(function(i){ return '<svg class="rst'+(i<=st.n?' on':'')+'" viewBox="0 0 24 24"><path d="'+ICONS.star+'"/></svg>'; }).join('')+'</span></div>'+
+   '<div class="rep-say">'+avatarSVG('borsch',repMood(R),58)+'<div class="bubble">'+esc(repSay(R))+'</div></div>'+
+   '<div class="rep-big"><small>Прибыль за месяц</small><b class="num '+(R.profit>=0?'gain-t':'loss-t')+'" id="rp-prof">'+sgn(R.profit)+'</b>'+(prevH?'<span class="rep-d">'+(dlt(R.profit,prevH.profit)||'как в прошлом месяце')+'</span>':'')+'</div>'+
+   '<div class="rep-tiles"><div><small>Выручка, ₽</small><b class="num">'+rubk(R.revTotal).replace(/ ₽$/,'')+'</b>'+(prevH?dlt(R.revTotal,prevH.rev):'')+'</div><div><small>Гостей в день</small><b class="num">'+Math.round(R.guests/30)+'</b>'+(prevH?dlt(R.guests,prevH.guests):'')+'</div><div class="'+(lost>R.guests*0.06?'bad':'')+'"><small>Не обслужили</small><b class="num">'+Math.round(lost)+'</b><i>за месяц</i></div></div>'+
+   '<div class="rep-stl">'+st.list.map(function(x){ return '<span class="'+(x.ok?'ok':'')+'">'+ico(x.ok?'check':'x','sm')+x.t+'</span>'; }).join('')+'</div>'+
+   '<p class="rep-cash">В кассе <b class="num">'+rub(S.cash)+'</b> · рейтинг '+f1d(R.rating)+(topDish&&topDish.qty>0?' · хит месяца: <b>'+esc(topDish.name)+'</b>':'')+'</p></article>';
+  /* важное: награды, потери, долг */
+  var ev=[]; if(U.newAch&&U.newAch.length){
+    if(U.newAch.length===1){ var a1=U.newAch[0]; ev.push('<div class="award on"><span class="fico">'+ico(a1.icon)+'</span><div><b>Новая награда: '+esc(a1.n)+'</b><small>'+esc(a1.d)+'</small></div></div>'); }
+    else ev.push('<div class="award on"><span class="fico">'+ico('award')+'</span><div><b>Новые награды: '+U.newAch.length+'</b><small>Все собраны в «Наградах» (меню)</small><div class="awards-line">'+U.newAch.map(function(a){ return '<span>'+ico(a.icon,'sm')+esc(a.n)+'</span>'; }).join('')+'</div></div></div>');
+  }
+  (R.quits||[]).forEach(function(q){ ev.push('<div class="insight warn"><span class="ico">'+ico('warn')+'</span><div><b>Ушёл сотрудник</b><p>Из-за низкого настроения команды ушёл человек: '+ROLES[q.role].n.toLowerCase()+' в «'+esc(CITIES[outletById(S,q.o)?outletById(S,q.o).city:'tula'].n)+'». Подумайте о зарплате и нагрузке.</p></div></div>'); });
+  if(S.emergStep) ev.push('<div class="insight warn"><span class="ico">'+ico('bank')+'</span><div><b>Касса опустела</b><p>Не хватило '+rub(S.emergStep)+', это стало экстренным долгом под 3,5% в месяц. Погасите его, как только появятся деньги.</p></div></div>');
+  if(R.goals&&R.goals.some(function(x){ return x.ok; })){ var gs=R.goals.filter(function(x){ return x.ok; }); ev.push('<div class="insight good"><span class="ico">'+ico('target')+'</span><div><b>Задание выполнено: +'+rub(sumArr(gs.map(function(x){ return QUEST_BY_ID[x.id].rew; })))+'</b><p>'+gs.map(function(x){ return esc(QUEST_BY_ID[x.id].n); }).join(', ')+'</p></div></div>'); }
+  if(ev.length) h+='<div class="rep-ev">'+ev.join('')+'</div>';
+  /* главный совет */
+  if(main){ h+='<section class="advice"><div class="advice-h">'+avatarSVG('arsen','neutral',44)+'<div><small>Совет на следующий месяц</small><b>'+esc(main.h)+'</b></div></div><p>'+esc(main.t)+'</p><div class="chips">'+(main.term?termChip(main.term):'')+'<span class="chip brand">'+ico('pin','sm')+' разобрать во вкладке «'+TABN[go.tab]+'»</span></div></section>'; }
+  var more=ins.filter(function(x){ return x!==main; });
+  if(more.length) h+=accBlock('tips','Ещё советы ('+more.length+')','',more.map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p>'+(x.term?termChip(x.term):'')+'</div></div>'; }).join(''));
+  /* отзывы */
+  var revs=[]; R.outlets.forEach(function(x){ (x.reviews||[]).forEach(function(rv){ revs.push(rv); }); }); revs=revs.slice(0,3);
+  if(revs.length) h+='<section class="card"><h3>'+ico('chat')+'Что говорят гости</h3>'+revs.map(function(rv){ return '<div class="review">'+starsSVG(rv.st,14)+'<div><div class="who">Гость</div><p>'+esc(rv.t)+'</p></div></div>'; }).join('')+'</section>';
+  /* подробности */
+  if(multi) h+='<div class="outsel" role="group" aria-label="Заведение в отчёте">'+R.outlets.map(function(x){ return '<button aria-pressed="'+(r&&r.id===x.id)+'" data-act="repout" data-o="'+x.id+'">'+ico('building','sm')+' '+esc(CITIES[x.city].n)+(x.building?' (стройка)':'')+'</button>'; }).join('')+'</div>';
+  h+=accBlock('chk','Чек месяца','выручка, расходы, налог','<div class="kpi">'+metric('Фуд-кост',pct(t.cogs/Math.max(1,t.rev)),'продукты',t.cogs/Math.max(1,t.rev)>0.36?'bad':'ok')+metric('Прайм-кост',pct((t.cogs+t.wages)/Math.max(1,t.rev)),'продукты + зарплаты',(t.cogs+t.wages)/Math.max(1,t.rev)>0.67?'bad':'ok')+'</div>'+plHTML(R)+(R.depInterest>0?'<p class="small muted" style="margin:6px 0 0">Проценты по вкладу: +'+rub(R.depInterest)+' (идут в капитал)</p>':'')+'<div class="chips">'+termChip('revenue')+termChip('pnl')+'</div>');
+  if(r&&!r.building){
+    h+=accBlock('out','«'+esc(CITIES[r.city].n)+'»: как прошёл месяц','гости, чек, загрузка','<div class="kpi">'+metric('Выручка',rubk(r.rev))+metric('Гостей в день',Math.round(r.guests/30),'')+metric('Средний чек',rub(r.avgCheck),'')+metric('Загрузка',pct(r.utilK),r.utilK>1?'спрос выше возможностей':'есть запас',r.utilK>1?'bad':'ok')+'</div><div class="row">'+starsSVG(r.rating,18)+'<span class="small muted">'+(r.rating>r.ratingOld+0.02?'рейтинг вырос':(r.rating<r.ratingOld-0.02?'рейтинг упал':'рейтинг стабилен'))+'</span></div>');
+    var days=r.days, dmx=Math.max.apply(null,days.concat([1]));
+    h+=accBlock('days','Выручка по дням','тепловая карта месяца','<div class="cal" aria-hidden="true">'+days.map(function(v,i){ var hh=Math.round(v/dmx*100); return '<i style="--i:'+i+';--h:'+hh+'" class="'+(hh>66?'hi':'')+'">'+(i+1)+'</i>'; }).join('')+'</div><p class="small muted" style="margin:6px 0 0">Каждая клетка — день месяца. Выходные и погода меняют поток гостей.</p>');
+    h+=accBlock('fun','Куда делись гости','путь гостя за месяц',funnelHTML(r));
+    var top=r.mix.slice().sort(function(a,b){ return b.rev-a.rev; }).slice(0,6), NM={star:'Звезда',horse:'Конь',puzzle:'Загадка',dog:'Балласт'};
+    h+=accBlock('sold','Что покупали','самые прибыльные блюда','<div class="pl">'+top.map(function(m){ return '<div class="pl-row"><span>'+esc(m.name)+' <span class="cls '+m.cls+'">'+NM[m.cls]+'</span></span><b class="num">'+Math.round(m.qty)+' шт.</b><div class="bar"><i style="width:'+clamp(m.rev/Math.max(1,top[0].rev)*100,0,100)+'%"></i></div></div>'; }).join('')+'</div>'+termChip('menueng'));
+    if(r.banNote&&r.banNote.length) h+=accBlock('ban','Банкеты и заказы','',r.banNote.map(function(b){ return '<div class="pl-row '+(b.ok?'plus':'minus')+'"><span>'+esc(b.name)+' <span class="hint">'+(b.ok?'справились':'не справились: вернули часть денег')+'</span></span><b class="num">'+rub(b.rev)+'</b></div>'; }).join(''));
+  }
+  if(R.goals&&R.goals.length){ var gs2=R.goals, got=gs2.filter(function(x){ return x.ok; }); h+=accBlock('quests','Задания месяца: '+got.length+' из '+gs2.length,'','<div class="questres">'+gs2.map(function(x){ var q=QUEST_BY_ID[x.id]; return '<div class="qr '+(x.ok?'ok':'')+'">'+ico(x.ok?'check':'x')+'<span><b>'+esc(q.n)+'</b><div class="small muted">'+esc(q.d)+'</div></span><b class="num '+(x.ok?'gain-t':'')+'">'+(x.ok?'+'+rub(q.rew):'—')+'</b></div>'; }).join('')+'</div>'); }
+  if(R.regs&&R.regs.length){ h+=accBlock('regs','Постоянные гости','',R.regs.map(function(x){ var d=REG_BY_ID[x.id]; return '<div class="reg">'+avatarSVG(d.who,x.h>=3?'happy':'',42)+'<div class="grow"><b>'+esc(d.n)+'</b> '+heartsHTML(x.h)+'<div class="small muted">'+(x.gift?'Стал другом кафе! '+esc(d.gift)+' +10 000 ₽':(x.dh>0?'Стал ближе: ему понравилось меню':(x.dh<0?'Скучает по любимому блюду':'Всё по-прежнему')))+'</div></div></div>'; }).join('')); }
+  if(S.hq.upg.secret && R.outlets.some(function(x){ return !x.building&&x.dims; })){ h+=accBlock('secret','Отчёт тайного гостя','',R.outlets.filter(function(x){ return !x.building&&x.dims; }).map(function(x){ var names={food:'вкус',svc:'сервис',cln:'чистоту',atmo:'уют',val:'цену и качество'}, w=Object.keys(x.dims).sort(function(a,b){ return x.dims[a]-x.dims[b]; })[0]; return '<div class="insight info"><span class="ico">'+ico('eye')+'</span><div><b>«'+esc(CITIES[x.city].n)+'»: слабее всего '+names[w]+'</b><p>Оценка '+Math.round(x.dims[w])+' из 100. Вкус '+Math.round(x.dims.food)+', сервис '+Math.round(x.dims.svc)+', чистота '+Math.round(x.dims.cln)+', уют '+Math.round(x.dims.atmo)+'.</p></div></div>'; }).join('')); }
+  var g=goalNow(S);
+  h+='<div class="chalk"><h3>'+ico('flag')+'До цели</h3><ul><li class="'+(g.okCities?'done':'')+'">'+ico(g.okCities?'check':'target')+'<span>Города: '+g.cities+' из '+g.needCities+'</span></li><li class="'+(g.okCap?'done':'')+'">'+ico(g.okCap?'check':'target')+'<span>Капитал: '+rubk(g.cap)+' из '+rubk(g.needCap)+'</span></li><li class="'+(g.okRating?'done':'')+'">'+ico(g.okRating?'check':'target')+'<span>Рейтинг: '+f1d(g.rating)+' из '+f1d(g.needRating)+'</span></li></ul></div>';
+  h+='<div class="row" style="justify-content:space-between;margin:16px 0 8px"><button class="btn ghost" data-act="rewind">'+ico('undo')+' Переиграть месяц</button><button class="btn pulse" data-act="repnext">'+(S.bankrupt?'К итогам':(last?'К финалу':'Дальше'))+' '+ico('right')+'</button></div>';
+  return h;
+}
+
+/* совет с прошлого месяца на «Главной» */
+function advCardHTML(){
+  var a=S.adv; if(!a||a.m!==S.month-1) return '';
+  return '<section class="advice home"><div class="advice-h">'+avatarSVG('arsen','neutral',40)+'<div><small>Совет с прошлого месяца</small><b>'+esc(a.t)+'</b></div></div><p>'+esc(a.d)+'</p><div class="row"><button class="btn small" data-act="advgo">'+ico('right','sm')+' Открыть «'+TABN[a.tab]+'»</button><button class="btn ghost small" data-act="advoff">Понятно</button></div></section>';
+}
+A.advgo=function(){ var a=S.adv; if(!a) return; U.tab=a.tab; if(a.sub){ U.msub=a.sub; S.seen['sub_'+a.sub]=1; } U.pv=null; render(); window.scrollTo(0,0); };
+A.advoff=function(){ if(S.adv) S.adv.m=-1; persist(); render(true); };
+
+/* первая неделя: список дел вместо длинного текста */
+function chkItems(){
+  var o=S.outlets[0], mk=Object.keys(o.mk||{}).some(function(k){ return o.mk[k]; });
+  var fill=S.menu.some(function(id){ var d=DISH[id]; return d&&(d.cat==='salad'||d.cat==='dess'); });
+  return [
+    {done:fill, t:'Добавьте в меню салат или десерт', d:'Без них часть гостей уходит: в меню есть не всё', tab:'menu'},
+    {done:mk, t:'Включите недорогую рекламу', d:'Листовки стоят 3 000 ₽. О кафе пока никто не знает', tab:'guests'},
+    {done:!!S.tut.placeSeen, t:'Загляните в «Кухню»', d:'Хватает ли рук? Уборщик поднимет рейтинг, но стоит денег', tab:'place'},
+    {done:!!S.tut.moneySeen, t:'Проверьте прогноз в «Деньгах»', d:'Сколько гостей нужно, чтобы выйти в ноль', tab:'money'}
+  ];
+}
+function chkHTML(){
+  var it=chkItems(), n=it.filter(function(x){ return x.done; }).length, all=n===it.length;
+  var h='<section class="chk"><div class="chk-h">'+avatarSVG('borsch',all?'happy':'neutral',44)+'<div><b>'+(all?'Всё готово. Запускайте месяц!':'Первая неделя: 4 дела')+'</b><small>'+(all?'Прогноз внизу покажет, что получится':'Сделано '+n+' из '+it.length)+'</small></div></div><div class="chk-bar"><i style="width:'+Math.round(n/it.length*100)+'%"></i></div>';
+  h+='<ul>'+it.map(function(x){ return '<li class="'+(x.done?'done':'')+'"><button data-act="tab" data-tab="'+x.tab+'" aria-label="'+esc(x.t)+(x.done?' (сделано)':'')+'">'+ico(x.done?'check':'target')+'<span><b>'+esc(x.t)+'</b>'+(x.done?'':'<small>'+esc(x.d)+'</small>')+'</span>'+(x.done?'':ico('right','sm'))+'</button></li>'; }).join('')+'</ul></section>';
+  return h;
+}
+/* подсказки Борща: включить/выключить, сами гаснут после 3-го месяца */
+A.togglehints=function(){ S.hints=S.hints===false; persist(); closeModal(); toast(S.hints===false?'Подсказки выключены':'Подсказки включены'); render(true); };
+function hintsAuto(){ if(S&&S.month>3&&!S.hintsAuto){ S.hintsAuto=1; S.hints=false; } }
+/* прогноз прибыли «живой»: чип с изменением после каждого решения */
+function deltaChip(p){
+  var pr=Math.round(p/1000)*1000, out='';
+  if(U.lastP!=null&&pr!==U.lastP){ U.dChip={v:pr-U.lastP,t:Date.now()}; }
+  U.lastP=pr;
+  var d=U.dChip, el=d?Date.now()-d.t:9e9;
+  if(d&&el<2800) out='<span class="dchip '+(d.v>0?'up':'dn')+'" style="animation-delay:-'+Math.round(el)+'ms" aria-live="polite">'+(d.v>0?'▲ +':'▼ −')+Math.abs(d.v).toLocaleString('ru-RU').replace(/,/g,' ')+' ₽</span>';
+  return out;
+}
+
 /* ===== Интерфейс, часть 4: запуск месяца, итоги, финал, действия, запуск ===== */
 
 /* ---------- предупреждения перед запуском ---------- */
@@ -4118,18 +4564,12 @@ function doGo(){
   applyMonth(S,R); U.newAch=checkAch(S,R); U.newAch.forEach(function(a){ logEv(S,'ach','Награда «'+a.n+'»'); }); U.pv=null;
   if(S.emerg>600000 || (S.emerg>0 && S.debt+S.emerg>2600000)){ S.bankrupt=R.m; }
   U.screen='run'; U.runT0=Date.now(); render(); sfx('bell');
-  if(!reduced) later(function(){ if(U.screen==='run') A.runskip(); },4600); else later(function(){ if(U.screen==='run') A.runskip(); },600);
 }
 function runHTML(){
-  var R=U.report, r=R.outlets.filter(function(x){ return x.days&&x.days.length; })[0], days=(r&&r.days)||[], mx=Math.max.apply(null,days.concat([1])), out='';
-  var cells=days.map(function(v,i){ var h=Math.round(v/mx*100); return '<i class="'+(h>66?'hi ':'')+'" style="--i:'+i+';--h:'+h+'">'+(i+1)+'</i>'; }).join('');
-  return '<article class="card" style="text-align:center"><h2>Идёт месяц: '+MONTHS[R.m-1]+'</h2><p class="muted">Каждая клетка — день. Чем краснее, тем больше выручка.</p><div class="cal" style="max-width:420px;margin:10px auto" aria-hidden="true">'+cells+'</div><div class="fact">'+ico('sparkle')+'<span><b>Знаете ли вы?</b> '+esc(FACTS[(R.m*5+hashStr(S.seed))%FACTS.length])+'</span></div><p class="muted">'+(r?esc(CITIES[r.city].n)+': ':'')+'гостей <b class="num" id="run-g">0</b>, выручка <b class="num" id="run-r">0 ₽</b></p><button class="btn secondary" data-act="runskip">Показать итоги '+ico('right')+'</button></article>';
+  var R=U.report; return '<h2 class="lv-h">'+MONTHS[R.m-1]+': кафе работает</h2>'+liveHTML()+'<div class="fact">'+ico('sparkle')+'<span><b>Знаете ли вы?</b> '+esc(FACTS[(R.m*5+hashStr(S.seed))%FACTS.length])+'</span></div>';
 }
-function runAnim(){
-  var R=U.report, g=$('#run-g'), rr=$('#run-r'); if(!g) return;
-  var tg=R.guests, tr=R.revTotal; animateNumber(g,0,tg,3200,function(v){ return String(Math.round(v)); }); animateNumber(rr,0,tr,3200,rub);
-}
-A.runskip=function(){ clearTimers(); U.screen='report'; render(); if(U.newAch&&U.newAch.length){ sfx('win'); burst(60); } else sfx('good'); };
+function runAnim(){ liveStart(); }
+A.runskip=function(){ liveStop(); clearTimers(); U.screen='report'; render(); if(U.newAch&&U.newAch.length){ sfx('win'); burst(60); } else sfx('good'); };
 
 /* ---------- итоги месяца ---------- */
 function reportOutlet(){ var R=U.report, id=U.repOutlet||(R.outlets[0]&&R.outlets[0].id); return R.outlets.filter(function(x){ return x.id===id; })[0]||R.outlets[0]; }
@@ -4139,39 +4579,6 @@ function funnelHTML(r){
   return '<div class="funnel">'+row('Были поблизости',pool,'')+row('Узнали и заинтересовались',a,'','Не узнали о вас: '+Math.round(m.aware))+row('Меню и цена подошли',w,'','Ушли из-за меню и цены: '+Math.round(m.menuprice))+row('Обслужили',s,'','Не хватило мест, людей или кухни: '+Math.round(m.cap))+'</div>';
 }
 function dlt(cur,prev,fmtf){ if(prev==null||!isFinite(prev)||Math.abs(prev)<1) return ''; var d=(cur-prev)/Math.abs(prev); if(Math.abs(d)<0.005) return ''; return '<span class="delta '+(d>0?'up':'dn')+'">'+(d>0?'▲ +':'▼ −')+Math.abs(Math.round(d*100))+'%</span>'; }
-function reportHTML(){
-  var R=U.report; if(!R) return ''; var prevH=S.hist.length>=2?S.hist[S.hist.length-2]:null; var r=reportOutlet(), h='', t=R.total, mx=Math.max(1,R.revTotal);
-  var multi=R.outlets.length>1;
-  h+='<div class="ticket"><div class="tag">Итоги месяца</div><h2>'+MONTHS[R.m-1]+' · месяц '+R.m+' из '+TOTAL+'</h2>'+
-   '<div class="row" style="justify-content:center;margin:8px 0">'+starsSVG(R.rating,20)+'<b class="num">'+f1d(R.rating)+'</b></div>'+
-   '<div class="pl-row total" style="border-top:0;margin:0"><span>Прибыль</span><b class="num '+(R.profit>=0?'gain-t':'loss-t')+'" id="rp-prof">'+sgn(R.profit)+'</b></div>'+
-   '<div class="kpi" style="margin-top:12px">'+metric('Выручка',rubk(R.revTotal),'к прошлому месяцу '+(prevH?dlt(R.revTotal,prevH.rev)||'без изменений':'—'))+metric('Гостей',Math.round(R.guests).toLocaleString('ru-RU').replace(/,/g,' '),'за месяц '+(prevH?dlt(R.guests,prevH.guests):''))+metric('Фуд-кост',pct(t.cogs/Math.max(1,t.rev)),'продукты',t.cogs/Math.max(1,t.rev)>0.36?'bad':'ok')+metric('Прайм-кост',pct((t.cogs+t.wages)/Math.max(1,t.rev)),'продукты + зарплаты',(t.cogs+t.wages)/Math.max(1,t.rev)>0.67?'bad':'ok')+'</div>'+plHTML(R)+(R.depInterest>0?'<p class="small muted" style="text-align:center;margin:6px 0 0">Проценты по вкладу: +'+rub(R.depInterest)+' (идут в капитал)</p>':'')+'<p class="small muted" style="text-align:center;margin:8px 0 0">В кассе: '+rub(S.cash)+'</p></div>';
-  if(multi) h+='<div class="outsel" role="group" aria-label="Заведение в отчёте">'+R.outlets.map(function(x){ return '<button aria-pressed="'+(r&&r.id===x.id)+'" data-act="repout" data-o="'+x.id+'">'+ico('building','sm')+' '+esc(CITIES[x.city].n)+(x.building?' (стройка)':'')+'</button>'; }).join('')+'</div>';
-  if(r && !r.building){
-    h+=card('«'+esc(CITIES[r.city].n)+'»: как прошёл месяц','<div class="kpi">'+metric('Выручка',rubk(r.rev))+metric('Гостей в день',Math.round(r.guests/30),'')+metric('Средний чек',rub(r.avgCheck),'')+metric('Загрузка',pct(r.utilK),r.utilK>1?'спрос выше возможностей':'есть запас',r.utilK>1?'bad':'ok')+'</div><div class="row">'+starsSVG(r.rating,18)+'<span class="small muted">'+(r.rating>r.ratingOld+0.02?'рейтинг вырос':(r.rating<r.ratingOld-0.02?'рейтинг упал':'рейтинг стабилен'))+'</span></div>',{ic:'building'});
-    var days=r.days, dmx=Math.max.apply(null,days.concat([1]));
-    h+=card('Выручка по дням','<div class="cal" aria-hidden="true">'+days.map(function(v,i){ var hh=Math.round(v/dmx*100); return '<i style="--i:'+i+';--h:'+hh+'" class="'+(hh>66?'hi':'')+'">'+(i+1)+'</i>'; }).join('')+'</div><p class="small muted" style="margin:6px 0 0">Каждая клетка — день месяца. Выходные и погода меняют поток гостей.</p>',{ic:'calendar'});
-    h+=card('Куда делись гости','<p class="sub">Путь гостя за месяц.</p>'+funnelHTML(r),{ic:'people'});
-    var top=r.mix.slice().sort(function(a,b){ return b.rev-a.rev; }).slice(0,6);
-    h+=card('Что покупали','<div class="pl">'+top.map(function(m,i){ var d=DISH[m.id]||localDish({city:r.city}); return '<div class="pl-row"><span>'+esc(m.name)+' <span class="cls '+m.cls+'">'+{star:'Звезда',horse:'Конь',puzzle:'Загадка',dog:'Балласт'}[m.cls]+'</span></span><b class="num">'+Math.round(m.qty)+' шт.</b><div class="bar"><i style="width:'+clamp(m.rev/Math.max(1,top[0].rev)*100,0,100)+'%"></i></div></div>'; }).join('')+'</div>'+termChip('menueng'),{ic:'book'});
-    if(r.reviews&&r.reviews.length) h+=card('Отзывы',r.reviews.map(function(rv){ return '<div class="review">'+starsSVG(rv.st,14)+'<div><div class="who">Гость</div><p>'+esc(rv.t)+'</p></div></div>'; }).join(''),{ic:'chat'});
-    if(r.banNote&&r.banNote.length) h+=card('Банкеты и заказы',r.banNote.map(function(b){ return '<div class="pl-row '+(b.ok?'plus':'minus')+'"><span>'+esc(b.name)+' <span class="hint">'+(b.ok?'справились':'не справились: вернули часть денег')+'</span></span><b class="num">'+rub(b.rev)+'</b></div>'; }).join(''),{ic:'gift'});
-  }
-  if(R.goals&&R.goals.length){ var gs=R.goals, got=gs.filter(function(x){ return x.ok; }); h+=card('Задания месяца: '+got.length+' из '+gs.length,'<div class="questres">'+gs.map(function(x){ var q=QUEST_BY_ID[x.id]; return '<div class="qr '+(x.ok?'ok':'')+'">'+ico(x.ok?'check':'x')+'<span><b>'+esc(q.n)+'</b><div class="small muted">'+esc(q.d)+'</div></span><b class="num '+(x.ok?'gain-t':'')+'">'+(x.ok?'+'+rub(q.rew):'—')+'</b></div>'; }).join('')+'</div>',{ic:'target'}); }
-  if(R.regs&&R.regs.length){ h+=card('Постоянные гости','<div class="regs">'+R.regs.map(function(x){ var d=REG_BY_ID[x.id]; return '<div class="reg">'+avatarSVG(d.who,x.h>=3?'happy':'',42)+'<div class="grow"><b>'+esc(d.n)+'</b> '+heartsHTML(x.h)+'<div class="small muted">'+(x.gift?'Стал другом кафе! '+esc(d.gift)+' +10 000 ₽':(x.dh>0?'Стал ближе: ему понравилось меню':(x.dh<0?'Скучает по любимому блюду':'Всё по-прежнему')))+'</div></div></div>'; }).join('')+'</div>',{ic:'heart'}); }
-  if(S.hq.upg.secret && R.outlets.some(function(x){ return !x.building&&x.dims; })){ h+=card('Отчёт тайного гостя','<div class="insights-list">'+R.outlets.filter(function(x){ return !x.building&&x.dims; }).map(function(x){ var names={food:'вкус',svc:'сервис',cln:'чистоту',atmo:'уют',val:'цену и качество'}, w=Object.keys(x.dims).sort(function(a,b){ return x.dims[a]-x.dims[b]; })[0]; return '<div class="insight info"><span class="ico">'+ico('eye')+'</span><div><b>«'+esc(CITIES[x.city].n)+'»: слабее всего '+names[w]+'</b><p>Оценка '+Math.round(x.dims[w])+' из 100. Вкус '+Math.round(x.dims.food)+', сервис '+Math.round(x.dims.svc)+', чистота '+Math.round(x.dims.cln)+', уют '+Math.round(x.dims.atmo)+'.</p></div></div>'; }).join('')+'</div>',{ic:'eye'}); }
-  var ins=monthInsights(S,R); ins.forEach(function(x){ if(x.term) addTerm(x.term); });
-  if(ins.length) h+=card('Подсказки Борща и Арсена','<div>'+ins.map(function(x){ return '<div class="insight '+x.k+'"><span class="ico">'+ico(x.k==='good'?'check':(x.k==='warn'?'warn':'info'))+'</span><div><b>'+esc(x.h)+'</b><p>'+esc(x.t)+'</p>'+(x.term?termChip(x.term):'')+'</div></div>'; }).join('')+'</div>',{ic:'sparkle'});
-  var ev=[]; if(U.newAch&&U.newAch.length) U.newAch.forEach(function(a){ ev.push('<div class="award on"><span class="fico">'+ico(a.icon)+'</span><div><b>Награда: '+esc(a.n)+'</b><small>'+esc(a.d)+'</small></div></div>'); });
-  (R.quits||[]).forEach(function(q){ ev.push('<div class="insight warn"><span class="ico">'+ico('warn')+'</span><div><b>Ушёл сотрудник</b><p>Из-за низкого настроения команды ушёл человек: '+ROLES[q.role].n.toLowerCase()+' в «'+esc(CITIES[outletById(S,q.o)?outletById(S,q.o).city:'tula'].n)+'». Подумайте о зарплате и нагрузке.</p></div></div>'); });
-  if(S.emergStep) ev.push('<div class="insight warn"><span class="ico">'+ico('bank')+'</span><div><b>Касса опустела</b><p>Не хватило '+rub(S.emergStep)+', это стало экстренным долгом под 3,5% в месяц. Погасите его, как только появятся деньги.</p></div></div>');
-  if(ev.length) h+=card('Что ещё случилось','<div class="awards">'+ev.join('')+'</div>',{ic:'bolt'});
-  var g=goalNow(S);
-  h+='<div class="chalk"><h3>'+ico('flag')+'До цели</h3><ul><li class="'+(g.okCities?'done':'')+'">'+ico(g.okCities?'check':'target')+'<span>Города: '+g.cities+' из '+g.needCities+'</span></li><li class="'+(g.okCap?'done':'')+'">'+ico(g.okCap?'check':'target')+'<span>Капитал: '+rubk(g.cap)+' из '+rubk(g.needCap)+'</span></li><li class="'+(g.okRating?'done':'')+'">'+ico(g.okRating?'check':'target')+'<span>Рейтинг: '+f1d(g.rating)+' из '+f1d(g.needRating)+'</span></li></ul></div>';
-  var last=R.m>=TOTAL;
-  h+='<div class="row" style="justify-content:space-between;margin:16px 0 8px"><button class="btn ghost" data-act="rewind">'+ico('undo')+' Переиграть месяц</button><button class="btn" data-act="repnext">'+(S.bankrupt?'К итогам':(last?'К финалу':'Дальше'))+' '+ico('right')+'</button></div>';
-  return h;
-}
 A.repout=function(el){ U.repOutlet=el.getAttribute('data-o'); render(true); };
 A.rewind=function(){
   if(!U.snap){ toast('Нечего переигрывать',true); return; }
@@ -4241,7 +4648,7 @@ function enterMonth(){
   if(S.month===TOTAL){ toPlan(); return; }
   U.screen='scene'; U.sc={step:0,done:[]}; render();
 }
-function toPlan(){ U.screen='plan'; U.tab=U.tab&&U.tab!=='net'?U.tab:'home'; if(S.month===1&&!S.tut.homeSeen) U.tab='home'; U.outlet=null; U.goOK=false; U.snapMonth=S.month; makeBoard(S); persist(); render(); }
+function toPlan(){ hintsAuto(); U.lastP=null; U.dChip=null; U.screen='plan'; U.tab=U.tab&&U.tab!=='net'?U.tab:'home'; if(S.month===1&&!S.tut.homeSeen) U.tab='home'; U.outlet=null; U.goOK=false; U.snapMonth=S.month; makeBoard(S); persist(); render(); }
 A.actgo=function(){ var a=actOf(S.month); if(S.month===TOTAL){ U.screen='plan'; toPlan(); return; } U.screen='scene'; U.sc={step:0,done:[]}; render(); };
 A.forkpick=function(el){ S.flags.forkOutlet=el.getAttribute('data-o'); render(true); };
 
@@ -4304,7 +4711,7 @@ A.glossary=function(){ openModal('Словарик',glossaryHTML()); };
 A.awards=function(){ openModal('Награды',awardsHTML()); };
 A.menu=function(){
   var inGame=S&&U.screen!=='title';
-  openModal('Меню','<div class="pick"><button data-act="help"><span class="ico">'+ico('help')+'</span><span><b>Как играть</b></span></button><button data-act="glossary"><span class="ico">'+ico('book')+'</span><span><b>Словарик</b></span></button>'+'<button data-act="about"><span class="ico">'+ico('info')+'</span><span><b>Об игре</b><small>Чему учит, данные, версия</small></span></button>'+(isFramed()||isNativeApp()?'':'<button data-act="installhelp"><span class="ico">'+ico('phone')+'</span><span><b>Установить как приложение</b><small>Значок на экране, работа без интернета</small></span></button>')+((navigator.vibrate)?'<button data-act="togglevib"><span class="ico">'+ico('bolt')+'</span><span><b>Вибрация: '+(vibOn?'включена':'выключена')+'</b><small>Лёгкий отклик при нажатии (Android)</small></span></button>':'')+(S?'<button data-act="sheet"><span class="ico">'+ico('book')+'</span><span><b>Отчёт и рабочий лист</b><small>Для учителя: печать или PDF</small></span></button><button data-act="awards"><span class="ico">'+ico('award')+'</span><span><b>Награды</b></span></button><button data-act="recipes"><span class="ico">'+ico('book')+'</span><span><b>Тетрадь Тамары</b></span></button><button data-act="showcode"><span class="ico">'+ico('save')+'</span><span><b>Код сохранения</b><small>Чтобы продолжить на другом устройстве</small></span></button>':'')+
+  openModal('Меню','<div class="pick"><button data-act="help"><span class="ico">'+ico('help')+'</span><span><b>Как играть</b></span></button>'+(inGame&&S?'<button data-act="togglehints"><span class="ico">'+ico('sparkle')+'</span><span><b>Подсказки Борща: '+(S.hints===false?'выкл':'вкл')+'</b><small>'+(S.hints===false?'Нажмите, чтобы вернуть':'Нажмите, чтобы выключить')+'</small></span></button>':'')+'<button data-act="glossary"><span class="ico">'+ico('book')+'</span><span><b>Словарик</b></span></button>'+'<button data-act="about"><span class="ico">'+ico('info')+'</span><span><b>Об игре</b><small>Чему учит, данные, версия</small></span></button>'+(isFramed()||isNativeApp()?'':'<button data-act="installhelp"><span class="ico">'+ico('phone')+'</span><span><b>Установить как приложение</b><small>Значок на экране, работа без интернета</small></span></button>')+((navigator.vibrate)?'<button data-act="togglevib"><span class="ico">'+ico('bolt')+'</span><span><b>Вибрация: '+(vibOn?'включена':'выключена')+'</b><small>Лёгкий отклик при нажатии (Android)</small></span></button>':'')+(S?'<button data-act="sheet"><span class="ico">'+ico('book')+'</span><span><b>Отчёт и рабочий лист</b><small>Для учителя: печать или PDF</small></span></button><button data-act="awards"><span class="ico">'+ico('award')+'</span><span><b>Награды</b></span></button><button data-act="recipes"><span class="ico">'+ico('book')+'</span><span><b>Тетрадь Тамары</b></span></button><button data-act="showcode"><span class="ico">'+ico('save')+'</span><span><b>Код сохранения</b><small>Чтобы продолжить на другом устройстве</small></span></button>':'')+
    '<button data-act="teacher"><span class="ico">'+ico('chart')+'</span><span><b>Табло класса</b></span></button>'+(inGame?'<button data-act="totitle"><span class="ico">'+ico('home')+'</span><span><b>В главное меню</b><small>Прогресс сохранится</small></span></button>':'')+'</div>');
 };
 A.showcode=function(){ openModal('Код сохранения','<p class="small muted">Скопируйте код и вставьте его на другом устройстве в «Загрузить код».</p><textarea class="code" readonly id="savecode">'+esc(exportCode())+'</textarea><div class="row"><button class="btn small secondary" data-act="copycode">'+ico('copy')+' Скопировать</button></div>'); };
@@ -4352,7 +4759,8 @@ function renderBar(){
   if(!plan){ b.hidden=true; b.innerHTML=''; tb.hidden=true; tb.innerHTML=''; document.documentElement.style.setProperty('--bar-h','0px'); return; }
   tb.hidden=false; tb.innerHTML=navHTML();
   var R=getPV(), p=R?R.profit:0;
-  b.hidden=false; b.innerHTML='<div class="in"><div class="fc"><small>Прогноз прибыли</small><b class="num '+(p>=0?'gain-t':'loss-t')+'">'+sgn(Math.round(p/1000)*1000).replace(/ ₽$/,'')+' ₽</b></div><button class="btn" data-act="go">'+ico('play')+' Запустить месяц</button></div>';
+  var dc=deltaChip(p);
+  b.hidden=false; b.innerHTML='<div class="in"><div class="fc"><small>Прогноз прибыли</small><b class="num '+(p>=0?'gain-t':'loss-t')+'">'+sgn(Math.round(p/1000)*1000).replace(/ ₽$/,'')+' ₽</b>'+dc+'</div><button class="btn" data-act="go">'+ico('play')+' Запустить месяц</button></div>';
   var h=(b.offsetHeight||70)+(window.innerWidth<900?(tb.offsetHeight||64):0); document.documentElement.style.setProperty('--bar-h',h+'px');
 }
 function render(keep){
