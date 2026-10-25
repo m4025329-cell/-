@@ -81,6 +81,7 @@ function cacheNeeds(C,key,view){
 }
 function renderCache(C,fn,key){
   var t0=performance.now(), view=APP.view, mw=1.5, cdpr=Math.min(APP.dpr,1.5)*(APP.slow>0?.8:1);
+  while(APP.W*mw*cdpr*APP.H*mw*cdpr>5.2e6&&cdpr>.5) cdpr*=.9;
   C.W=APP.W*mw; C.H=APP.H*mw; C.cx=view.cx; C.cy=view.cy; C.s=view.s; C.key=key; C.dpr=cdpr;
   var pw=Math.ceil(C.W*cdpr), ph=Math.ceil(C.H*cdpr); if(C.cv.width!==pw||C.cv.height!==ph){ C.cv.width=pw; C.cv.height=ph; }
   var g=C.cv.getContext('2d'); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,pw,ph);
@@ -100,7 +101,7 @@ function buildWorld(){
   var rng=mulberry32(20240317);
   genWaterRail(); genRoads(rng);
   genDistricts(rng);
-  genLamps(rng);
+  genLamps(rng); genStops(rng);
   GEN.items.sort(function(a,b){ return a.y-b.y; });
 }
 function genDistricts(rng){

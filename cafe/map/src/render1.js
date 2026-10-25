@@ -42,7 +42,7 @@ function landColor(l,P){
     case 'lawn': return P.lawn; case 'grass': return P.grass; case 'forest': return P.forest; case 'earth': return P.earth; case 'cobble': return P.cobble; case 'pave': return P.pave; case 'gravel': return P.gravel;
     case 'asph': return P.asph; case 'plaza': return l.col?cmix(l.col,'#F1F4F6',P.snow*.7):P.pave; case 'field': return P.field[l.f%4]; case 'garden': return cmix(cmix('#8A7B55','#7C9A4E',P.leaf),'#F0F3F5',P.snow*.9);
     case 'pitch': return cmix(cmix('#6F8E4C','#5FA04A',P.leaf),'#E8EEF1',P.snow*.85); case 'sand': return cmix('#E2CD97','#E2CD97',0); case 'yard': return cmix(P.gravel,P.earth,.4);
-    case 'park': return cmix(P.lawn,'#85B25D',.35*P.leaf); case 'custom': return l.col;
+    case 'park': return cmix(P.lawn,'#85B25D',.35*P.leaf); case 'custom': if(l.water) return cmix(cmix(l.col,'#7FB3CF',P.snow*.2),'#DCE9F1',clamp(P.snow*1.25-.1,0,1)); return l.col;
   }
   return null;
 }

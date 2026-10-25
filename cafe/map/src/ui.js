@@ -39,7 +39,7 @@ function resize(){
   var W=window.innerWidth, H=window.innerHeight; APP.W=W; APP.H=H; APP.dpr=Math.min(2,window.devicePixelRatio||1);
   cvs.width=Math.floor(W*APP.dpr); cvs.height=Math.floor(H*APP.dpr); cvs.style.width=W+'px'; cvs.style.height=H+'px';
   var db=dock.getBoundingClientRect(), dockH=Math.round(H-db.top); document.documentElement.style.setProperty('--db',dockH+'px');
-  var topEnd=document.querySelector('.layers').getBoundingClientRect().bottom;
+  var topEnd=document.querySelector('.layers').getBoundingClientRect().bottom; var tb=$('tour'); if(tb&&!tb.hidden) topEnd=Math.max(topEnd,tb.getBoundingClientRect().bottom+6);
   if(isWide()){ APP.pad={l:panel.getBoundingClientRect().width,r:0,t:topEnd,b:dockH}; }
   else {
     var vis=panel.dataset.state==='open'?panel.getBoundingClientRect().height:(panel.dataset.state==='peek'?92:0);
@@ -149,13 +149,42 @@ function selectDistrict(id){
   if(id){ var bb=distBBox(id); fitRect(bb[0]-20,bb[1]-20,bb[2]+20,bb[3]+20,900); }
 }
 
+/* ---- экскурсия по городу ---- */
+var tour={on:false,i:0,t:null,t0:0};
+var TOUR=[
+  {d:'old',h:12,m:4,w:'clear',t:'Начнём с центра: Кремль, площадь Ленина и переулок, где стоит «Первый столик». Самая дорогая аренда и самый плотный поток, особенно в обед.'},
+  {d:'stat',h:8.3,m:4,w:'clear',t:'Утро на вокзале. Приезжие и пассажиры идут волнами: кофе и выпечка в дорогу здесь продаются лучше всего, а вот постоянных гостей почти нет.'},
+  {d:'biz',h:13,m:4,w:'clear',t:'Обеденный час в деловом квартале. Офисные спешат, пик короткий, и кухня работает на пределе. Корпоративные обеды окупаются быстрее всего.'},
+  {d:'uni',h:15.5,m:5,w:'clear',t:'Студенты после пар. Они любят недорогое и приходят компаниями. Но в июле и августе район почти пустеет: каникулы.'},
+  {d:'park',h:18.5,m:4,w:'clear',t:'Вечер в парке: семьи с детьми и прогулки по набережной. В хорошую погоду здесь людно, а в дождь поток падает вдвое.'},
+  {d:'mkt',h:9.5,m:7,w:'clear',t:'Рынок утром: покупатели приходят с сумками и ценят свежесть. Утренний пик короткий, к полудню всё затихает.'},
+  {d:'ind',h:12.5,m:7,w:'cloudy',t:'Оружейный завод: рабочие обедают по сменам, в 7, около 12:30 и в 16 часов. Комплексные обеды и «обед с собой» дают здесь стабильную выручку.'},
+  {d:'home',h:19,m:11,w:'snow',t:'Новый микрорайон зимним вечером. Днём здесь пусто, вечером людно. Доставка и «кафе у дома» важнее красивого зала.'},
+  {d:'old',h:22.3,m:11,w:'snow',t:'Ночь в центре: огни, новогодняя ёлка на площади Ленина, а ваше кафе всё ещё светится. Нужно ли оставаться открытым допоздна? Решает поток этого района.'}
+];
+function setMonth(m){ ST.month=m; ST.cal=CAL[m-1]; renderDock(); }
+function tweenHour(to,ms){ var from=ST.hour, t0=performance.now(); clearInterval(tweenHour.i); tweenHour.i=setInterval(function(){ var k=clamp((performance.now()-t0)/ms,0,1); ST.hour=lerp(from,to,k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2); if(k>=1) clearInterval(tweenHour.i); },30); }
+function tourStep(){
+  var st=TOUR[tour.i]; if(!st){ stopTour(); toast('Экскурсия закончена. Исследуйте город сами.'); return; }
+  setMonth(st.m); ST.weather=st.w; renderWx(); tweenHour(st.h,1600); ST.play=true; renderDock();
+  var box=$('tour'); box.hidden=false;
+  box.innerHTML='<b>'+esc(DIST[st.d].n)+'</b><span class="cnt">'+(tour.i+1)+' из '+TOUR.length+'</span><p>'+esc(st.t)+'</p><div class="row"><div class="bar"><i id="tour-bar"></i></div><button data-act="tournext">Дальше</button><button data-act="tourstop">Стоп</button></div>';
+  tour.t0=performance.now();
+  selectDistrict(st.d); if(!isWide()){ panel.dataset.state='peek'; }
+  resize(); var bb=distBBox(st.d); fitRect(bb[0]-20,bb[1]-20,bb[2]+20,bb[3]+20,1100);
+  clearTimeout(tour.t); tour.t=setTimeout(function(){ if(tour.on){ tour.i++; tourStep(); } },10500);
+  (function anim(){ if(!tour.on||performance.now()-tour.t0>10600) return; var b=$('tour-bar'); if(b) b.style.width=Math.min(100,(performance.now()-tour.t0)/105)+'%'; requestAnimationFrame(anim); })();
+}
+function startTour(){ tour.on=true; tour.i=0; renderLayers(); tourStep(); }
+function stopTour(){ tour.on=false; clearTimeout(tour.t); $('tour').hidden=true; renderLayers(); resize(); }
+
 /* ---- слои ---- */
-var LAYER_DEFS=[['mode:districts','Районы','layers'],['mode:guests','Гости','people'],['mode:rent','Аренда','ruble'],['ads','Реклама','mega'],['rivals','Конкуренты','store'],['names','Подписи','pin']];
+var LAYER_DEFS=[['tour','Экскурсия','play'],['mode:districts','Районы','layers'],['mode:guests','Гости','people'],['mode:rent','Аренда','ruble'],['ads','Реклама','mega'],['rivals','Конкуренты','store'],['names','Подписи','pin']];
 function renderLayers(){
   var h='';
   LAYER_DEFS.forEach(function(d,i){
-    var on=d[0].indexOf('mode:')===0?ST.mode===d[0].slice(5):!!ST.layers[d[0]];
-    h+='<button class="chip'+(i===3?' sep':'')+'" data-act="layer" data-k="'+d[0]+'" aria-pressed="'+on+'">'+ic(d[2])+d[1]+'</button>';
+    var on=d[0]==='tour'?tour.on:(d[0].indexOf('mode:')===0?ST.mode===d[0].slice(5):!!ST.layers[d[0]]);
+    h+='<button class="chip'+(d[0]==='tour'?' accent':'')+(d[0]==='ads'?' sep':'')+'" data-act="layer" data-k="'+d[0]+'" aria-pressed="'+on+'">'+ic(d[2])+d[1]+'</button>';
   });
   $('layers').innerHTML=h;
 }
@@ -304,13 +333,15 @@ $('r-month').addEventListener('input',function(e){ ST.month=+e.target.value; ST.
 /* ---- клики по кнопкам ---- */
 document.addEventListener('click',function(e){
   var el=e.target.closest?e.target.closest('[data-act]'):null; if(!el) return; var a=el.getAttribute('data-act');
-  if(a==='layer'){ var k=el.getAttribute('data-k'); if(k.indexOf('mode:')===0) setMode(k.slice(5)); else ST.layers[k]=!ST.layers[k]; renderLayers(); if(!ST.sel) renderPanel(); }
+  if(a==='layer'){ var k=el.getAttribute('data-k'); if(k==='tour'){ if(tour.on) stopTour(); else startTour(); return; } if(k.indexOf('mode:')===0) setMode(k.slice(5)); else ST.layers[k]=!ST.layers[k]; renderLayers(); if(!ST.sel) renderPanel(); }
   else if(a==='seld'){ selectDistrict(el.getAttribute('data-d')||null); }
   else if(a==='wx'){ var w=el.getAttribute('data-w'); if(window.innerWidth<=560){ var od=['auto','clear','cloudy','rain','snow']; w=od[(od.indexOf(ST.weather)+1)%od.length]; toast('Погода: '+({auto:'по сезону',clear:'ясно',cloudy:'облачно',rain:'дождь',snow:'снег'})[w]); } ST.weather=w; renderWx(); }
   else if(a==='hrs'){ ST.hoursOpt=+el.getAttribute('data-i'); renderPanel(); }
   else if(a==='ad'){ var ch=el.getAttribute('data-ch'), dd=el.getAttribute('data-d'), ad=ADS[ch], on=!!ST.ads[ch]&&(!ad.local||ST.adLoc[ch]===dd); if(on){ ST.ads[ch]=false; } else { ST.ads[ch]=true; if(ad.local) ST.adLoc[ch]=dd; ST.layers.ads=true; renderLayers(); toast(ad.local?'«'+ad.n+'» включена в районе «'+DIST[dd].n+'»':'«'+ad.n+'» включена на весь город'); } renderPanel(); }
   else if(a==='grab'){ panel.dataset.state=panel.dataset.state==='open'?'peek':'open'; resize(); if(ST.sel&&panel.dataset.state==='open'){ var bb=distBBox(ST.sel); fitRect(bb[0]-20,bb[1]-20,bb[2]+20,bb[3]+20,500); } }
   else if(a==='tipx'){ hideTip(); }
+  else if(a==='tournext'){ clearTimeout(tour.t); tour.i++; tourStep(); }
+  else if(a==='tourstop'){ stopTour(); }
 });
 $('b-play').addEventListener('click',function(){ ST.play=!ST.play; renderDock(); });
 $('z-in').addEventListener('click',function(){ var v=APP.view; flyTo(v.cx,v.cy,v.s*1.5,260); });
@@ -347,5 +378,5 @@ function prof(s){
   ['b','tr','y','car','stall','m'].forEach(function(k){ var sub=items.filter(function(it){ return it.t===k; }); t=performance.now(); drawItems(g,V,P,lod,sub); T('item_'+k); }); t=performance.now(); drawLampPosts(g,V,lod); T('lamps');
   return out;
 }
-window.__map={bench:bench,LF:LF,prof:prof,ST:ST,APP:APP,GEN:GEN,select:selectDistrict,fly:function(x,y,s){ APP.anim=null; APP.view.cx=x; APP.view.cy=y; APP.view.s=s; clampView(APP.view); return APP.view; },ms:function(){ return APP.cache.ms; },setMode:function(m){ setMode(m); renderLayers(); renderPanel(); },renderPanel:renderPanel,renderDock:renderDock,tick:tickTime,flyTo:flyTo};
+window.__map={dbg:function(){ return {pt:Object.keys(PT).length,drag:!!drag,pinch:!!pinch,gesture:APP.gesture,anim:!!APP.anim}; },bench:bench,LF:LF,prof:prof,ST:ST,APP:APP,GEN:GEN,select:selectDistrict,fly:function(x,y,s){ APP.anim=null; APP.view.cx=x; APP.view.cy=y; APP.view.s=s; clampView(APP.view); return APP.view; },ms:function(){ return APP.cache.ms; },setMode:function(m){ setMode(m); renderLayers(); renderPanel(); },renderPanel:renderPanel,renderDock:renderDock,tick:tickTime,flyTo:flyTo};
 boot();

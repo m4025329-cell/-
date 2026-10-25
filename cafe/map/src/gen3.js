@@ -228,3 +228,16 @@ function genLamps(rng){
     for(var i=1;i<pts.length-1;i++){ if(rng()<.35) continue; var a=pts[i-1], b=pts[i+1], dx=b[0]-a[0], dy=b[1]-a[1], l=Math.sqrt(dx*dx+dy*dy)||1, off=s.w/2+2.6; var x=pts[i][0]-dy/l*off, y=pts[i][1]+dx/l*off; if(mfree(x,y,F_WATER|F_SOLID)) GEN.lamps.push([x,y]); }
   });
 }
+
+/* остановки автобуса: навес и скамейка у проспекта Ленина, Окружной и Рыночной */
+function genStops(rng){
+  ['lenin','ring','mkt'].forEach(function(id){
+    var r=GEN.roads.filter(function(q){ return q.id===id; })[0]; if(!r) return; var L=polyLen(r.pts);
+    for(var d=340;d<L-100;d+=340){
+      var q=pointAt(r.pts,d), side=(Math.round(d/340)%2)?1:-1, off=r.w/2+6.2, x=q[0]-Math.sin(q[2])*off*side, y=q[1]+Math.cos(q[2])*off*side;
+      if(!mfree(x,y,F_WATER|F_SOLID)) continue;
+      var it=addBox(x,y,7,2.6,q[2],3.6,{wc:'#C3C8CE',rc:'#2F7FD3',rt:0,win:0,k:'stop'}); GEN.stops.push([x,y]); mpoly(it.pts,F_SOLID);
+      addProp('bench',x-Math.sin(q[2])*side*2.4*-1,y+Math.cos(q[2])*side*2.4*-1,{a:q[2]});
+    }
+  });
+}

@@ -113,7 +113,7 @@ function lifeInit(){
 /* ---- шаг моделирования ---- */
 function lifeStep(dt){
   if(!LF.inited) return; var ds=dt*(ST.reduce?0:1);
-  LF.t+=dt;
+  LF.t+=ds;
   ST._wx=weatherFor(ST.month);
   /* пешеходы: доводим численность до целевой */
   var total=0;
@@ -357,4 +357,18 @@ function drawWeather(ctx,W,H,wx,night){
     ctx.fillStyle='rgba(220,230,240,.1)'; ctx.fillRect(0,0,W,H);
   }
   if(wx==='fog'){ var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'rgba(226,232,236,.62)'); g.addColorStop(.5,'rgba(226,232,236,.46)'); g.addColorStop(1,'rgba(226,232,236,.58)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
+}
+
+/* сезонное убранство: новогодняя ёлка на площади Ленина и каток на пруду */
+function drawSeasonDecor(ctx,V,night){
+  var cal=ST.cal; if(!(cal===11||cal===0||(cal===10&&false))) return;
+  var x=1286, y=688;
+  if(x<V.x0-40||x>V.x1+40||y<V.y0-90||y>V.y1+30) return;
+  ctx.fillStyle='rgba(30,30,40,.25)'; ctx.beginPath(); ctx.ellipse(x+8,y-4,10,4,0,0,6.28); ctx.fill();
+  for(var i=0;i<4;i++){ var by=y-i*7-2, w=11-i*2.2; ctx.fillStyle=shade('#2F5C3C',.9+i*.07); ctx.beginPath(); ctx.moveTo(x-w,by); ctx.lineTo(x-KX*(i*7+14),by-8-KY*0); ctx.lineTo(x+w,by); ctx.closePath(); ctx.fill(); ctx.fillStyle='rgba(245,248,250,.55)'; ctx.beginPath(); ctx.moveTo(x-w*.5,by-3); ctx.lineTo(x-KX*(i*7+14),by-8); ctx.lineTo(x+w*.5,by-3); ctx.closePath(); ctx.fill(); }
+  var lc=['#E2B53C','#D1361A','#2F7FD3','#F4EEDD','#4E9A3E'];
+  for(i=0;i<18;i++){ var a=i*2.4, r=(1-i/22)*9, lx=x+Math.cos(a)*r*.9-i*.2, ly=y-3-i*1.5+Math.sin(a)*2.2; var on=((i+Math.floor(LF.t*2))%3)!==0||night<.2; ctx.fillStyle=on?lc[i%5]:'rgba(60,60,60,.5)'; ctx.beginPath(); ctx.arc(lx,ly,.9,0,6.28); ctx.fill(); if(on&&night>.3){ ctx.fillStyle='rgba(255,230,160,.35)'; ctx.beginPath(); ctx.arc(lx,ly,3,0,6.28); ctx.fill(); } }
+  ctx.fillStyle='#F2C94C'; ctx.beginPath(); var tx=x-KX*30, ty=y-31; for(i=0;i<10;i++){ var rr2=i%2?1.6:3.4, ang=i*Math.PI/5-Math.PI/2; ctx.lineTo(tx+Math.cos(ang)*rr2,ty+Math.sin(ang)*rr2); } ctx.closePath(); ctx.fill();
+  /* каток */
+  if(V.s>.45){ var ps=[1092,1160]; ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=.5; for(i=0;i<5;i++){ var sx=ps[0]+Math.cos(LF.t*.5+i*1.3)*30*(i%2?1:.7), sy=ps[1]+Math.sin(LF.t*.5+i*1.3)*10; ctx.fillStyle=['#D1361A','#2F7FD3','#E2B53C','#8A5CC6','#4E9A3E'][i]; ctx.fillRect(sx-.7,sy-2.6,1.4,2.2); ctx.fillStyle='#E9C9A6'; ctx.beginPath(); ctx.arc(sx,sy-3.2,.8,0,6.28); ctx.fill(); } }
 }

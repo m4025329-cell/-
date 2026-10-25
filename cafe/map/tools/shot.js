@@ -9,6 +9,7 @@ const OUT=path.join(__dirname,'..','dist','shots'); fs.mkdirSync(OUT,{recursive:
   const errs=[]; p.on('pageerror',e=>errs.push(e.message+' '+String(e.stack||'').split('\n').slice(0,3).join('>'))); p.on('console',m=>{ if(m.type()==='error') errs.push(m.text()); });
   await p.goto('file://'+path.join(__dirname,'..','city-map.html')); await p.waitForTimeout(500);
   await p.evaluate(([x,y,s,st])=>{ const M=window.__map; if(st.month){ M.ST.month=st.month; M.ST.cal=[2,3,4,5,6,7,8,9,10,11,0,1,2,3,4,5][st.month-1]; M.renderDock(); } if(st.hour!=null) M.ST.hour=st.hour; if(st.weather) M.ST.weather=st.weather; if(st.play===false) M.ST.play=false; if(st.mode) M.setMode(st.mode); if(st.layers) Object.assign(M.ST.layers,st.layers); if(st.sel!==undefined) M.select(st.sel); else if(!st.keep) M.fly(x,y,s); if(st.train){ const T=M.LF.trains[0]; T.delay=0; T.d=st.train; T.stopped=false; } if(st.hrs!=null){ M.ST.hoursOpt=st.hrs; M.renderPanel(); } M.tick(); },[x,y,s,st]);
+  if(st.click){ await p.click(st.click); if(st.clicks) for(let i=0;i<st.clicks;i++){ await p.waitForTimeout(500); await p.click('[data-act=tournext]'); } }
   await p.waitForTimeout(wait);
   await p.screenshot({path:path.join(OUT,name+'.png')});
   const ms=await p.evaluate(()=>window.__map.ms()); console.log(name,'статика',Math.round(ms||0),'мс'); console.log(errs.length?errs.join('\n'):'ошибок нет'); await b.close();

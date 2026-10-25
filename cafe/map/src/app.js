@@ -66,6 +66,7 @@ function draw(ts){
   drawGlints(ctx,V,P);
   drawBoatsDucks(ctx,V,P);
   drawWheel(ctx,V,night);
+  drawSeasonDecor(ctx,V,night);
   drawCloudShadowsMaybe(ctx,V,P,wx);
   drawDistrictLayer(ctx,V,ts);
   drawTrains(ctx,V,night); drawCars(ctx,V,night); drawBuses(ctx,V,night); drawPeds(ctx,V); drawSmoke(ctx,V); drawBirds(ctx,V);

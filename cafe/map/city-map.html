@@ -140,7 +140,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   .panel{top:auto;left:0;right:0;width:auto;bottom:var(--db,120px);height:min(56vh,calc(100% - var(--db,120px) - 130px));border-right:0;border-top:2px solid var(--edge);border-radius:22px 22px 0 0;transition:transform .32s cubic-bezier(.2,.8,.2,1);box-shadow:0 -10px 30px -14px rgba(43,24,16,.5)}
   .panel[data-state="peek"]{transform:translateY(calc(100% - 92px))}
   .panel[data-state="hidden"]{transform:translateY(calc(100% + 140px))}
-  .grab{display:block;width:100%;height:22px;border:0;background:transparent;position:relative;flex:none} .grab::after{content:"";position:absolute;left:50%;top:9px;width:46px;height:5px;border-radius:3px;background:var(--edge2);transform:translateX(-50%)}
+  .grab{display:block;width:100%;height:30px;border:0;background:transparent;position:relative;flex:none} .grab::after{content:"";position:absolute;left:50%;top:12px;width:46px;height:5px;border-radius:3px;background:var(--edge2);transform:translateX(-50%)}
   .phead{padding:2px 14px 8px 14px;border-bottom:0} .phead h2{font-size:21px}
   .pbody{padding:6px 14px 18px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
   .dock{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));padding:8px 10px;gap:4px;border-radius:20px}
@@ -150,10 +150,19 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
   .tip{max-width:240px}
 }
 @media (max-width:560px){ .wx button:not([aria-pressed="true"]){display:none} .wx{padding:3px} .wx button{width:44px;height:38px;border-radius:999px} }
-@media (max-width:420px){ .tlab small{display:none} .wx button{width:32px;height:32px} .mchip{display:none} }
+@media (max-width:420px){ .tlab small{display:none} .mchip{display:none} }
 @media (min-width:900px){ :root{--pl:var(--pw)} .dock{left:calc(var(--pw) + 14px)} }
 @media (max-height:520px) and (orientation:landscape){ .panel{height:calc(100% - var(--db,120px) - 56px)} .layers{top:calc(max(10px,env(safe-area-inset-top,0px)) + 52px)} }
 @media (prefers-reduced-motion:reduce){ .panel{transition:none} }
+
+/* ---- экскурсия ---- */
+.tour{position:absolute;z-index:21;left:calc(max(12px,env(safe-area-inset-left,0px)) + var(--pl,0px));right:max(12px,env(safe-area-inset-right,0px));top:calc(max(10px,env(safe-area-inset-top,0px)) + 106px);max-width:540px;margin:0 auto;padding:12px 14px;border-radius:18px;background:var(--ink);color:var(--bg);box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+.tour b{font:800 17px var(--font-h)} .tour p{grid-column:1/3;margin:0;font-size:14.5px;line-height:1.4}
+.tour .cnt{font-size:12px;font-weight:800;opacity:.75;letter-spacing:.04em;text-transform:uppercase}
+.tour .row{grid-column:1/3;display:flex;gap:8px;align-items:center;margin-top:4px} .tour .bar{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden} .tour .bar i{display:block;height:100%;background:#FFD43B;width:0}
+.tour button{min-height:38px;padding:0 14px;border-radius:999px;border:2px solid rgba(255,255,255,.4);background:transparent;color:var(--bg);font-weight:800}
+.chip.accent{background:var(--ink);color:var(--bg);border-color:var(--ink)} .chip.accent .ic{color:#FFD43B} .chip.accent[aria-pressed="true"]{background:var(--brand);border-color:var(--brand-dark)}
+@media (max-width:899px){ .tour{top:calc(max(10px,env(safe-area-inset-top,0px)) + 104px)} }
 
 </style>
 <div id="app">
@@ -176,6 +185,7 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;bac
       <span class="mchip" id="o-tur"></span><span class="gcount" id="o-guests"></span>
     </div>
   </section>
+  <div class="tour" id="tour" hidden role="status" aria-live="polite"></div>
   <div class="tip" id="tip" hidden></div>
   <div class="toast" id="toast" hidden role="status"></div>
 </div>
@@ -1284,6 +1294,19 @@ function genLamps(rng){
   });
 }
 
+/* остановки автобуса: навес и скамейка у проспекта Ленина, Окружной и Рыночной */
+function genStops(rng){
+  ['lenin','ring','mkt'].forEach(function(id){
+    var r=GEN.roads.filter(function(q){ return q.id===id; })[0]; if(!r) return; var L=polyLen(r.pts);
+    for(var d=340;d<L-100;d+=340){
+      var q=pointAt(r.pts,d), side=(Math.round(d/340)%2)?1:-1, off=r.w/2+6.2, x=q[0]-Math.sin(q[2])*off*side, y=q[1]+Math.cos(q[2])*off*side;
+      if(!mfree(x,y,F_WATER|F_SOLID)) continue;
+      var it=addBox(x,y,7,2.6,q[2],3.6,{wc:'#C3C8CE',rc:'#2F7FD3',rt:0,win:0,k:'stop'}); GEN.stops.push([x,y]); mpoly(it.pts,F_SOLID);
+      addProp('bench',x-Math.sin(q[2])*side*2.4*-1,y+Math.cos(q[2])*side*2.4*-1,{a:q[2]});
+    }
+  });
+}
+
 /* ===== Карта Тулы: рисование статичного слоя, часть 1 (земля, вода, дороги, рельсы) ===== */
 
 var KX=.30, KY=.80;                        /* наклон «вида сверху»: подъём на z сдвигает точку на (−KX·z, −KY·z) */
@@ -1328,7 +1351,7 @@ function landColor(l,P){
     case 'lawn': return P.lawn; case 'grass': return P.grass; case 'forest': return P.forest; case 'earth': return P.earth; case 'cobble': return P.cobble; case 'pave': return P.pave; case 'gravel': return P.gravel;
     case 'asph': return P.asph; case 'plaza': return l.col?cmix(l.col,'#F1F4F6',P.snow*.7):P.pave; case 'field': return P.field[l.f%4]; case 'garden': return cmix(cmix('#8A7B55','#7C9A4E',P.leaf),'#F0F3F5',P.snow*.9);
     case 'pitch': return cmix(cmix('#6F8E4C','#5FA04A',P.leaf),'#E8EEF1',P.snow*.85); case 'sand': return cmix('#E2CD97','#E2CD97',0); case 'yard': return cmix(P.gravel,P.earth,.4);
-    case 'park': return cmix(P.lawn,'#85B25D',.35*P.leaf); case 'custom': return l.col;
+    case 'park': return cmix(P.lawn,'#85B25D',.35*P.leaf); case 'custom': if(l.water) return cmix(cmix(l.col,'#7FB3CF',P.snow*.2),'#DCE9F1',clamp(P.snow*1.25-.1,0,1)); return l.col;
   }
   return null;
 }
@@ -1761,7 +1784,7 @@ function lifeInit(){
 /* ---- шаг моделирования ---- */
 function lifeStep(dt){
   if(!LF.inited) return; var ds=dt*(ST.reduce?0:1);
-  LF.t+=dt;
+  LF.t+=ds;
   ST._wx=weatherFor(ST.month);
   /* пешеходы: доводим численность до целевой */
   var total=0;
@@ -2007,6 +2030,20 @@ function drawWeather(ctx,W,H,wx,night){
   if(wx==='fog'){ var g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'rgba(226,232,236,.62)'); g.addColorStop(.5,'rgba(226,232,236,.46)'); g.addColorStop(1,'rgba(226,232,236,.58)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H); }
 }
 
+/* сезонное убранство: новогодняя ёлка на площади Ленина и каток на пруду */
+function drawSeasonDecor(ctx,V,night){
+  var cal=ST.cal; if(!(cal===11||cal===0||(cal===10&&false))) return;
+  var x=1286, y=688;
+  if(x<V.x0-40||x>V.x1+40||y<V.y0-90||y>V.y1+30) return;
+  ctx.fillStyle='rgba(30,30,40,.25)'; ctx.beginPath(); ctx.ellipse(x+8,y-4,10,4,0,0,6.28); ctx.fill();
+  for(var i=0;i<4;i++){ var by=y-i*7-2, w=11-i*2.2; ctx.fillStyle=shade('#2F5C3C',.9+i*.07); ctx.beginPath(); ctx.moveTo(x-w,by); ctx.lineTo(x-KX*(i*7+14),by-8-KY*0); ctx.lineTo(x+w,by); ctx.closePath(); ctx.fill(); ctx.fillStyle='rgba(245,248,250,.55)'; ctx.beginPath(); ctx.moveTo(x-w*.5,by-3); ctx.lineTo(x-KX*(i*7+14),by-8); ctx.lineTo(x+w*.5,by-3); ctx.closePath(); ctx.fill(); }
+  var lc=['#E2B53C','#D1361A','#2F7FD3','#F4EEDD','#4E9A3E'];
+  for(i=0;i<18;i++){ var a=i*2.4, r=(1-i/22)*9, lx=x+Math.cos(a)*r*.9-i*.2, ly=y-3-i*1.5+Math.sin(a)*2.2; var on=((i+Math.floor(LF.t*2))%3)!==0||night<.2; ctx.fillStyle=on?lc[i%5]:'rgba(60,60,60,.5)'; ctx.beginPath(); ctx.arc(lx,ly,.9,0,6.28); ctx.fill(); if(on&&night>.3){ ctx.fillStyle='rgba(255,230,160,.35)'; ctx.beginPath(); ctx.arc(lx,ly,3,0,6.28); ctx.fill(); } }
+  ctx.fillStyle='#F2C94C'; ctx.beginPath(); var tx=x-KX*30, ty=y-31; for(i=0;i<10;i++){ var rr2=i%2?1.6:3.4, ang=i*Math.PI/5-Math.PI/2; ctx.lineTo(tx+Math.cos(ang)*rr2,ty+Math.sin(ang)*rr2); } ctx.closePath(); ctx.fill();
+  /* каток */
+  if(V.s>.45){ var ps=[1092,1160]; ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=.5; for(i=0;i<5;i++){ var sx=ps[0]+Math.cos(LF.t*.5+i*1.3)*30*(i%2?1:.7), sy=ps[1]+Math.sin(LF.t*.5+i*1.3)*10; ctx.fillStyle=['#D1361A','#2F7FD3','#E2B53C','#8A5CC6','#4E9A3E'][i]; ctx.fillRect(sx-.7,sy-2.6,1.4,2.2); ctx.fillStyle='#E9C9A6'; ctx.beginPath(); ctx.arc(sx,sy-3.2,.8,0,6.28); ctx.fill(); } }
+}
+
 /* ===== Карта Тулы: конвейер слоёв (статичный кэш, ночные огни, оверлеи, подписи) ===== */
 
 function makeView(cx,cy,s,W,H){ var hw=W/2/s, hh=H/2/s; return {cx:cx,cy:cy,s:s,W:W,H:H,x0:cx-hw,y0:cy-hh,x1:cx+hw,y1:cy+hh}; }
@@ -2090,6 +2127,7 @@ function cacheNeeds(C,key,view){
 }
 function renderCache(C,fn,key){
   var t0=performance.now(), view=APP.view, mw=1.5, cdpr=Math.min(APP.dpr,1.5)*(APP.slow>0?.8:1);
+  while(APP.W*mw*cdpr*APP.H*mw*cdpr>5.2e6&&cdpr>.5) cdpr*=.9;
   C.W=APP.W*mw; C.H=APP.H*mw; C.cx=view.cx; C.cy=view.cy; C.s=view.s; C.key=key; C.dpr=cdpr;
   var pw=Math.ceil(C.W*cdpr), ph=Math.ceil(C.H*cdpr); if(C.cv.width!==pw||C.cv.height!==ph){ C.cv.width=pw; C.cv.height=ph; }
   var g=C.cv.getContext('2d'); g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,pw,ph);
@@ -2109,7 +2147,7 @@ function buildWorld(){
   var rng=mulberry32(20240317);
   genWaterRail(); genRoads(rng);
   genDistricts(rng);
-  genLamps(rng);
+  genLamps(rng); genStops(rng);
   GEN.items.sort(function(a,b){ return a.y-b.y; });
 }
 function genDistricts(rng){
@@ -2186,6 +2224,7 @@ function draw(ts){
   drawGlints(ctx,V,P);
   drawBoatsDucks(ctx,V,P);
   drawWheel(ctx,V,night);
+  drawSeasonDecor(ctx,V,night);
   drawCloudShadowsMaybe(ctx,V,P,wx);
   drawDistrictLayer(ctx,V,ts);
   drawTrains(ctx,V,night); drawCars(ctx,V,night); drawBuses(ctx,V,night); drawPeds(ctx,V); drawSmoke(ctx,V); drawBirds(ctx,V);
@@ -2424,7 +2463,7 @@ function resize(){
   var W=window.innerWidth, H=window.innerHeight; APP.W=W; APP.H=H; APP.dpr=Math.min(2,window.devicePixelRatio||1);
   cvs.width=Math.floor(W*APP.dpr); cvs.height=Math.floor(H*APP.dpr); cvs.style.width=W+'px'; cvs.style.height=H+'px';
   var db=dock.getBoundingClientRect(), dockH=Math.round(H-db.top); document.documentElement.style.setProperty('--db',dockH+'px');
-  var topEnd=document.querySelector('.layers').getBoundingClientRect().bottom;
+  var topEnd=document.querySelector('.layers').getBoundingClientRect().bottom; var tb=$('tour'); if(tb&&!tb.hidden) topEnd=Math.max(topEnd,tb.getBoundingClientRect().bottom+6);
   if(isWide()){ APP.pad={l:panel.getBoundingClientRect().width,r:0,t:topEnd,b:dockH}; }
   else {
     var vis=panel.dataset.state==='open'?panel.getBoundingClientRect().height:(panel.dataset.state==='peek'?92:0);
@@ -2534,13 +2573,42 @@ function selectDistrict(id){
   if(id){ var bb=distBBox(id); fitRect(bb[0]-20,bb[1]-20,bb[2]+20,bb[3]+20,900); }
 }
 
+/* ---- экскурсия по городу ---- */
+var tour={on:false,i:0,t:null,t0:0};
+var TOUR=[
+  {d:'old',h:12,m:4,w:'clear',t:'Начнём с центра: Кремль, площадь Ленина и переулок, где стоит «Первый столик». Самая дорогая аренда и самый плотный поток, особенно в обед.'},
+  {d:'stat',h:8.3,m:4,w:'clear',t:'Утро на вокзале. Приезжие и пассажиры идут волнами: кофе и выпечка в дорогу здесь продаются лучше всего, а вот постоянных гостей почти нет.'},
+  {d:'biz',h:13,m:4,w:'clear',t:'Обеденный час в деловом квартале. Офисные спешат, пик короткий, и кухня работает на пределе. Корпоративные обеды окупаются быстрее всего.'},
+  {d:'uni',h:15.5,m:5,w:'clear',t:'Студенты после пар. Они любят недорогое и приходят компаниями. Но в июле и августе район почти пустеет: каникулы.'},
+  {d:'park',h:18.5,m:4,w:'clear',t:'Вечер в парке: семьи с детьми и прогулки по набережной. В хорошую погоду здесь людно, а в дождь поток падает вдвое.'},
+  {d:'mkt',h:9.5,m:7,w:'clear',t:'Рынок утром: покупатели приходят с сумками и ценят свежесть. Утренний пик короткий, к полудню всё затихает.'},
+  {d:'ind',h:12.5,m:7,w:'cloudy',t:'Оружейный завод: рабочие обедают по сменам, в 7, около 12:30 и в 16 часов. Комплексные обеды и «обед с собой» дают здесь стабильную выручку.'},
+  {d:'home',h:19,m:11,w:'snow',t:'Новый микрорайон зимним вечером. Днём здесь пусто, вечером людно. Доставка и «кафе у дома» важнее красивого зала.'},
+  {d:'old',h:22.3,m:11,w:'snow',t:'Ночь в центре: огни, новогодняя ёлка на площади Ленина, а ваше кафе всё ещё светится. Нужно ли оставаться открытым допоздна? Решает поток этого района.'}
+];
+function setMonth(m){ ST.month=m; ST.cal=CAL[m-1]; renderDock(); }
+function tweenHour(to,ms){ var from=ST.hour, t0=performance.now(); clearInterval(tweenHour.i); tweenHour.i=setInterval(function(){ var k=clamp((performance.now()-t0)/ms,0,1); ST.hour=lerp(from,to,k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2); if(k>=1) clearInterval(tweenHour.i); },30); }
+function tourStep(){
+  var st=TOUR[tour.i]; if(!st){ stopTour(); toast('Экскурсия закончена. Исследуйте город сами.'); return; }
+  setMonth(st.m); ST.weather=st.w; renderWx(); tweenHour(st.h,1600); ST.play=true; renderDock();
+  var box=$('tour'); box.hidden=false;
+  box.innerHTML='<b>'+esc(DIST[st.d].n)+'</b><span class="cnt">'+(tour.i+1)+' из '+TOUR.length+'</span><p>'+esc(st.t)+'</p><div class="row"><div class="bar"><i id="tour-bar"></i></div><button data-act="tournext">Дальше</button><button data-act="tourstop">Стоп</button></div>';
+  tour.t0=performance.now();
+  selectDistrict(st.d); if(!isWide()){ panel.dataset.state='peek'; }
+  resize(); var bb=distBBox(st.d); fitRect(bb[0]-20,bb[1]-20,bb[2]+20,bb[3]+20,1100);
+  clearTimeout(tour.t); tour.t=setTimeout(function(){ if(tour.on){ tour.i++; tourStep(); } },10500);
+  (function anim(){ if(!tour.on||performance.now()-tour.t0>10600) return; var b=$('tour-bar'); if(b) b.style.width=Math.min(100,(performance.now()-tour.t0)/105)+'%'; requestAnimationFrame(anim); })();
+}
+function startTour(){ tour.on=true; tour.i=0; renderLayers(); tourStep(); }
+function stopTour(){ tour.on=false; clearTimeout(tour.t); $('tour').hidden=true; renderLayers(); resize(); }
+
 /* ---- слои ---- */
-var LAYER_DEFS=[['mode:districts','Районы','layers'],['mode:guests','Гости','people'],['mode:rent','Аренда','ruble'],['ads','Реклама','mega'],['rivals','Конкуренты','store'],['names','Подписи','pin']];
+var LAYER_DEFS=[['tour','Экскурсия','play'],['mode:districts','Районы','layers'],['mode:guests','Гости','people'],['mode:rent','Аренда','ruble'],['ads','Реклама','mega'],['rivals','Конкуренты','store'],['names','Подписи','pin']];
 function renderLayers(){
   var h='';
   LAYER_DEFS.forEach(function(d,i){
-    var on=d[0].indexOf('mode:')===0?ST.mode===d[0].slice(5):!!ST.layers[d[0]];
-    h+='<button class="chip'+(i===3?' sep':'')+'" data-act="layer" data-k="'+d[0]+'" aria-pressed="'+on+'">'+ic(d[2])+d[1]+'</button>';
+    var on=d[0]==='tour'?tour.on:(d[0].indexOf('mode:')===0?ST.mode===d[0].slice(5):!!ST.layers[d[0]]);
+    h+='<button class="chip'+(d[0]==='tour'?' accent':'')+(d[0]==='ads'?' sep':'')+'" data-act="layer" data-k="'+d[0]+'" aria-pressed="'+on+'">'+ic(d[2])+d[1]+'</button>';
   });
   $('layers').innerHTML=h;
 }
@@ -2689,13 +2757,15 @@ $('r-month').addEventListener('input',function(e){ ST.month=+e.target.value; ST.
 /* ---- клики по кнопкам ---- */
 document.addEventListener('click',function(e){
   var el=e.target.closest?e.target.closest('[data-act]'):null; if(!el) return; var a=el.getAttribute('data-act');
-  if(a==='layer'){ var k=el.getAttribute('data-k'); if(k.indexOf('mode:')===0) setMode(k.slice(5)); else ST.layers[k]=!ST.layers[k]; renderLayers(); if(!ST.sel) renderPanel(); }
+  if(a==='layer'){ var k=el.getAttribute('data-k'); if(k==='tour'){ if(tour.on) stopTour(); else startTour(); return; } if(k.indexOf('mode:')===0) setMode(k.slice(5)); else ST.layers[k]=!ST.layers[k]; renderLayers(); if(!ST.sel) renderPanel(); }
   else if(a==='seld'){ selectDistrict(el.getAttribute('data-d')||null); }
   else if(a==='wx'){ var w=el.getAttribute('data-w'); if(window.innerWidth<=560){ var od=['auto','clear','cloudy','rain','snow']; w=od[(od.indexOf(ST.weather)+1)%od.length]; toast('Погода: '+({auto:'по сезону',clear:'ясно',cloudy:'облачно',rain:'дождь',snow:'снег'})[w]); } ST.weather=w; renderWx(); }
   else if(a==='hrs'){ ST.hoursOpt=+el.getAttribute('data-i'); renderPanel(); }
   else if(a==='ad'){ var ch=el.getAttribute('data-ch'), dd=el.getAttribute('data-d'), ad=ADS[ch], on=!!ST.ads[ch]&&(!ad.local||ST.adLoc[ch]===dd); if(on){ ST.ads[ch]=false; } else { ST.ads[ch]=true; if(ad.local) ST.adLoc[ch]=dd; ST.layers.ads=true; renderLayers(); toast(ad.local?'«'+ad.n+'» включена в районе «'+DIST[dd].n+'»':'«'+ad.n+'» включена на весь город'); } renderPanel(); }
   else if(a==='grab'){ panel.dataset.state=panel.dataset.state==='open'?'peek':'open'; resize(); if(ST.sel&&panel.dataset.state==='open'){ var bb=distBBox(ST.sel); fitRect(bb[0]-20,bb[1]-20,bb[2]+20,bb[3]+20,500); } }
   else if(a==='tipx'){ hideTip(); }
+  else if(a==='tournext'){ clearTimeout(tour.t); tour.i++; tourStep(); }
+  else if(a==='tourstop'){ stopTour(); }
 });
 $('b-play').addEventListener('click',function(){ ST.play=!ST.play; renderDock(); });
 $('z-in').addEventListener('click',function(){ var v=APP.view; flyTo(v.cx,v.cy,v.s*1.5,260); });
@@ -2732,7 +2802,7 @@ function prof(s){
   ['b','tr','y','car','stall','m'].forEach(function(k){ var sub=items.filter(function(it){ return it.t===k; }); t=performance.now(); drawItems(g,V,P,lod,sub); T('item_'+k); }); t=performance.now(); drawLampPosts(g,V,lod); T('lamps');
   return out;
 }
-window.__map={bench:bench,LF:LF,prof:prof,ST:ST,APP:APP,GEN:GEN,select:selectDistrict,fly:function(x,y,s){ APP.anim=null; APP.view.cx=x; APP.view.cy=y; APP.view.s=s; clampView(APP.view); return APP.view; },ms:function(){ return APP.cache.ms; },setMode:function(m){ setMode(m); renderLayers(); renderPanel(); },renderPanel:renderPanel,renderDock:renderDock,tick:tickTime,flyTo:flyTo};
+window.__map={dbg:function(){ return {pt:Object.keys(PT).length,drag:!!drag,pinch:!!pinch,gesture:APP.gesture,anim:!!APP.anim}; },bench:bench,LF:LF,prof:prof,ST:ST,APP:APP,GEN:GEN,select:selectDistrict,fly:function(x,y,s){ APP.anim=null; APP.view.cx=x; APP.view.cy=y; APP.view.s=s; clampView(APP.view); return APP.view; },ms:function(){ return APP.cache.ms; },setMode:function(m){ setMode(m); renderLayers(); renderPanel(); },renderPanel:renderPanel,renderDock:renderDock,tick:tickTime,flyTo:flyTo};
 boot();
 
 })();
