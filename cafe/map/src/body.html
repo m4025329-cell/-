@@ -1,0 +1,31 @@
+<title>Карта Тулы</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/*STYLE*/
+</style>
+<div id="app">
+  <canvas id="map" tabindex="0" aria-label="Схема города Тулы. Перетаскивайте карту, масштабируйте щипком или колесом, нажимайте на районы."></canvas>
+  <header class="top">
+    <div class="brand"><span class="logo" id="logo"></span><div><b>Карта Тулы</b><small>схема по мотивам города</small></div></div>
+    <div class="tools"><button class="rbtn" id="b-help" aria-label="О карте и подсказки"></button><button class="rbtn" id="b-theme" aria-label="Тема оформления"></button></div>
+  </header>
+  <nav class="layers" id="layers" aria-label="Слои карты"></nav>
+  <aside class="panel" id="panel" data-state="open" aria-label="Описание района"></aside>
+  <div class="zoomctl"><button class="rbtn" id="z-in" aria-label="Приблизить"></button><button class="rbtn" id="z-out" aria-label="Отдалить"></button><button class="rbtn" id="z-cafe" aria-label="К «Первому столику»"></button></div>
+  <section class="dock" id="dock" aria-label="Время суток, месяц и погода">
+    <div class="drow">
+      <button class="pbtn" id="b-play" aria-label="Остановить время"></button>
+      <div class="tbox"><div class="tlab"><output id="o-time" for="r-time">11:30</output><small id="o-part">день</small></div><input type="range" id="r-time" min="0" max="24" step="0.05" value="11.5" aria-label="Время суток"></div>
+      <div class="wx" role="group" aria-label="Погода" id="wx"></div>
+    </div>
+    <div class="drow">
+      <div class="tbox"><div class="tlab"><output id="o-month" for="r-month">Март</output><small id="o-season"></small></div><input type="range" id="r-month" min="1" max="16" step="1" value="1" aria-label="Месяц игры"></div>
+      <span class="mchip" id="o-tur"></span><span class="gcount" id="o-guests"></span>
+    </div>
+  </section>
+  <div class="tip" id="tip" hidden></div>
+  <div class="toast" id="toast" hidden role="status"></div>
+</div>
+<script>
+/*SCRIPTS*/
+</script>
